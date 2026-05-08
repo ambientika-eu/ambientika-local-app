@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # -----------------------------------------------------------------------
+  # MQTT Broker (Mosquitto) – the local message bus
+  # -----------------------------------------------------------------------
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: ambientika-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"   # WebSocket port (optional)
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+
+  # -----------------------------------------------------------------------
+  # Ambientika MQTT Bridge
+  # Polls the Ambientika Cloud API and republishes data locally via MQTT.
+  # Replace AMBIENTIKA_EMAIL / PASSWORD with your Ambientika account.
+  # -----------------------------------------------------------------------
+  bridge:
+    image: ghcr.io/ambientika-eu/ambientika-mqtt-bridge:latest
+    container_name: ambientika-bridge
+    restart: unless-stopped
+    depends_on:
+      - mqtt
+    environment:
+      AMBIENTIKA_EMAIL:    ${AMBIENTIKA_EMAIL}
+      AMBIENTIKA_PASSWORD: ${AMBIENTIKA_PASSWORD}
+      MQTT_BROKER:         mqtt
+      MQTT_PORT:           1883
+      MQTT_PREFIX:         ambientika
+      POLL_INTERVAL:       30
+      HA_DISCOVERY:        false   # not needed for local app
+      LOG_LEVEL:           INFO
+
+  # -----------------------------------------------------------------------
+  # Ambientika Local App Backend (FastAPI)
+  # REST API + WebSocket – runs on port 8080
+  # -----------------------------------------------------------------------
+  backend:
+    build: ./backend
+    container_name: ambientika-backend
+    restart: unless-stopped
+    depends_on:
+      - mqtt
+    ports:
+      - "8080:8080"
+    environment:
+      MQTT_BROKER:   mqtt
+      MQTT_PORT:     1883
+      MQTT_PREFIX:   ambientika
+      LOG_LEVEL:     INFO
+    volumes:
+      - ./frontend/dist:/app/frontend/dist:ro   # serve PWA from same container
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
