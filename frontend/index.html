@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0066cc" />
+  <title>Ambientika Local</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icons/icon-192.png" />
+  <style>
+    /* ---- Reset & Base ---- */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary:   #0066cc;
+      --primary-d: #004fa3;
+      --bg:        #f0f4f8;
+      --card:      #ffffff;
+      --text:      #1a202c;
+      --muted:     #718096;
+      --green:     #38a169;
+      --red:       #e53e3e;
+      --orange:    #dd6b20;
+      --radius:    12px;
+      --shadow:    0 2px 12px rgba(0,0,0,.08);
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ---- Header ---- */
+    header {
+      background: var(--primary);
+      color: #fff;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    }
+    header h1 { font-size: 1.25rem; font-weight: 700; }
+    header .badge {
+      margin-left: auto;
+      font-size: .75rem;
+      background: rgba(255,255,255,.2);
+      padding: .25rem .75rem;
+      border-radius: 999px;
+    }
+    #mqtt-status { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #fc8181; margin-right: .4rem; }
+    #mqtt-status.connected { background: #68d391; }
+
+    /* ---- Main layout ---- */
+    main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+
+    /* ---- Device cards grid ---- */
+    #devices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-top: 1.5rem;
+    }
+    .device-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 1.25rem;
+      transition: transform .15s, box-shadow .15s;
+    }
+    .device-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+    .device-card .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .device-card h2 { font-size: 1rem; font-weight: 600; }
+    .status-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--red);
+    }
+    .status-dot.online { background: var(--green); }
+
+    /* ---- Metrics row ---- */
+    .metrics {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.25rem;
+    }
+    .metric {
+      background: var(--bg);
+      border-radius: 8px;
+      padding: .5rem .75rem;
+      text-align: center;
+      flex: 1;
+      min-width: 60px;
+    }
+    .metric .val { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
+    .metric .lbl { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+    /* ---- Mode buttons ---- */
+    .modes {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+    .mode-btn {
+      flex: 1;
+      padding: .5rem .25rem;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+      font-size: .75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s;
+      text-align: center;
+    }
+    .mode-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .mode-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+
+    /* ---- Fan speed slider ---- */
+    .fan-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .fan-row label { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+    .fan-row input[type=range] { flex: 1; accent-color: var(--primary); }
+    .fan-val { font-size: .85rem; font-weight: 700; width: 36px; text-align: right; }
+
+    /* ---- Filter alarm ---- */
+    .filter-alarm {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      margin-top: 1rem;
+      padding: .5rem .75rem;
+      background: #fff5f5;
+      border-radius: 8px;
+      font-size: .8rem;
+      color: var(--red);
+      font-weight: 600;
+    }
+
+    /* ---- Empty state ---- */
+    #empty-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--muted);
+    }
+    #empty-state h2 { font-size: 1.5rem; margin-bottom: .5rem; }
+    #empty-state p { font-size: .9rem; }
+
+    /* ---- Toast ---- */
+    #toast {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%) translateY(2rem);
+      background: #2d3748;
+      color: #fff;
+      padding: .75rem 1.5rem;
+      border-radius: 999px;
+      font-size: .85rem;
+      opacity: 0;
+      transition: all .3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <header>
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="14" fill="rgba(255,255,255,0.2)"/>
+      <path d="M14 7 A7 7 0 0 1 14 21 A7 7 0 0 1 14 7" stroke="white" stroke-width="2" fill="none"/>
+      <circle cx="14" cy="14" r="3" fill="white"/>
+    </svg>
+    <h1>Ambientika Local</h1>
+    <span class="badge"><span id="mqtt-status"></span><span id="mqtt-label">Verbinde…</span></span>
+  </header>
+
+  <main>
+    <div id="devices-grid"></div>
+    <div id="empty-state" style="display:none;">
+      <h2>Keine Geräte gefunden</h2>
+      <p>Stelle sicher, dass der MQTT-Broker und die Ambientika Bridge laufen.</p>
+    </div>
+  </main>
+
+  <div id="toast"></div>
+
+  <script>
+    // ---- Config ----
+    const API  = window.location.origin + '/api';
+    const WS   = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/ws';
+
+    // ---- State ----
+    const devices = {};
+    let ws = null;
+
+    // ---- Toast ----
+    function showToast(msg, dur = 2500) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), dur);
+    }
+
+    // ---- WebSocket ----
+    function connectWS() {
+      ws = new WebSocket(WS);
+      ws.onopen = () => setMqttStatus(true);
+      ws.onclose = () => { setMqttStatus(false); setTimeout(connectWS, 3000); };
+      ws.onerror = () => setMqttStatus(false);
+      ws.onmessage = (e) => {
+        const { event, deviceId, data } = JSON.parse(e.data);
+        if (event === 'status' || event === 'availability') {
+          devices[deviceId] = { ...devices[deviceId], ...data, deviceId };
+          renderCard(deviceId);
+        }
+      };
+    }
+
+    function setMqttStatus(ok) {
+      const dot = document.getElementById('mqtt-status');
+      const lbl = document.getElementById('mqtt-label');
+      dot.className = ok ? 'connected' : '';
+      lbl.textContent = ok ? 'Verbunden' : 'Getrennt';
+    }
+
+    // ---- API ----
+    async function loadDevices() {
+      try {
+        const res = await fetch(API + '/devices');
+        const list = await res.json();
+        list.forEach(d => { devices[d.deviceId] = d; renderCard(d.deviceId); });
+        if (list.length === 0) document.getElementById('empty-state').style.display = 'block';
+      } catch(e) {
+        document.getElementById('empty-state').style.display = 'block';
+      }
+    }
+
+    async function sendCommand(deviceId, cmd) {
+      try {
+        await fetch(API + '/devices/' + deviceId + '/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cmd)
+        });
+        showToast('Befehl gesendet');
+      } catch(e) {
+        showToast('Fehler: ' + e.message);
+      }
+    }
+
+    // ---- Render ----
+    const MODES = ['HRV','NIGHT','BOOST','ECO','OFF'];
+    const MODE_LABELS = { HRV:'Lüftung', NIGHT:'Nacht', BOOST:'Boost', ECO:'Eco', OFF:'Aus' };
+
+    function renderCard(deviceId) {
+      const d = devices[deviceId];
+      const grid = document.getElementById('devices-grid');
+      document.getElementById('empty-state').style.display = 'none';
+
+      let card = document.getElementById('card-' + deviceId);
+      if (!card) {
+        card = document.createElement('div');
+        card.className = 'device-card';
+        card.id = 'card-' + deviceId;
+        grid.appendChild(card);
+      }
+
+      const tempStr  = d.temperature != null ? d.temperature.toFixed(1) + ' °C' : '—';
+      const humStr   = d.humidity    != null ? d.humidity + ' %'                 : '—';
+      const aqStr    = d.airQuality  != null ? d.airQuality + ' ppm'             : '—';
+      const fanVal   = d.fanSpeed    != null ? d.fanSpeed                         : 50;
+
+      card.innerHTML = `
+        <div class="card-header">
+          <h2>${d.name || deviceId}</h2>
+          <span class="status-dot ${d.online ? 'online' : ''}" title="${d.online ? 'Online' : 'Offline'}"></span>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="val">${tempStr}</div><div class="lbl">Temp</div></div>
+          <div class="metric"><div class="val">${humStr}</div><div class="lbl">Feuchte</div></div>
+          <div class="metric"><div class="val">${aqStr}</div><div class="lbl">CO₂</div></div>
+        </div>
+        <div class="modes">
+          ${MODES.map(m => `<button class="mode-btn ${d.mode===m?'active':''}" onclick="sendCommand('${deviceId}',{mode:'${m}'})">${MODE_LABELS[m]}</button>`).join('')}
+        </div>
+        <div class="fan-row">
+          <label>Lüfter</label>
+          <input type="range" min="0" max="100" value="${fanVal}"
+            oninput="this.nextElementSibling.textContent=this.value+'%'"
+            onchange="sendCommand('${deviceId}',{fanSpeed:+this.value})"/>
+          <span class="fan-val">${fanVal}%</span>
+        </div>
+        ${d.filterAlarm ? '<div class="filter-alarm">⚠️ Filterwechsel erforderlich</div>' : ''}
+      `;
+    }
+
+    // ---- Init ----
+    loadDevices();
+    connectWS();
+
+    // ---- PWA Service Worker ----
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+</body>
+</html>
