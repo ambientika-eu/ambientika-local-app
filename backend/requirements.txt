@@ -1,0 +1,7 @@
+# Ambientika Local App – Backend dependencies
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+websockets>=12.0
+paho-mqtt>=1.6.1
+python-multipart>=0.0.9
+aiofiles>=23.2.1
