@@ -1,13 +1,21 @@
-// Ambientika Local App – Service Worker (PWA offline support)
-const CACHE   = 'ambientika-v1';
-const ASSETS  = ['/', '/index.html', '/manifest.json'];
+// Ambientika Local – Service Worker v3.0
+const CACHE = 'ambientika-local-v3';
+const ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png'
+];
 
+// Install: pre-cache shell assets
 self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
   );
 });
 
+// Activate: remove old caches
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys().then(keys =>
@@ -16,21 +24,25 @@ self.addEventListener('activate', e => {
   );
 });
 
+// Fetch: network-first for API/WS, cache-first for shell
 self.addEventListener('fetch', e => {
-  // API and WebSocket: always network
-  if (e.request.url.includes('/api/') || e.request.url.includes('/ws')) return;
+  const url = new URL(e.request.url);
 
-  // Static assets: cache-first
+  // Always fetch API and WebSocket live
+  if (url.pathname.startsWith('/api') || url.pathname.startsWith('/ws')) {
+    return;
+  }
+
+  // Network-first with cache fallback for app shell
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(resp => {
-        if (resp && resp.status === 200 && resp.type === 'basic') {
-          const clone = resp.clone();
+    fetch(e.request)
+      .then(res => {
+        if (res && res.status === 200 && e.request.method === 'GET') {
+          const clone = res.clone();
           caches.open(CACHE).then(c => c.put(e.request, clone));
         }
-        return resp;
-      });
-    })
+        return res;
+      })
+      .catch(() => caches.match(e.request).then(cached => cached || caches.match('/index.html')))
   );
 });
