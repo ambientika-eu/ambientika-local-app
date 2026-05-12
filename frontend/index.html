@@ -1,321 +1,475 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0066cc" />
-  <title>Ambientika Local</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="icons/icon-192.png" />
-  <style>
-    /* ---- Reset & Base ---- */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --primary:   #0066cc;
-      --primary-d: #004fa3;
-      --bg:        #f0f4f8;
-      --card:      #ffffff;
-      --text:      #1a202c;
-      --muted:     #718096;
-      --green:     #38a169;
-      --red:       #e53e3e;
-      --orange:    #dd6b20;
-      --radius:    12px;
-      --shadow:    0 2px 12px rgba(0,0,0,.08);
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0066cc" />
+<title>Ambientika Local</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<style>
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #0066cc; --primary-d: #004fa3;
+  --bg: #f0f4f8; --card: #ffffff;
+  --text: #1a202c; --muted: #718096;
+  --green: #38a169; --red: #e53e3e; --orange: #dd6b20; --purple: #805ad5;
+  --radius: 12px; --shadow: 0 2px 12px rgba(0,0,0,.08);
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    /* ---- Header ---- */
-    header {
-      background: var(--primary);
-      color: #fff;
-      padding: 1rem 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(0,0,0,.2);
-    }
-    header h1 { font-size: 1.25rem; font-weight: 700; }
-    header .badge {
-      margin-left: auto;
-      font-size: .75rem;
-      background: rgba(255,255,255,.2);
-      padding: .25rem .75rem;
-      border-radius: 999px;
-    }
-    #mqtt-status { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #fc8181; margin-right: .4rem; }
-    #mqtt-status.connected { background: #68d391; }
+/* HEADER */
+header { background: #fff; border-bottom: 1px solid #e2e8f0; padding: .7rem 1.5rem; display: flex; align-items: center; gap: 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+.logo-svg { display: block; height: 30px; width: auto; }
+.header-divider { width: 1px; height: 26px; background: #e2e8f0; margin: 0 12px; }
+.app-label { font-size: .78rem; color: var(--muted); font-weight: 500; letter-spacing: .03em; }
+.badge { margin-left: auto; font-size: .72rem; background: #f0fff4; color: #276749; border: 1px solid #c6f6d5; padding: .28rem .85rem; border-radius: 999px; display: flex; align-items: center; gap: .4rem; font-weight: 700; }
+#mqtt-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #fc8181; }
+#mqtt-dot.connected { background: #68d391; }
 
-    /* ---- Main layout ---- */
-    main { max-width: 960px; margin: 0 auto; padding: 1.5rem; }
+/* NAV */
+nav { background: #fff; border-bottom: 2px solid #e2e8f0; padding: 0 1.5rem; display: flex; }
+.nav-tab { padding: .75rem 1.25rem; font-size: .82rem; font-weight: 700; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; }
+.nav-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
 
-    /* ---- Device cards grid ---- */
-    #devices-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1.25rem;
-      margin-top: 1.5rem;
-    }
-    .device-card {
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 1.25rem;
-      transition: transform .15s, box-shadow .15s;
-    }
-    .device-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,.12); }
-    .device-card .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1rem;
-    }
-    .device-card h2 { font-size: 1rem; font-weight: 600; }
-    .status-dot {
-      width: 10px; height: 10px; border-radius: 50%;
-      background: var(--red);
-    }
-    .status-dot.online { background: var(--green); }
+/* MAIN */
+main { max-width: 1000px; margin: 0 auto; padding: 1.5rem; }
+.section-title { font-size: .72rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 1rem; font-weight: 700; }
 
-    /* ---- Metrics row ---- */
-    .metrics {
-      display: flex;
-      gap: .75rem;
-      flex-wrap: wrap;
-      margin-bottom: 1.25rem;
-    }
-    .metric {
-      background: var(--bg);
-      border-radius: 8px;
-      padding: .5rem .75rem;
-      text-align: center;
-      flex: 1;
-      min-width: 60px;
-    }
-    .metric .val { font-size: 1.25rem; font-weight: 700; color: var(--primary); }
-    .metric .lbl { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+/* DEVICE CARDS */
+#devices-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1.25rem; }
+.device-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 1.25rem; border: 1px solid #e8edf3; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.card-header h2 { font-size: 1rem; font-weight: 700; display: flex; align-items: center; gap: .4rem; }
+.status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
+.status-dot.online { background: var(--green); }
+.metrics { display: flex; gap: .6rem; margin-bottom: 1.25rem; }
+.metric { background: #f7fafc; border-radius: 8px; padding: .55rem .7rem; text-align: center; flex: 1; border: 1px solid #edf2f7; }
+.metric .val { font-size: 1.05rem; font-weight: 800; color: var(--primary); }
+.metric .lbl { font-size: .6rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; margin-top: 2px; }
+.modes { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.mode-btn { flex: 1; min-width: 0; padding: .42rem .15rem; border: 1.5px solid #e2e8f0; border-radius: 8px; background: #fff; font-size: .68rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--muted); }
+.mode-btn:hover { border-color: var(--primary); color: var(--primary); }
+.mode-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+.mode-btn.smart-active { border-color: var(--purple); background: var(--purple); color: #fff; }
+.fan-row { display: flex; align-items: center; gap: .75rem; }
+.fan-row label { font-size: .76rem; color: var(--muted); white-space: nowrap; font-weight: 600; }
+.fan-row input[type=range] { flex: 1; accent-color: var(--primary); }
+.fan-val { font-size: .82rem; font-weight: 800; width: 36px; text-align: right; color: var(--primary); }
+.filter-alarm { display: flex; align-items: center; gap: .5rem; margin-top: 1rem; padding: .55rem .8rem; background: #fff5f5; border-radius: 8px; border: 1px solid #fed7d7; font-size: .76rem; color: var(--red); font-weight: 700; }
+.smart-badge { font-size: .62rem; font-weight: 700; padding: .18rem .5rem; border-radius: 999px; background: #f5f0ff; color: var(--purple); border: 1px solid #d6bcfa; }
+#empty-state { text-align: center; padding: 4rem 1rem; color: var(--muted); }
 
-    /* ---- Mode buttons ---- */
-    .modes {
-      display: flex;
-      gap: .5rem;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-    }
-    .mode-btn {
-      flex: 1;
-      padding: .5rem .25rem;
-      border: 2px solid #e2e8f0;
-      border-radius: 8px;
-      background: #fff;
-      font-size: .75rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .15s;
-      text-align: center;
-    }
-    .mode-btn:hover { border-color: var(--primary); color: var(--primary); }
-    .mode-btn.active { border-color: var(--primary); background: var(--primary); color: #fff; }
+/* SCHEDULE */
+.schedule-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid #e8edf3; margin-bottom: 1.25rem; overflow: hidden; }
+.sc-header { background: #f7fafc; padding: .85rem 1.25rem; border-bottom: 1px solid #e8edf3; display: flex; align-items: center; justify-content: space-between; }
+.sc-header h2 { font-size: .95rem; font-weight: 700; }
+.add-slot-btn-top { font-size: .72rem; font-weight: 700; color: var(--primary); border: 1.5px solid var(--primary); padding: .25rem .7rem; border-radius: 6px; background: #fff; cursor: pointer; }
+.weekdays { display: flex; border-bottom: 1px solid #e8edf3; }
+.wd { flex: 1; text-align: center; padding: .5rem .25rem; font-size: .7rem; font-weight: 700; color: var(--muted); cursor: pointer; border-right: 1px solid #f0f4f8; }
+.wd:last-child { border-right: none; }
+.wd.active { background: var(--primary); color: #fff; }
+.sc-body { padding: 1rem 1.25rem; }
+.time-slot { display: flex; align-items: center; gap: .6rem; padding: .6rem .85rem; background: #f7fafc; border-radius: 8px; border: 1px solid #e8edf3; margin-bottom: .55rem; }
+.ts-time { font-size: .82rem; font-weight: 800; min-width: 100px; }
+.ts-mode { font-size: .7rem; font-weight: 700; padding: .2rem .6rem; border-radius: 6px; }
+.m-HRV { background: #ebf8ff; color: #2b6cb0; }
+.m-NIGHT { background: #ebf4ff; color: #3c366b; }
+.m-BOOST { background: #fff5f0; color: #c05621; }
+.m-ECO { background: #f0fff4; color: #276749; }
+.m-SMART { background: #f5f0ff; color: #553c9a; }
+.m-OFF { background: #f7fafc; color: #718096; }
+.ts-fan { margin-left: auto; font-size: .72rem; color: var(--muted); font-weight: 600; }
+.ts-del { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1rem; padding: 0 .2rem; }
+.ts-del:hover { color: var(--red); }
+.add-slot-btn { width: 100%; padding: .6rem; border: 2px dashed #cbd5e0; border-radius: 8px; background: transparent; color: var(--muted); font-size: .76rem; font-weight: 700; cursor: pointer; margin-top: .5rem; }
+.add-slot-btn:hover { border-color: var(--primary); color: var(--primary); }
+/* slot form */
+.slot-form { background: #f0f4f8; border-radius: 8px; border: 1px solid #e2e8f0; padding: 1rem; margin-top: .75rem; display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
+.slot-form label { font-size: .72rem; font-weight: 700; color: var(--muted); display: block; margin-bottom: .2rem; }
+.slot-form input, .slot-form select { width: 100%; padding: .4rem .6rem; border: 1.5px solid #e2e8f0; border-radius: 6px; font-size: .8rem; background: #fff; }
+.slot-form-actions { grid-column: span 2; display: flex; gap: .5rem; justify-content: flex-end; margin-top: .25rem; }
+.btn-save { background: var(--primary); color: #fff; border: none; border-radius: 6px; padding: .4rem 1rem; font-size: .78rem; font-weight: 700; cursor: pointer; }
+.btn-cancel { background: #fff; color: var(--muted); border: 1.5px solid #e2e8f0; border-radius: 6px; padding: .4rem .8rem; font-size: .78rem; font-weight: 700; cursor: pointer; }
 
-    /* ---- Fan speed slider ---- */
-    .fan-row {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-    }
-    .fan-row label { font-size: .8rem; color: var(--muted); white-space: nowrap; }
-    .fan-row input[type=range] { flex: 1; accent-color: var(--primary); }
-    .fan-val { font-size: .85rem; font-weight: 700; width: 36px; text-align: right; }
+/* SMART VIEW */
+.smart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+.smart-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid #e8edf3; padding: 1.25rem; }
+.smart-card h3 { font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1rem; }
+.cond-row { display: flex; align-items: center; justify-content: space-between; padding: .45rem 0; border-bottom: 1px solid #f0f4f8; font-size: .8rem; }
+.cond-row:last-child { border-bottom: none; }
+.cond-label { color: var(--muted); font-size: .76rem; }
+.cond-val { font-weight: 800; }
+.cond-val.ok { color: var(--green); }
+.cond-val.warn { color: var(--orange); }
+.mode-ind { display: flex; align-items: center; gap: .7rem; padding: .7rem .9rem; border-radius: 10px; margin-bottom: .65rem; border: 1px solid #e8edf3; background: #f7fafc; }
+.mode-ind.active { background: #f0fff4; border-color: #c6f6d5; }
+.mode-ind.summer { background: #fffaf0; border-color: #fbd38d; }
+.mi-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; background: #edf2f7; }
+.mi-info { flex: 1; }
+.mi-name { font-size: .8rem; font-weight: 800; }
+.mi-desc { font-size: .68rem; color: var(--muted); margin-top: 1px; }
+.mi-badge { font-size: .66rem; font-weight: 700; padding: .18rem .5rem; border-radius: 999px; background: #e2e8f0; color: var(--muted); white-space: nowrap; }
+.mi-badge.on { background: #c6f6d5; color: #276749; }
+.mi-badge.sun { background: #fbd38d; color: #744210; }
+.smart-dev-select { display: flex; gap: .6rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.dev-chip { padding: .35rem .85rem; border-radius: 999px; border: 1.5px solid #e2e8f0; background: #fff; font-size: .76rem; font-weight: 700; cursor: pointer; color: var(--muted); }
+.dev-chip.active { border-color: var(--purple); background: var(--purple); color: #fff; }
 
-    /* ---- Filter alarm ---- */
-    .filter-alarm {
-      display: flex;
-      align-items: center;
-      gap: .5rem;
-      margin-top: 1rem;
-      padding: .5rem .75rem;
-      background: #fff5f5;
-      border-radius: 8px;
-      font-size: .8rem;
-      color: var(--red);
-      font-weight: 600;
-    }
+/* TOAST */
+#toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(2rem); background: #2d3748; color: #fff; padding: .7rem 1.4rem; border-radius: 999px; font-size: .82rem; opacity: 0; transition: all .3s; pointer-events: none; z-index: 999; }
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* ---- Empty state ---- */
-    #empty-state {
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--muted);
-    }
-    #empty-state h2 { font-size: 1.5rem; margin-bottom: .5rem; }
-    #empty-state p { font-size: .9rem; }
-
-    /* ---- Toast ---- */
-    #toast {
-      position: fixed;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%) translateY(2rem);
-      background: #2d3748;
-      color: #fff;
-      padding: .75rem 1.5rem;
-      border-radius: 999px;
-      font-size: .85rem;
-      opacity: 0;
-      transition: all .3s;
-      pointer-events: none;
-      z-index: 999;
-    }
-    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-  </style>
+footer { text-align: center; padding: 2rem; font-size: .7rem; color: var(--muted); }
+footer strong { color: #555; }
+</style>
 </head>
 <body>
-  <header>
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-      <circle cx="14" cy="14" r="14" fill="rgba(255,255,255,0.2)"/>
-      <path d="M14 7 A7 7 0 0 1 14 21 A7 7 0 0 1 14 7" stroke="white" stroke-width="2" fill="none"/>
-      <circle cx="14" cy="14" r="3" fill="white"/>
-    </svg>
-    <h1>Ambientika Local</h1>
-    <span class="badge"><span id="mqtt-status"></span><span id="mqtt-label">Verbinde…</span></span>
-  </header>
 
-  <main>
+<header>
+  <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 230 38">
+    <text x="0" y="32" font-family="'Arial Black','Arial',sans-serif" font-size="34" font-weight="900" fill="#1a1a1a">s&#xFC;d</text>
+    <polygon points="88,3 101,30 75,30" fill="#1a1a1a"/>
+    <path d="M70,34 Q79,30 88,34 Q97,38 106,34" stroke="#1a1a1a" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+    <path d="M68,40 Q77,36 86,40 Q95,44 104,40 Q113,36 122,40" stroke="#1a1a1a" stroke-width="2.3" fill="none" stroke-linecap="round"/>
+    <text x="108" y="32" font-family="'Arial Black','Arial',sans-serif" font-size="34" font-weight="900" fill="#1a1a1a">wind</text>
+  </svg>
+  <div class="header-divider"></div>
+  <span class="app-label">ambientika local</span>
+  <span class="badge"><span id="mqtt-dot"></span>&nbsp;<span id="mqtt-label">Verbinde&#x2026;</span></span>
+</header>
+
+<nav>
+  <div class="nav-tab active" id="tab-devices" onclick="showTab('devices')">&#127968; Ger&#228;te</div>
+  <div class="nav-tab" id="tab-schedule" onclick="showTab('schedule')">&#128197; Wochenzeitplan</div>
+  <div class="nav-tab" id="tab-smart" onclick="showTab('smart')">&#129504; Smart-Modus</div>
+</nav>
+
+<main>
+  <!-- TAB: GERAETE -->
+  <div id="view-devices">
+    <p class="section-title" style="margin-top:.25rem" id="devices-title">Ihre Ger&#228;te</p>
     <div id="devices-grid"></div>
-    <div id="empty-state" style="display:none;">
-      <h2>Keine Geräte gefunden</h2>
-      <p>Stelle sicher, dass der MQTT-Broker und die Ambientika Bridge laufen.</p>
+    <div id="empty-state" style="display:none">
+      <h2>Keine Ger&#228;te gefunden</h2>
+      <p>Stelle sicher, dass MQTT-Broker und Ambientika Bridge laufen.</p>
     </div>
-  </main>
+  </div>
 
-  <div id="toast"></div>
+  <!-- TAB: ZEITPLAN -->
+  <div id="view-schedule" style="display:none">
+    <p class="section-title" style="margin-top:.25rem">Wochenzeitplan</p>
+    <div id="schedule-container"></div>
+  </div>
 
-  <script>
-    // ---- Config ----
-    const API  = window.location.origin + '/api';
-    const WS   = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/ws';
+  <!-- TAB: SMART -->
+  <div id="view-smart" style="display:none">
+    <p class="section-title" style="margin-top:.25rem">Smart-Modus &#8212; Echtzeit Automatik</p>
+    <div class="smart-dev-select" id="smart-dev-select"></div>
+    <div id="smart-content"></div>
+  </div>
+</main>
 
-    // ---- State ----
-    const devices = {};
-    let ws = null;
+<footer>
+  <strong>S&#252;dwind GmbH &#183; Ambientika Local</strong> &nbsp;&#183;&nbsp; Lokale Steuerung &#183; Keine Cloud &#183; DSGVO-konform
+</footer>
 
-    // ---- Toast ----
-    function showToast(msg, dur = 2500) {
-      const t = document.getElementById('toast');
-      t.textContent = msg;
-      t.classList.add('show');
-      setTimeout(() => t.classList.remove('show'), dur);
+<div id="toast"></div>
+
+<script>
+// ---- Config ----
+const API = window.location.origin + '/api';
+const WS  = (location.protocol === 'https:' ? 'wss' : 'ws') + '://' + location.host + '/ws';
+
+// ---- State ----
+const devices = {};
+const schedules = {};
+let activeSmartDevice = null;
+let ws = null;
+
+const MODES = ['SMART','HRV','NIGHT','BOOST','ECO','OFF'];
+const MODE_LABELS = {SMART:'Smart', HRV:'L&#252;ftung', NIGHT:'Nacht', BOOST:'Boost', ECO:'Eco', OFF:'Aus'};
+const WEEKDAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+const WD_LABELS = {mon:'Mo', tue:'Di', wed:'Mi', thu:'Do', fri:'Fr', sat:'Sa', sun:'So'};
+const WD_NAMES  = {mon:'Montag', tue:'Dienstag', wed:'Mittwoch', thu:'Donnerstag', fri:'Freitag', sat:'Samstag', sun:'Sonntag'};
+
+// ---- Toast ----
+function toast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+
+// ---- MQTT status ----
+function setMqtt(ok) {
+  document.getElementById('mqtt-dot').className = ok ? 'connected' : '';
+  document.getElementById('mqtt-label').textContent = ok ? 'Verbunden' : 'Getrennt';
+}
+
+// ---- WebSocket ----
+function connectWS() {
+  ws = new WebSocket(WS);
+  ws.onopen  = () => setMqtt(true);
+  ws.onclose = () => { setMqtt(false); setTimeout(connectWS, 3000); };
+  ws.onerror = () => setMqtt(false);
+  ws.onmessage = e => {
+    const {event, deviceId, data} = JSON.parse(e.data);
+    if (event === 'status' || event === 'availability') {
+      devices[deviceId] = {...devices[deviceId], ...data, deviceId};
+      renderCard(deviceId);
+      refreshSmartDeviceSelector();
     }
+  };
+}
 
-    // ---- WebSocket ----
-    function connectWS() {
-      ws = new WebSocket(WS);
-      ws.onopen = () => setMqttStatus(true);
-      ws.onclose = () => { setMqttStatus(false); setTimeout(connectWS, 3000); };
-      ws.onerror = () => setMqttStatus(false);
-      ws.onmessage = (e) => {
-        const { event, deviceId, data } = JSON.parse(e.data);
-        if (event === 'status' || event === 'availability') {
-          devices[deviceId] = { ...devices[deviceId], ...data, deviceId };
-          renderCard(deviceId);
-        }
-      };
-    }
+// ---- API helpers ----
+async function apiFetch(path, method='GET', body=null) {
+  const opts = {method, headers:{'Content-Type':'application/json'}};
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(API + path, opts);
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
 
-    function setMqttStatus(ok) {
-      const dot = document.getElementById('mqtt-status');
-      const lbl = document.getElementById('mqtt-label');
-      dot.className = ok ? 'connected' : '';
-      lbl.textContent = ok ? 'Verbunden' : 'Getrennt';
-    }
+// ---- Load devices ----
+async function loadDevices() {
+  try {
+    const list = await apiFetch('/devices');
+    list.forEach(d => { devices[d.deviceId] = d; renderCard(d.deviceId); });
+    document.getElementById('devices-title').textContent =
+      'Ihre Ger&#228;te &#8212; ' + list.length + ' online';
+    if (list.length === 0) document.getElementById('empty-state').style.display = 'block';
+    list.forEach(d => loadSchedule(d.deviceId));
+    refreshSmartDeviceSelector();
+  } catch(e) {
+    document.getElementById('empty-state').style.display = 'block';
+  }
+}
 
-    // ---- API ----
-    async function loadDevices() {
-      try {
-        const res = await fetch(API + '/devices');
-        const list = await res.json();
-        list.forEach(d => { devices[d.deviceId] = d; renderCard(d.deviceId); });
-        if (list.length === 0) document.getElementById('empty-state').style.display = 'block';
-      } catch(e) {
-        document.getElementById('empty-state').style.display = 'block';
-      }
-    }
+// ---- Render device card ----
+function renderCard(deviceId) {
+  const d = devices[deviceId];
+  const grid = document.getElementById('devices-grid');
+  document.getElementById('empty-state').style.display = 'none';
+  let card = document.getElementById('card-' + deviceId);
+  if (!card) { card = document.createElement('div'); card.className='device-card'; card.id='card-'+deviceId; grid.appendChild(card); }
+  const isSmartMode = d.mode === 'SMART';
+  card.innerHTML = `
+    <div class="card-header">
+      <h2>${d.name || deviceId}${isSmartMode ? ' <span class="smart-badge">&#9889; Smart</span>' : ''}</h2>
+      <span class="status-dot ${d.online?'online':''}" title="${d.online?'Online':'Offline'}"></span>
+    </div>
+    <div class="metrics">
+      <div class="metric"><div class="val">${d.temperature!=null ? d.temperature.toFixed(1)+'&#176;C' : '&#8212;'}</div><div class="lbl">Temp</div></div>
+      <div class="metric"><div class="val">${d.humidity!=null ? d.humidity+'%' : '&#8212;'}</div><div class="lbl">Feuchte</div></div>
+      <div class="metric"><div class="val">${d.airQuality!=null ? d.airQuality+'ppm' : '&#8212;'}</div><div class="lbl">CO&#8322;</div></div>
+    </div>
+    <div class="modes">
+      ${MODES.map(m => `<button class="mode-btn ${d.mode===m?(m==='SMART'?'smart-active':'active'):''}" onclick="sendCmd('${deviceId}',{mode:'${m}'})">${MODE_LABELS[m]}</button>`).join('')}
+    </div>
+    <div class="fan-row">
+      <label>L&#252;fter</label>
+      <input type="range" min="0" max="100" value="${d.fanSpeed??50}"
+        oninput="this.nextElementSibling.textContent=this.value+'%'"
+        onchange="sendCmd('${deviceId}',{fanSpeed:+this.value})"/>
+      <span class="fan-val">${d.fanSpeed??50}%</span>
+    </div>
+    ${d.filterAlarm ? '<div class="filter-alarm">&#9888;&#65039; Filterwechsel erforderlich</div>' : ''}
+  `;
+}
 
-    async function sendCommand(deviceId, cmd) {
-      try {
-        await fetch(API + '/devices/' + deviceId + '/command', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(cmd)
-        });
-        showToast('Befehl gesendet');
-      } catch(e) {
-        showToast('Fehler: ' + e.message);
-      }
-    }
+async function sendCmd(deviceId, cmd) {
+  try { await apiFetch(`/devices/${deviceId}/command`, 'POST', cmd); toast('Befehl gesendet'); }
+  catch(e) { toast('Fehler: ' + e.message); }
+}
 
-    // ---- Render ----
-    const MODES = ['HRV','NIGHT','BOOST','ECO','OFF'];
-    const MODE_LABELS = { HRV:'Lüftung', NIGHT:'Nacht', BOOST:'Boost', ECO:'Eco', OFF:'Aus' };
+// ---- SCHEDULE ----
+const scheduleState = {}; // device -> activeDay, showForm
 
-    function renderCard(deviceId) {
-      const d = devices[deviceId];
-      const grid = document.getElementById('devices-grid');
-      document.getElementById('empty-state').style.display = 'none';
+async function loadSchedule(deviceId) {
+  try {
+    const week = await apiFetch(`/devices/${deviceId}/schedule`);
+    schedules[deviceId] = week;
+    renderScheduleCard(deviceId);
+  } catch(e) { console.warn('Schedule load failed', e); }
+}
 
-      let card = document.getElementById('card-' + deviceId);
-      if (!card) {
-        card = document.createElement('div');
-        card.className = 'device-card';
-        card.id = 'card-' + deviceId;
-        grid.appendChild(card);
-      }
+function renderScheduleCard(deviceId) {
+  const container = document.getElementById('schedule-container');
+  const d = devices[deviceId] || {};
+  if (!scheduleState[deviceId]) scheduleState[deviceId] = {day:'mon', showForm:false};
+  const st = scheduleState[deviceId];
+  let card = document.getElementById('scard-' + deviceId);
+  if (!card) { card = document.createElement('div'); card.className='schedule-card'; card.id='scard-'+deviceId; container.appendChild(card); }
 
-      const tempStr  = d.temperature != null ? d.temperature.toFixed(1) + ' °C' : '—';
-      const humStr   = d.humidity    != null ? d.humidity + ' %'                 : '—';
-      const aqStr    = d.airQuality  != null ? d.airQuality + ' ppm'             : '—';
-      const fanVal   = d.fanSpeed    != null ? d.fanSpeed                         : 50;
+  const week = schedules[deviceId] || {};
+  const slots = (week[st.day] || []);
 
-      card.innerHTML = `
-        <div class="card-header">
-          <h2>${d.name || deviceId}</h2>
-          <span class="status-dot ${d.online ? 'online' : ''}" title="${d.online ? 'Online' : 'Offline'}"></span>
+  card.innerHTML = `
+    <div class="sc-header">
+      <h2>${d.name || deviceId}</h2>
+      <button class="add-slot-btn-top" onclick="toggleForm('${deviceId}')">+ Zeitfenster</button>
+    </div>
+    <div class="weekdays">
+      ${WEEKDAYS.map(wd => `<div class="wd ${st.day===wd?'active':''}" onclick="setDay('${deviceId}','${wd}')">${WD_LABELS[wd]}</div>`).join('')}
+    </div>
+    <div class="sc-body">
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.75rem;font-weight:600;">${WD_NAMES[st.day]}</p>
+      ${slots.length === 0 ? '<p style="text-align:center;color:var(--muted);font-size:.8rem;padding:1rem">Kein Zeitfenster &#8212; ganzen Tag aktiver Modus</p>' : ''}
+      ${slots.map((s,i) => `
+        <div class="time-slot">
+          <span class="ts-time">${s.start} &#8211; ${s.end}</span>
+          <span class="ts-mode m-${s.mode}">${MODE_LABELS[s.mode] || s.mode}</span>
+          <span class="ts-fan">${s.fanSpeed != null ? s.fanSpeed+'%' : 'Auto'}</span>
+          <button class="ts-del" onclick="deleteSlot('${deviceId}',${i})" title="L&#246;schen">&#10005;</button>
         </div>
-        <div class="metrics">
-          <div class="metric"><div class="val">${tempStr}</div><div class="lbl">Temp</div></div>
-          <div class="metric"><div class="val">${humStr}</div><div class="lbl">Feuchte</div></div>
-          <div class="metric"><div class="val">${aqStr}</div><div class="lbl">CO₂</div></div>
+      `).join('')}
+      ${st.showForm ? `
+        <div class="slot-form">
+          <div><label>Von</label><input type="time" id="sf-start-${deviceId}" value="08:00"/></div>
+          <div><label>Bis</label><input type="time" id="sf-end-${deviceId}" value="18:00"/></div>
+          <div><label>Modus</label>
+            <select id="sf-mode-${deviceId}">
+              ${MODES.map(m=>`<option value="${m}">${MODE_LABELS[m]}</option>`).join('')}
+            </select>
+          </div>
+          <div><label>L&#252;fter % (leer = Auto)</label><input type="number" id="sf-fan-${deviceId}" min="0" max="100" placeholder="Auto"/></div>
+          <div class="slot-form-actions">
+            <button class="btn-cancel" onclick="toggleForm('${deviceId}')">Abbrechen</button>
+            <button class="btn-save" onclick="saveSlot('${deviceId}')">Speichern</button>
+          </div>
         </div>
-        <div class="modes">
-          ${MODES.map(m => `<button class="mode-btn ${d.mode===m?'active':''}" onclick="sendCommand('${deviceId}',{mode:'${m}'})">${MODE_LABELS[m]}</button>`).join('')}
-        </div>
-        <div class="fan-row">
-          <label>Lüfter</label>
-          <input type="range" min="0" max="100" value="${fanVal}"
-            oninput="this.nextElementSibling.textContent=this.value+'%'"
-            onchange="sendCommand('${deviceId}',{fanSpeed:+this.value})"/>
-          <span class="fan-val">${fanVal}%</span>
-        </div>
-        ${d.filterAlarm ? '<div class="filter-alarm">⚠️ Filterwechsel erforderlich</div>' : ''}
-      `;
-    }
+      ` : `<button class="add-slot-btn" onclick="toggleForm('${deviceId}')">&#65291; Zeitfenster hinzuf&#252;gen</button>`}
+    </div>
+  `;
+}
 
-    // ---- Init ----
-    loadDevices();
-    connectWS();
+function setDay(deviceId, day) {
+  scheduleState[deviceId].day = day;
+  scheduleState[deviceId].showForm = false;
+  renderScheduleCard(deviceId);
+}
 
-    // ---- PWA Service Worker ----
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
-  </script>
+function toggleForm(deviceId) {
+  scheduleState[deviceId].showForm = !scheduleState[deviceId].showForm;
+  renderScheduleCard(deviceId);
+}
+
+async function saveSlot(deviceId) {
+  const st = scheduleState[deviceId];
+  const start   = document.getElementById('sf-start-'+deviceId).value;
+  const end     = document.getElementById('sf-end-'+deviceId).value;
+  const mode    = document.getElementById('sf-mode-'+deviceId).value;
+  const fanRaw  = document.getElementById('sf-fan-'+deviceId).value;
+  const fanSpeed = fanRaw !== '' ? parseInt(fanRaw) : null;
+  if (!start || !end) { toast('Bitte Start- und Endzeit angeben'); return; }
+  const week = schedules[deviceId] || {};
+  const day  = st.day;
+  const slots = [...(week[day] || []), {start, end, mode, fanSpeed}];
+  slots.sort((a,b) => a.start.localeCompare(b.start));
+  try {
+    await apiFetch(`/devices/${deviceId}/schedule/${day}`, 'PUT', slots);
+    schedules[deviceId] = {...week, [day]: slots};
+    st.showForm = false;
+    renderScheduleCard(deviceId);
+    toast('Zeitfenster gespeichert');
+  } catch(e) { toast('Fehler: ' + e.message); }
+}
+
+async function deleteSlot(deviceId, index) {
+  const st = scheduleState[deviceId];
+  const day = st.day;
+  const slots = [...((schedules[deviceId] || {})[day] || [])];
+  slots.splice(index, 1);
+  try {
+    await apiFetch(`/devices/${deviceId}/schedule/${day}`, 'PUT', slots);
+    schedules[deviceId][day] = slots;
+    renderScheduleCard(deviceId);
+    toast('Zeitfenster gel&#246;scht');
+  } catch(e) { toast('Fehler: ' + e.message); }
+}
+
+// ---- SMART MODE ----
+function refreshSmartDeviceSelector() {
+  const sel = document.getElementById('smart-dev-select');
+  const ids = Object.keys(devices);
+  if (!activeSmartDevice && ids.length > 0) activeSmartDevice = ids[0];
+  sel.innerHTML = ids.map(id =>
+    `<div class="dev-chip ${id===activeSmartDevice?'active':''}" onclick="selectSmartDev('${id}')">${devices[id].name || id}</div>`
+  ).join('');
+}
+
+function selectSmartDev(id) {
+  activeSmartDevice = id;
+  refreshSmartDeviceSelector();
+  loadSmartStatus(id);
+}
+
+async function loadSmartStatus(deviceId) {
+  const el = document.getElementById('smart-content');
+  try {
+    const s = await apiFetch(`/devices/${deviceId}/smart`);
+    const sensors = s.sensors || {};
+    el.innerHTML = `
+      <div class="smart-grid">
+        <div class="smart-card">
+          <h3>&#128225; Aktuelle Messwerte</h3>
+          ${row('Innentemperatur', sensors.temperature_in != null ? sensors.temperature_in.toFixed(1)+' &#176;C' : '&#8212;')}
+          ${row('Au&#223;entemperatur', sensors.temperature_out != null ? sensors.temperature_out.toFixed(1)+' &#176;C' : '&#8212;')}
+          ${row('Innen-Luftfeuchte', sensors.humidity_in != null ? sensors.humidity_in+' %' : '&#8212;')}
+          ${row('Au&#223;en-Luftfeuchte', sensors.humidity_out != null ? sensors.humidity_out+' %' : '&#8212;')}
+          ${row('CO&#8322; / VOC innen', sensors.airQuality_voc != null ? sensors.airQuality_voc+' ppm' : '&#8212;', (sensors.airQuality_voc||0)>600?'warn':'ok')}
+          ${row('Lichtintensit&#228;t', sensors.isDark ? 'Dunkel &#127769;' : 'Hell &#9728;&#65039;', sensors.isDark?'warn':'ok')}
+        </div>
+        <div class="smart-card">
+          <h3>&#129504; Automatik-Entscheidung</h3>
+          ${modeInd('&#127788;&#65039;', 'W&#228;rmer&#252;ckgewinnung', s.activeMode==='HRV_MEDIUM'?'Mittlere Geschwindigkeit aktiv':s.activeMode==='HRV_MIN'?'Minimalgeschwindigkeit aktiv':'Inaktiv', s.activeMode==='HRV_MEDIUM'||s.activeMode==='HRV_MIN')}
+          ${modeInd('&#127769;', 'Nachtmodus', 'Bei Dunkelheit automatisch aktiv', s.conditions.nightModeActive)}
+          ${modeInd('&#9728;&#65039;', 'Free-Cooling Sommer', 'T>24&#176;C & Au&#223;en>20&#176;C & Au&#223;en<Innen', false, s.conditions.freeCoolingActive)}
+        </div>
+      </div>
+      <div class="smart-card">
+        <h3>&#9881;&#65039; Smart-Logik im &#220;berblick</h3>
+        ${s.logic.map(l=>`<div class="cond-row"><span class="cond-label">${l.condition}</span><span class="cond-val">&#8594; ${l.result}</span></div>`).join('')}
+      </div>
+    `;
+  } catch(e) {
+    el.innerHTML = '<p style="color:var(--red);padding:1rem">Smart-Daten konnten nicht geladen werden: ' + e.message + '</p>';
+  }
+}
+
+function row(label, val, cls='') {
+  return `<div class="cond-row"><span class="cond-label">${label}</span><span class="cond-val ${cls}">${val}</span></div>`;
+}
+function modeInd(icon, name, desc, active, isSummer=false) {
+  const cls = isSummer ? 'summer' : active ? 'active' : '';
+  const badgeCls = isSummer ? 'sun' : active ? 'on' : '';
+  const badgeTxt = isSummer ? 'Aktiv' : active ? 'Aktiv' : 'Inaktiv';
+  return `<div class="mode-ind ${cls}">
+    <div class="mi-icon">${icon}</div>
+    <div class="mi-info"><div class="mi-name">${name}</div><div class="mi-desc">${desc}</div></div>
+    <span class="mi-badge ${badgeCls}">${badgeTxt}</span>
+  </div>`;
+}
+
+// ---- Tab navigation ----
+function showTab(tab) {
+  ['devices','schedule','smart'].forEach(t => {
+    document.getElementById('view-' + t).style.display = t===tab ? 'block' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active', t===tab);
+  });
+  if (tab === 'smart' && activeSmartDevice) loadSmartStatus(activeSmartDevice);
+}
+
+// ---- Init ----
+loadDevices();
+connectWS();
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
 </body>
 </html>
