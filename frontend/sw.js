@@ -1,17 +1,29 @@
-// Ambientika Local – Service Worker v3.0
+// Ambientika Local – Service Worker v3.1
 const CACHE = 'ambientika-local-v3';
-const ASSETS = [
+
+// Core assets (müssen vorhanden sein)
+const CORE_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
+  '/manifest.json'
+];
+
+// Optionale Assets (werden gecacht wenn vorhanden, kein Fehler wenn nicht)
+const OPT_ASSETS = [
   '/icons/icon-192.png',
   '/icons/icon-512.png'
 ];
 
-// Install: pre-cache shell assets
+// Install: pre-cache core assets, optionale ignorieren bei Fehler
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE).then(async c => {
+      await c.addAll(CORE_ASSETS);
+      // Optionale Assets einzeln cachen, Fehler ignorieren
+      await Promise.allSettled(OPT_ASSETS.map(url =>
+        fetch(url).then(r => r.ok ? c.put(url, r) : null).catch(() => null)
+      ));
+    }).then(() => self.skipWaiting())
   );
 });
 
