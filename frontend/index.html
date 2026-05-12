@@ -115,9 +115,10 @@ main{max-width:1100px;margin:0 auto;padding:1.25rem}
 .wd.active{background:var(--primary);color:#fff}
 .sc-body{padding:.85rem 1.1rem}
 .time-slot{display:flex;align-items:center;gap:.45rem;padding:.48rem .7rem;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:.45rem}
-.ts-time{font-size:.75rem;font-weight:800;min-width:90px}
-.ts-mode{font-size:.62rem;font-weight:700;padding:.15rem .45rem;border-radius:6px;white-space:nowrap}
-.m-HRV,.m-MANUAL_HRV{background:#ebf8ff;color:#2b6cb0}.m-NIGHT{background:#e9d8fd;color:#3c366b}.m-BOOST,.m-TIMED_EXHAUST{background:#fff5f0;color:#c05621}.m-AWAY{background:#f0fff4;color:#276749}.m-SMART{background:#f5f0ff;color:#553c9a}.m-AUTO{background:#fffbeb;color:#744210}.m-MONITORING{background:#fef3c7;color:#92400e}.m-EXHAUST{background:#fce7f3;color:#9d174d}.m-SUPPLY{background:#ecfdf5;color:#065f46}.m-MS_FLOW,.m-SM_FLOW{background:#e0f2fe;color:#075985}.m-OFF{background:#f7fafc;color:var(--muted)}
+.ts-time{font-size:.75rem;font-weight:800;min-width:105px}
+.ts-overnight{font-size:.56rem;font-weight:700;padding:.1rem .32rem;border-radius:4px;background:#e9d8fd;color:#553c9a;border:1px solid #d6bcfa;white-space:nowrap;flex-shrink:0}
+[data-theme="dark"] .ts-overnight{background:#2d1f4e;color:#b794f4;border-color:#553c9a}
+.ts-mode{font-size:.62rem;font-weight:700;padding:.15rem .45rem;border-radius:6px;white-space:nowrap}.m-HRV,.m-MANUAL_HRV{background:#ebf8ff;color:#2b6cb0}.m-NIGHT{background:#e9d8fd;color:#3c366b}.m-BOOST,.m-TIMED_EXHAUST{background:#fff5f0;color:#c05621}.m-AWAY{background:#f0fff4;color:#276749}.m-SMART{background:#f5f0ff;color:#553c9a}.m-AUTO{background:#fffbeb;color:#744210}.m-MONITORING{background:#fef3c7;color:#92400e}.m-EXHAUST{background:#fce7f3;color:#9d174d}.m-SUPPLY{background:#ecfdf5;color:#065f46}.m-MS_FLOW,.m-SM_FLOW{background:#e0f2fe;color:#075985}.m-OFF{background:#f7fafc;color:var(--muted)}
 [data-theme="dark"] .m-HRV,[data-theme="dark"] .m-MANUAL_HRV{background:#1a2e3d;color:#63b3ed}[data-theme="dark"] .m-NIGHT{background:#2d1f4e;color:#b794f4}[data-theme="dark"] .m-SMART{background:#2d1f4e;color:#d6bcfa}[data-theme="dark"] .m-AUTO{background:#2d2a14;color:#f6e05e}[data-theme="dark"] .m-MONITORING{background:#2d2710;color:#f6d860}[data-theme="dark"] .m-BOOST,[data-theme="dark"] .m-TIMED_EXHAUST{background:#2d1e14;color:#f6ad55}[data-theme="dark"] .m-AWAY{background:#1a2e22;color:#68d391}[data-theme="dark"] .m-EXHAUST{background:#2d1525;color:#f687b3}[data-theme="dark"] .m-SUPPLY{background:#14291f;color:#6ee7b7}[data-theme="dark"] .m-MS_FLOW,[data-theme="dark"] .m-SM_FLOW{background:#0c2233;color:#7dd3fc}[data-theme="dark"] .m-OFF{background:#1a1f2e;color:var(--muted)}
 .ts-fan{margin-left:auto;font-size:.65rem;color:var(--muted);font-weight:600;white-space:nowrap}
 .ts-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:.85rem;padding:0 .12rem;flex-shrink:0}
@@ -135,6 +136,9 @@ main{max-width:1100px;margin:0 auto;padding:1.25rem}
 .slot-form{background:var(--bg);border-radius:8px;border:1px solid var(--border);padding:.85rem;margin-top:.55rem;display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
 .slot-form label{font-size:.65rem;font-weight:700;color:var(--muted);display:block;margin-bottom:.15rem}
 .slot-form input,.slot-form select{width:100%;padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:6px;font-size:.75rem;background:var(--card);color:var(--text)}
+.slot-form-hint{grid-column:span 2;font-size:.62rem;color:var(--purple);background:#f5f0ff;border:1px solid #d6bcfa;border-radius:6px;padding:.4rem .6rem;line-height:1.5;display:none}
+[data-theme="dark"] .slot-form-hint{background:#2d1f4e;border-color:#553c9a;color:#b794f4}
+.slot-form-hint.visible{display:block}
 .slot-form-actions{grid-column:span 2;display:flex;gap:.38rem;justify-content:flex-end;margin-top:.18rem}
 .btn-save{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.35rem .85rem;font-size:.72rem;font-weight:700;cursor:pointer}
 .btn-cancel{background:var(--card);color:var(--muted);border:1.5px solid var(--border);border-radius:6px;padding:.35rem .7rem;font-size:.72rem;font-weight:700;cursor:pointer}
@@ -196,8 +200,7 @@ footer{text-align:center;padding:2rem;font-size:.65rem;color:var(--muted)}
 footer strong{color:var(--text)}
 @media(max-width:520px){header{padding:.5rem .75rem}.logo-svg{height:32px}main{padding:.85rem}.modes{grid-template-columns:repeat(3,1fr)}}
 </style>
-</head><body>
-<header>
+</head><body><header>
 <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 46">
 <text x="0" y="36" font-family="'Arial Black','Arial',sans-serif" font-size="38" font-weight="900" fill="currentColor">süd</text>
 <polygon points="96,4 110,33 82,33" fill="currentColor"/>
@@ -300,266 +303,268 @@ footer strong{color:var(--text)}
 /* ===== i18n ===== */
 const LANGS={
 de:{
-  connecting:'Verbinde…',connected:'Verbunden',disconnected:'Getrennt',
-  all:'Alle:',night:'Nacht',hrv:'Lüftung',auto:'Automatik',away:'Außer Haus',off:'Aus',
-  tabDevices:'🏠 Geräte',tabSchedule:'📅 Wochenzeitplan',tabSmart:'🧠 Smart-Modus',
-  devices:'Ihre Geräte',devicesCount:'Ihre Geräte — {n} online',
-  noDevH:'Keine Geräte gefunden',noDevP:'Stelle sicher, dass MQTT-Broker und Ambientika Bridge laufen.',
-  schedTitle:'Wochenzeitplan',smartTitle:'Smart-Modus — Echtzeit Automatik',
-  footer:'Lokale Steuerung · Keine Cloud · DSGVO-konform',
-  copyTitle:'📅 Tag kopieren nach…',cancel:'Abbrechen',copy:'Kopieren',save:'Speichern',
-  settingsTitle:'Einstellungen',owmSection:'Außenwetter (OpenWeatherMap)',
-  owmKeyLbl:'API-Key',owmKeyHint:'Kostenlos auf openweathermap.org — bis 1.000 Calls/Tag',
-  owmLocLbl:'Standort (Stadt oder Koordinaten)',owmLocHint:'Stadtname z.B. Vienna,AT oder Koordinaten lat,lon',
-  owmHint:'Außentemperatur, Luftfeuchtigkeit und Luftqualität werden alle 15 Min. aktualisiert.',
-  cmdSent:'Befehl gesendet',cmdAll:'Befehl an alle gesendet',noDevices:'Keine Geräte',
-  saved:'Gespeichert',deleted:'Gelöscht',copied:'Kopiert nach {d}',
-  settingsSaved:'Einstellungen gespeichert',settingsSavedLoading:'Einstellungen gespeichert — Wetter wird geladen…',
-  enterTimes:'Bitte Zeiten angeben',chooseDay:'Bitte Tag wählen',
-  online:'Online',offline:'Offline',
-  temp:'Temp',humidity:'Feuchte',filterAlarm:'⚠️ Filterwechsel erforderlich',filterDays:' — seit {d} Tagen',
-  fanLabel:'Lüfter',modeLabel:'Betriebsmodus',modeInfoHint:'ⓘ = Modus-Info',
-  noSlots:'Kein Zeitfenster',addSlot:'+ Zeitfenster hinzufügen',addSlotTop:'+ Zeitfenster',
-  copyDay:'📅 Kopieren',detailsLink:'🔍 Details ansehen…',
-  slotFrom:'Von',slotTo:'Bis',slotMode:'Modus',slotFan:'Lüfter%',slotFanPh:'Auto',
-  filterOk:'✓ In Ordnung',filterSection:'Filter',lastChange:'Letzter Wechsel',
-  currentMode:'Aktueller Modus',activeMode:'Aktiver Modus',sensorData:'Sensordaten',
-  lastMeasure:'Letzter Messwert',time:'Uhrzeit',network:'Netzwerk',zone:'Zone',
-  firmware:'Firmware',deviceId:'Geräte-ID',role:'Rolle',type:'Gerätetyp',status:'Status',
-  sensors:'Ausgewertete Sensoren:',logic:'Logik:',
-  weatherSetup:'Außenwetter einrichten',weatherHint:'API-Key eingeben für Temperatur, Feuchte & Luftqualität',
-  weatherError:'Wetterfehler: ',weatherRetry:'↻ Wiederholen',weatherLoading:'Lade Wetterdaten…',
-  weatherOutdoor:'Außen:',weatherHumidity:'Feuchte:',weatherAgo:'vor {m} Min.',
-  hrv_active:'Mittel aktiv',hrv_min:'Minimal aktiv',hrv_off:'Inaktiv',
-  nightActive:'Bei Dunkelheit aktiv',freeCoolCond:'T>24°C & Außen>20°C & Außen<Innen',
-  inside:'Innen',outside:'Außen',coolPossible:'↓ Kühlen möglich',heatSugg:'↑ Heizen sinnvoll',balanced:'≈ Ausgeglichen',
-  devSensor:'Gerätesensor',openWeather:'OpenWeather',weatherStation:'Wetterstation',
-  aqi:['','Sehr gut','Gut','Mäßig','Schlecht','Sehr schlecht'],
-  masterSlaveNet:'Master/Slave Netzwerk',devices1:'1 Gerät',devicesN:'{n} Geräte',
-  mon:'Mo',tue:'Di',wed:'Mi',thu:'Do',fri:'Fr',sat:'Sa',sun:'So',
-  Monday:'Montag',Tuesday:'Dienstag',Wednesday:'Mittwoch',Thursday:'Donnerstag',Friday:'Freitag',Saturday:'Samstag',Sunday:'Sonntag',
-  light:'Licht',dark:'Dunkel 🌙',bright:'Hell ☀️',hrv_label:'Wärmerückgewinnung',nightMode:'Nachtmodus',freeCool:'Free-Cooling',active:'Aktiv',inactive:'Inaktiv',smartLogic:'Smart-Logik',measures:'Messwerte',automation:'Automatik',histTitle:'Verlauf (letzte Stunde)',noHistory:'Noch keine Verlaufsdaten — wird mit Echtzeit-Daten gefüllt',
-  innerTemp:'Innentemp.',outerTemp:'Außentemp.',humIn:'Feuchte innen',humOut:'Feuchte außen',airQuality:'CO₂/VOC',airQualityOut:'Luftqualität außen',
-  tempIn:'Temp innen',co2:'CO₂',hum:'Feuchte',
-  filterOkFull:'✓ In Ordnung'
-},
-it:{
-  connecting:'Connessione…',connected:'Connesso',disconnected:'Disconnesso',
-  all:'Tutti:',night:'Notte',hrv:'Ventilazione',auto:'Automatico',away:'Fuori casa',off:'Spento',
-  tabDevices:'🏠 Dispositivi',tabSchedule:'📅 Programma settimanale',tabSmart:'🦠 Modalità Smart',
-  devices:'I vostri dispositivi',devicesCount:'Dispositivi — {n} online',
-  noDevH:'Nessun dispositivo trovato',noDevP:'Assicurarsi che MQTT broker e Ambientika Bridge siano attivi.',
-  schedTitle:'Programma settimanale',smartTitle:'Modalità Smart — Automatismo in tempo reale',
-  footer:'Controllo locale · Nessun cloud · Conforme GDPR',
-  copyTitle:'📅 Copia giorno a…',cancel:'Annulla',copy:'Copia',save:'Salva',
-  settingsTitle:'Impostazioni',owmSection:'Meteo esterno (OpenWeatherMap)',
-  owmKeyLbl:'Chiave API',owmKeyHint:'Gratuito su openweathermap.org — fino a 1.000 richieste/giorno',
-  owmLocLbl:'Posizione (città o coordinate)',owmLocHint:'Nome città es. Rome,IT o coordinate lat,lon',
-  owmHint:'Temperatura, umidità e qualità dell’aria esterne vengono aggiornate ogni 15 min.',
-  cmdSent:'Comando inviato',cmdAll:'Comando inviato a tutti',noDevices:'Nessun dispositivo',
-  saved:'Salvato',deleted:'Eliminato',copied:'Copiato in {d}',
-  settingsSaved:'Impostazioni salvate',settingsSavedLoading:'Impostazioni salvate — caricamento meteo…',
-  enterTimes:'Inserire gli orari',chooseDay:'Scegliere un giorno',
-  online:'Online',offline:'Offline',
-  temp:'Temp',humidity:'Umidità',filterAlarm:'⚠️ Cambio filtro necessario',filterDays:' — da {d} giorni',
-  fanLabel:'Ventilatore',modeLabel:'Modalità operativa',modeInfoHint:'ⓘ = Info modalità',
-  noSlots:'Nessuna fascia oraria',addSlot:'+ Aggiungi fascia oraria',addSlotTop:'+ Fascia oraria',
-  copyDay:'📅 Copia',detailsLink:'🔍 Visualizza dettagli…',
-  slotFrom:'Da',slotTo:'A',slotMode:'Modalità',slotFan:'Ventil.%',slotFanPh:'Auto',
-  filterOk:'✓ OK',filterSection:'Filtro',lastChange:'Ultimo cambio',
-  currentMode:'Modalità attuale',activeMode:'Modalità attiva',sensorData:'Dati sensore',
-  lastMeasure:'Ultima misurazione',time:'Orario',network:'Rete',zone:'Zona',
-  firmware:'Firmware',deviceId:'ID dispositivo',role:'Ruolo',type:'Tipo dispositivo',status:'Stato',
-  sensors:'Sensori elaborati:',logic:'Logica:',
-  weatherSetup:'Configura meteo esterno',weatherHint:'Inserire API-Key per temp., umidità & qualità aria',
-  weatherError:'Errore meteo: ',weatherRetry:'↻ Riprova',weatherLoading:'Caricamento dati meteo…',
-  weatherOutdoor:'Esterno:',weatherHumidity:'Umidità:',weatherAgo:'{m} min. fa',
-  hrv_active:'Media attiva',hrv_min:'Minima attiva',hrv_off:'Inattivo',
-  nightActive:'Attivo al buio',freeCoolCond:'T>24°C & Est.>20°C & Est.<Int.',
-  inside:'Interno',outside:'Esterno',coolPossible:'↓ Raffreddamento possibile',heatSugg:'↑ Riscaldamento consigliato',balanced:'≈ Equilibrato',
-  devSensor:'Sensore dispositivo',openWeather:'OpenWeather',weatherStation:'Stazione meteo',
-  aqi:['','Molto buono','Buono','Moderato','Scarso','Molto scarso'],
-  masterSlaveNet:'Rete Master/Slave',devices1:'1 dispositivo',devicesN:'{n} dispositivi',
-  mon:'Lun',tue:'Mar',wed:'Mer',thu:'Gio',fri:'Ven',sat:'Sab',sun:'Dom',
-  Monday:'Lunedì',Tuesday:'Martedì',Wednesday:'Mercoledì',Thursday:'Giovedì',Friday:'Venerdì',Saturday:'Sabato',Sunday:'Domenica',
-  light:'Luce',dark:'Buio 🌙',bright:'Luminoso ☀️',hrv_label:'Recupero di calore',nightMode:'Modalità notte',freeCool:'Free-Cooling',active:'Attivo',inactive:'Inattivo',smartLogic:'Logica Smart',measures:'Misurazioni',automation:'Automatismo',histTitle:'Andamento (ultima ora)',noHistory:'Ancora nessun dato — si riempirà con dati in tempo reale',
-  innerTemp:'Temp. interna',outerTemp:'Temp. esterna',humIn:'Umidità interna',humOut:'Umidità esterna',airQuality:'CO₂/VOC',airQualityOut:'Qualità aria esterna',
-  tempIn:'Temp interna',co2:'CO₂',hum:'Umidità',filterOkFull:'✓ OK'
+connecting:'Verbinde…',connected:'Verbunden',disconnected:'Getrennt',
+all:'Alle:',night:'Nacht',hrv:'Lüftung',auto:'Automatik',away:'Außer Haus',off:'Aus',
+tabDevices:'🏠 Geräte',tabSchedule:'📅 Wochenzeitplan',tabSmart:'🧠 Smart-Modus',
+devices:'Ihre Geräte',devicesCount:'Ihre Geräte — {n} online',
+noDevH:'Keine Geräte gefunden',noDevP:'Stelle sicher, dass MQTT-Broker und Ambientika Bridge laufen.',
+schedTitle:'Wochenzeitplan',smartTitle:'Smart-Modus — Echtzeit Automatik',
+footer:'Lokale Steuerung · Keine Cloud · DSGVO-konform',
+copyTitle:'📅 Tag kopieren nach…',cancel:'Abbrechen',copy:'Kopieren',save:'Speichern',
+settingsTitle:'Einstellungen',owmSection:'Außenwetter (OpenWeatherMap)',
+owmKeyLbl:'API-Key',owmKeyHint:'Kostenlos auf openweathermap.org — bis 1.000 Calls/Tag',
+owmLocLbl:'Standort (Stadt oder Koordinaten)',owmLocHint:'Stadtname z.B. Vienna,AT oder Koordinaten lat,lon',
+owmHint:'Außentemperatur, Luftfeuchtigkeit und Luftqualität werden alle 15 Min. aktualisiert.',
+cmdSent:'Befehl gesendet',cmdAll:'Befehl an alle gesendet',noDevices:'Keine Geräte',
+saved:'Gespeichert',deleted:'Gelöscht',copied:'Kopiert nach {d}',
+settingsSaved:'Einstellungen gespeichert',settingsSavedLoading:'Einstellungen gespeichert — Wetter wird geladen…',
+enterTimes:'Bitte Zeiten angeben',chooseDay:'Bitte Tag wählen',
+online:'Online',offline:'Offline',
+temp:'Temp',humidity:'Feuchte',filterAlarm:'⚠️ Filterwechsel erforderlich',filterDays:' — seit {d} Tagen',
+fanLabel:'Lüfter',modeLabel:'Betriebsmodus',modeInfoHint:'ⓘ = Modus-Info',
+noSlots:'Kein Zeitfenster',addSlot:'+ Zeitfenster hinzufügen',addSlotTop:'+ Zeitfenster',
+copyDay:'📅 Kopieren',detailsLink:'🔍 Details ansehen…',
+slotFrom:'Von',slotTo:'Bis',slotMode:'Modus',slotFan:'Lüfter%',slotFanPh:'Auto',
+filterOk:'✓ In Ordnung',filterSection:'Filter',lastChange:'Letzter Wechsel',
+currentMode:'Aktueller Modus',activeMode:'Aktiver Modus',sensorData:'Sensordaten',
+lastMeasure:'Letzter Messwert',time:'Uhrzeit',network:'Netzwerk',zone:'Zone',
+firmware:'Firmware',deviceId:'Geräte-ID',role:'Rolle',type:'Gerätetyp',status:'Status',
+sensors:'Ausgewertete Sensoren:',logic:'Logik:',
+weatherSetup:'Außenwetter einrichten',weatherHint:'API-Key eingeben für Temperatur, Feuchte & Luftqualität',
+weatherError:'Wetterfehler: ',weatherRetry:'↻ Wiederholen',weatherLoading:'Lade Wetterdaten…',
+weatherOutdoor:'Außen:',weatherHumidity:'Feuchte:',weatherAgo:'vor {m} Min.',
+hrv_active:'Mittel aktiv',hrv_min:'Minimal aktiv',hrv_off:'Inaktiv',
+nightActive:'Bei Dunkelheit aktiv',freeCoolCond:'T>24°C & Außen>20°C & Außen<Innen',
+inside:'Innen',outside:'Außen',coolPossible:'↓ Kühlen möglich',heatSugg:'↑ Heizen sinnvoll',balanced:'≈ Ausgeglichen',
+devSensor:'Gerätesensor',openWeather:'OpenWeather',weatherStation:'Wetterstation',
+aqi:['','Sehr gut','Gut','Mäßig','Schlecht','Sehr schlecht'],
+masterSlaveNet:'Master/Slave Netzwerk',devices1:'1 Gerät',devicesN:'{n} Geräte',
+mon:'Mo',tue:'Di',wed:'Mi',thu:'Do',fri:'Fr',sat:'Sa',sun:'So',
+Monday:'Montag',Tuesday:'Dienstag',Wednesday:'Mittwoch',Thursday:'Donnerstag',Friday:'Freitag',Saturday:'Samstag',Sunday:'Sonntag',
+light:'Licht',dark:'Dunkel 🌙',bright:'Hell ☀️',hrv_label:'Wärmrückgewinnung',nightMode:'Nachtmodus',freeCool:'Free-Cooling',active:'Aktiv',inactive:'Inaktiv',smartLogic:'Smart-Logik',measures:'Messwerte',automation:'Automatik',histTitle:'Verlauf (letzte Stunde)',noHistory:'Noch keine Verlaufsdaten — wird mit Echtzeit-Daten gefüllt',
+innerTemp:'Innentemp.',outerTemp:'Außentemp.',humIn:'Feuchte innen',humOut:'Feuchte außen',airQuality:'CO₂/VOC',airQualityOut:'Luftqualität außen',
+tempIn:'Temp innen',co2:'CO₂',hum:'Feuchte',filterOkFull:'✓ In Ordnung',
+overnight:'+1',overnightHint:'⏳ Über Mitternacht: endet am nächsten Tag ({e})',overnightFormHint:'Endzeit < Startzeit → Zeitfenster geht über Mitternacht (endet am nächsten Tag)'
+},it:{
+connecting:'Connessione…',connected:'Connesso',disconnected:'Disconnesso',
+all:'Tutti:',night:'Notte',hrv:'Ventilazione',auto:'Automatico',away:'Fuori casa',off:'Spento',
+tabDevices:'🏠 Dispositivi',tabSchedule:'📅 Programma settimanale',tabSmart:'🦠 Modalità Smart',
+devices:'I vostri dispositivi',devicesCount:'Dispositivi — {n} online',
+noDevH:'Nessun dispositivo trovato',noDevP:'Assicurarsi che MQTT broker e Ambientika Bridge siano attivi.',
+schedTitle:'Programma settimanale',smartTitle:'Modalità Smart — Automatismo in tempo reale',
+footer:'Controllo locale · Nessun cloud · Conforme GDPR',
+copyTitle:'📅 Copia giorno a…',cancel:'Annulla',copy:'Copia',save:'Salva',
+settingsTitle:'Impostazioni',owmSection:'Meteo esterno (OpenWeatherMap)',
+owmKeyLbl:'Chiave API',owmKeyHint:'Gratuito su openweathermap.org — fino a 1.000 richieste/giorno',
+owmLocLbl:'Posizione (città o coordinate)',owmLocHint:'Nome città es. Rome,IT o coordinate lat,lon',
+owmHint:'Temperatura, umidità e qualità dell’aria esterne vengono aggiornate ogni 15 min.',
+cmdSent:'Comando inviato',cmdAll:'Comando inviato a tutti',noDevices:'Nessun dispositivo',
+saved:'Salvato',deleted:'Eliminato',copied:'Copiato in {d}',
+settingsSaved:'Impostazioni salvate',settingsSavedLoading:'Impostazioni salvate — caricamento meteo…',
+enterTimes:'Inserire gli orari',chooseDay:'Scegliere un giorno',
+online:'Online',offline:'Offline',
+temp:'Temp',humidity:'Umidità',filterAlarm:'⚠️ Cambio filtro necessario',filterDays:' — da {d} giorni',
+fanLabel:'Ventilatore',modeLabel:'Modalità operativa',modeInfoHint:'ⓘ = Info modalità',
+noSlots:'Nessuna fascia oraria',addSlot:'+ Aggiungi fascia oraria',addSlotTop:'+ Fascia oraria',
+copyDay:'📅 Copia',detailsLink:'🔍 Visualizza dettagli…',
+slotFrom:'Da',slotTo:'A',slotMode:'Modalità',slotFan:'Ventil.%',slotFanPh:'Auto',
+filterOk:'✓ OK',filterSection:'Filtro',lastChange:'Ultimo cambio',
+currentMode:'Modalità attuale',activeMode:'Modalità attiva',sensorData:'Dati sensore',
+lastMeasure:'Ultima misurazione',time:'Orario',network:'Rete',zone:'Zona',
+firmware:'Firmware',deviceId:'ID dispositivo',role:'Ruolo',type:'Tipo dispositivo',status:'Stato',
+sensors:'Sensori elaborati:',logic:'Logica:',
+weatherSetup:'Configura meteo esterno',weatherHint:'Inserire API-Key per temp., umidità & qualità aria',
+weatherError:'Errore meteo: ',weatherRetry:'↻ Riprova',weatherLoading:'Caricamento dati meteo…',
+weatherOutdoor:'Esterno:',weatherHumidity:'Umidità:',weatherAgo:'{m} min. fa',
+hrv_active:'Media attiva',hrv_min:'Minima attiva',hrv_off:'Inattivo',
+nightActive:'Attivo al buio',freeCoolCond:'T>24°C & Est.>20°C & Est.<Int.',
+inside:'Interno',outside:'Esterno',coolPossible:'↓ Raffreddamento possibile',heatSugg:'↑ Riscaldamento consigliato',balanced:'≈ Equilibrato',
+devSensor:'Sensore dispositivo',openWeather:'OpenWeather',weatherStation:'Stazione meteo',
+aqi:['','Molto buono','Buono','Moderato','Scarso','Molto scarso'],
+masterSlaveNet:'Rete Master/Slave',devices1:'1 dispositivo',devicesN:'{n} dispositivi',
+mon:'Lun',tue:'Mar',wed:'Mer',thu:'Gio',fri:'Ven',sat:'Sab',sun:'Dom',
+Monday:'Lunedì',Tuesday:'Martedì',Wednesday:'Mercoledì',Thursday:'Giovedì',Friday:'Venerdì',Saturday:'Sabato',Sunday:'Domenica',
+light:'Luce',dark:'Buio 🌙',bright:'Luminoso ☀️',hrv_label:'Recupero di calore',nightMode:'Modalità notte',freeCool:'Free-Cooling',active:'Attivo',inactive:'Inattivo',smartLogic:'Logica Smart',measures:'Misurazioni',automation:'Automatismo',histTitle:'Andamento (ultima ora)',noHistory:'Ancora nessun dato — si riempirà con dati in tempo reale',
+innerTemp:'Temp. interna',outerTemp:'Temp. esterna',humIn:'Umidità interna',humOut:'Umidità esterna',airQuality:'CO₂/VOC',airQualityOut:'Qualità aria esterna',
+tempIn:'Temp interna',co2:'CO₂',hum:'Umidità',filterOkFull:'✓ OK',
+overnight:'+1',overnightHint:'⏳ Oltre mezzanotte: termina il giorno successivo ({e})',overnightFormHint:'Ora di fine < ora di inizio → la fascia oraria supera mezzanotte (termina il giorno dopo)'
 },
 en:{
-  connecting:'Connecting…',connected:'Connected',disconnected:'Disconnected',
-  all:'All:',night:'Night',hrv:'Ventilation',auto:'Automatic',away:'Away',off:'Off',
-  tabDevices:'🏠 Devices',tabSchedule:'📅 Weekly Schedule',tabSmart:'🧠 Smart Mode',
-  devices:'Your devices',devicesCount:'Your devices — {n} online',
-  noDevH:'No devices found',noDevP:'Make sure MQTT broker and Ambientika Bridge are running.',
-  schedTitle:'Weekly Schedule',smartTitle:'Smart Mode — Real-time Automation',
-  footer:'Local control · No cloud · GDPR compliant',
-  copyTitle:'📅 Copy day to…',cancel:'Cancel',copy:'Copy',save:'Save',
-  settingsTitle:'Settings',owmSection:'Outdoor weather (OpenWeatherMap)',
-  owmKeyLbl:'API Key',owmKeyHint:'Free on openweathermap.org — up to 1,000 calls/day',
-  owmLocLbl:'Location (city or coordinates)',owmLocHint:'City name e.g. London,GB or coordinates lat,lon',
-  owmHint:'Outdoor temperature, humidity and air quality are updated every 15 min.',
-  cmdSent:'Command sent',cmdAll:'Command sent to all',noDevices:'No devices',
-  saved:'Saved',deleted:'Deleted',copied:'Copied to {d}',
-  settingsSaved:'Settings saved',settingsSavedLoading:'Settings saved — loading weather…',
-  enterTimes:'Please enter times',chooseDay:'Please select a day',
-  online:'Online',offline:'Offline',
-  temp:'Temp',humidity:'Humidity',filterAlarm:'⚠️ Filter replacement required',filterDays:' — for {d} days',
-  fanLabel:'Fan',modeLabel:'Operating mode',modeInfoHint:'ⓘ = Mode info',
-  noSlots:'No time slot',addSlot:'+ Add time slot',addSlotTop:'+ Time slot',
-  copyDay:'📅 Copy',detailsLink:'🔍 View details…',
-  slotFrom:'From',slotTo:'To',slotMode:'Mode',slotFan:'Fan%',slotFanPh:'Auto',
-  filterOk:'✓ OK',filterSection:'Filter',lastChange:'Last replacement',
-  currentMode:'Current mode',activeMode:'Active mode',sensorData:'Sensor data',
-  lastMeasure:'Last reading',time:'Time',network:'Network',zone:'Zone',
-  firmware:'Firmware',deviceId:'Device ID',role:'Role',type:'Device type',status:'Status',
-  sensors:'Evaluated sensors:',logic:'Logic:',
-  weatherSetup:'Set up outdoor weather',weatherHint:'Enter API key for temperature, humidity & air quality',
-  weatherError:'Weather error: ',weatherRetry:'↻ Retry',weatherLoading:'Loading weather data…',
-  weatherOutdoor:'Outdoor:',weatherHumidity:'Humidity:',weatherAgo:'{m} min. ago',
-  hrv_active:'Medium active',hrv_min:'Minimum active',hrv_off:'Inactive',
-  nightActive:'Active at night',freeCoolCond:'T>24°C & Out>20°C & Out<In',
-  inside:'Inside',outside:'Outside',coolPossible:'↓ Cooling possible',heatSugg:'↑ Heating advised',balanced:'≈ Balanced',
-  devSensor:'Device sensor',openWeather:'OpenWeather',weatherStation:'Weather station',
-  aqi:['','Very good','Good','Moderate','Poor','Very poor'],
-  masterSlaveNet:'Master/Slave network',devices1:'1 device',devicesN:'{n} devices',
-  mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun',
-  Monday:'Monday',Tuesday:'Tuesday',Wednesday:'Wednesday',Thursday:'Thursday',Friday:'Friday',Saturday:'Saturday',Sunday:'Sunday',
-  light:'Light',dark:'Dark 🌙',bright:'Bright ☀️',hrv_label:'Heat recovery',nightMode:'Night mode',freeCool:'Free-Cooling',active:'Active',inactive:'Inactive',smartLogic:'Smart Logic',measures:'Readings',automation:'Automation',histTitle:'History (last hour)',noHistory:'No history yet — will fill with live data',
-  innerTemp:'Indoor temp.',outerTemp:'Outdoor temp.',humIn:'Indoor humidity',humOut:'Outdoor humidity',airQuality:'CO₂/VOC',airQualityOut:'Outdoor air quality',
-  tempIn:'Temp indoor',co2:'CO₂',hum:'Humidity',filterOkFull:'✓ OK'
+connecting:'Connecting…',connected:'Connected',disconnected:'Disconnected',
+all:'All:',night:'Night',hrv:'Ventilation',auto:'Automatic',away:'Away',off:'Off',
+tabDevices:'🏠 Devices',tabSchedule:'📅 Weekly Schedule',tabSmart:'🧠 Smart Mode',
+devices:'Your devices',devicesCount:'Your devices — {n} online',
+noDevH:'No devices found',noDevP:'Make sure MQTT broker and Ambientika Bridge are running.',
+schedTitle:'Weekly Schedule',smartTitle:'Smart Mode — Real-time Automation',
+footer:'Local control · No cloud · GDPR compliant',
+copyTitle:'📅 Copy day to…',cancel:'Cancel',copy:'Copy',save:'Save',
+settingsTitle:'Settings',owmSection:'Outdoor weather (OpenWeatherMap)',
+owmKeyLbl:'API Key',owmKeyHint:'Free on openweathermap.org — up to 1,000 calls/day',
+owmLocLbl:'Location (city or coordinates)',owmLocHint:'City name e.g. London,GB or coordinates lat,lon',
+owmHint:'Outdoor temperature, humidity and air quality are updated every 15 min.',
+cmdSent:'Command sent',cmdAll:'Command sent to all',noDevices:'No devices',
+saved:'Saved',deleted:'Deleted',copied:'Copied to {d}',
+settingsSaved:'Settings saved',settingsSavedLoading:'Settings saved — loading weather…',
+enterTimes:'Please enter times',chooseDay:'Please select a day',
+online:'Online',offline:'Offline',
+temp:'Temp',humidity:'Humidity',filterAlarm:'⚠️ Filter replacement required',filterDays:' — for {d} days',
+fanLabel:'Fan',modeLabel:'Operating mode',modeInfoHint:'ⓘ = Mode info',
+noSlots:'No time slot',addSlot:'+ Add time slot',addSlotTop:'+ Time slot',
+copyDay:'📅 Copy',detailsLink:'🔍 View details…',
+slotFrom:'From',slotTo:'To',slotMode:'Mode',slotFan:'Fan%',slotFanPh:'Auto',
+filterOk:'✓ OK',filterSection:'Filter',lastChange:'Last replacement',
+currentMode:'Current mode',activeMode:'Active mode',sensorData:'Sensor data',
+lastMeasure:'Last reading',time:'Time',network:'Network',zone:'Zone',
+firmware:'Firmware',deviceId:'Device ID',role:'Role',type:'Device type',status:'Status',
+sensors:'Evaluated sensors:',logic:'Logic:',
+weatherSetup:'Set up outdoor weather',weatherHint:'Enter API key for temperature, humidity & air quality',
+weatherError:'Weather error: ',weatherRetry:'↻ Retry',weatherLoading:'Loading weather data…',
+weatherOutdoor:'Outdoor:',weatherHumidity:'Humidity:',weatherAgo:'{m} min. ago',
+hrv_active:'Medium active',hrv_min:'Minimum active',hrv_off:'Inactive',
+nightActive:'Active at night',freeCoolCond:'T>24°C & Out>20°C & Out<In',
+inside:'Inside',outside:'Outside',coolPossible:'↓ Cooling possible',heatSugg:'↑ Heating advised',balanced:'≈ Balanced',
+devSensor:'Device sensor',openWeather:'OpenWeather',weatherStation:'Weather station',
+aqi:['','Very good','Good','Moderate','Poor','Very poor'],
+masterSlaveNet:'Master/Slave network',devices1:'1 device',devicesN:'{n} devices',
+mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun',
+Monday:'Monday',Tuesday:'Tuesday',Wednesday:'Wednesday',Thursday:'Thursday',Friday:'Friday',Saturday:'Saturday',Sunday:'Sunday',
+light:'Light',dark:'Dark 🌙',bright:'Bright ☀️',hrv_label:'Heat recovery',nightMode:'Night mode',freeCool:'Free-Cooling',active:'Active',inactive:'Inactive',smartLogic:'Smart Logic',measures:'Readings',automation:'Automation',histTitle:'History (last hour)',noHistory:'No history yet — will fill with live data',
+innerTemp:'Indoor temp.',outerTemp:'Outdoor temp.',humIn:'Indoor humidity',humOut:'Outdoor humidity',airQuality:'CO₂/VOC',airQualityOut:'Outdoor air quality',
+tempIn:'Temp indoor',co2:'CO₂',hum:'Humidity',filterOkFull:'✓ OK',
+overnight:'+1',overnightHint:'⏳ Overnight: ends next day ({e})',overnightFormHint:'End time < start time → time slot crosses midnight (ends next day)'
 },
 fr:{
-  connecting:'Connexion…',connected:'Connecté',disconnected:'Déconnecté',
-  all:'Tous:',night:'Nuit',hrv:'Ventilation',auto:'Automatique',away:'Absent',off:'Éteint',
-  tabDevices:'🏠 Appareils',tabSchedule:'📅 Planning hebdomadaire',tabSmart:'🧠 Mode Smart',
-  devices:'Vos appareils',devicesCount:'Vos appareils — {n} en ligne',
-  noDevH:'Aucun appareil trouvé',noDevP:'Vérifiez que le broker MQTT et Ambientika Bridge sont actifs.',
-  schedTitle:'Planning hebdomadaire',smartTitle:'Mode Smart — Automatisme en temps réel',
-  footer:'Contrôle local · Sans cloud · Conforme RGPD',
-  copyTitle:'📅 Copier le jour vers…',cancel:'Annuler',copy:'Copier',save:'Enregistrer',
-  settingsTitle:'Paramètres',owmSection:'Météo extérieure (OpenWeatherMap)',
-  owmKeyLbl:'Clé API',owmKeyHint:'Gratuit sur openweathermap.org — jusqu’à 1 000 appels/jour',
-  owmLocLbl:'Lieu (ville ou coordonnées)',owmLocHint:'Nom de ville ex. Paris,FR ou coordonnées lat,lon',
-  owmHint:'Température, humidité et qualité de l’air sont mises à jour toutes les 15 min.',
-  cmdSent:'Commande envoyée',cmdAll:'Commande envoyée à tous',noDevices:'Aucun appareil',
-  saved:'Enregistré',deleted:'Supprimé',copied:'Copié vers {d}',
-  settingsSaved:'Paramètres enregistrés',settingsSavedLoading:'Paramètres enregistrés — chargement météo…',
-  enterTimes:'Veuillez saisir les horaires',chooseDay:'Veuillez choisir un jour',
-  online:'En ligne',offline:'Hors ligne',
-  temp:'Temp.',humidity:'Humidité',filterAlarm:'⚠️ Remplacement du filtre requis',filterDays:' — depuis {d} jours',
-  fanLabel:'Ventilateur',modeLabel:'Mode de fonctionnement',modeInfoHint:'ⓘ = Info mode',
-  noSlots:'Aucune plage horaire',addSlot:'+ Ajouter une plage',addSlotTop:'+ Plage horaire',
-  copyDay:'📅 Copier',detailsLink:'🔍 Voir les détails…',
-  slotFrom:'De',slotTo:'À',slotMode:'Mode',slotFan:'Ventil.%',slotFanPh:'Auto',
-  filterOk:'✓ OK',filterSection:'Filtre',lastChange:'Dernier remplacement',
-  currentMode:'Mode actuel',activeMode:'Mode actif',sensorData:'Données capteur',
-  lastMeasure:'Dernière mesure',time:'Heure',network:'Réseau',zone:'Zone',
-  firmware:'Firmware',deviceId:'ID appareil',role:'Rôle',type:'Type d’appareil',status:'État',
-  sensors:'Capteurs évalués :',logic:'Logique :',
-  weatherSetup:'Configurer la météo extérieure',weatherHint:'Entrer la clé API pour temp., humidité & qualité air',
-  weatherError:'Erreur météo : ',weatherRetry:'↻ Réessayer',weatherLoading:'Chargement météo…',
-  weatherOutdoor:'Extérieur :',weatherHumidity:'Humidité :',weatherAgo:'il y a {m} min.',
-  hrv_active:'Moyenne active',hrv_min:'Minimum actif',hrv_off:'Inactif',
-  nightActive:'Actif la nuit',freeCoolCond:'T>24°C & Ext.>20°C & Ext.<Int.',
-  inside:'Intérieur',outside:'Extérieur',coolPossible:'↓ Refroidissement possible',heatSugg:'↑ Chauffage conseillé',balanced:'≈ Équilibré',
-  devSensor:'Capteur appareil',openWeather:'OpenWeather',weatherStation:'Station météo',
-  aqi:['','Très bon','Bon','Modéré','Mauvais','Très mauvais'],
-  masterSlaveNet:'Réseau Maître/Esclave',devices1:'1 appareil',devicesN:'{n} appareils',
-  mon:'Lun',tue:'Mar',wed:'Mer',thu:'Jeu',fri:'Ven',sat:'Sam',sun:'Dim',
-  Monday:'Lundi',Tuesday:'Mardi',Wednesday:'Mercredi',Thursday:'Jeudi',Friday:'Vendredi',Saturday:'Samedi',Sunday:'Dimanche',
-  light:'Lumière',dark:'Sombre 🌙',bright:'Lumineux ☀️',hrv_label:'Récupération de chaleur',nightMode:'Mode nuit',freeCool:'Free-Cooling',active:'Actif',inactive:'Inactif',smartLogic:'Logique Smart',measures:'Mesures',automation:'Automatisme',histTitle:'Historique (dernière heure)',noHistory:'Pas encore de données — se remplira avec les données en direct',
-  innerTemp:'Temp. intérieure',outerTemp:'Temp. extérieure',humIn:'Humidité interieure',humOut:'Humidité extérieure',airQuality:'CO₂/COV',airQualityOut:'Qualité air extérieure',
-  tempIn:'Temp int.',co2:'CO₂',hum:'Humidité',filterOkFull:'✓ OK'
+connecting:'Connexion…',connected:'Connecté',disconnected:'Déconnecté',
+all:'Tous:',night:'Nuit',hrv:'Ventilation',auto:'Automatique',away:'Absent',off:'Éteint',
+tabDevices:'🏠 Appareils',tabSchedule:'📅 Planning hebdomadaire',tabSmart:'🧠 Mode Smart',
+devices:'Vos appareils',devicesCount:'Vos appareils — {n} en ligne',
+noDevH:'Aucun appareil trouvé',noDevP:'Vérifiez que le broker MQTT et Ambientika Bridge sont actifs.',
+schedTitle:'Planning hebdomadaire',smartTitle:'Mode Smart — Automatisme en temps réel',
+footer:'Contrôle local · Sans cloud · Conforme RGPD',
+copyTitle:'📅 Copier le jour vers…',cancel:'Annuler',copy:'Copier',save:'Enregistrer',
+settingsTitle:'Paramètres',owmSection:'Météo extérieure (OpenWeatherMap)',
+owmKeyLbl:'Clé API',owmKeyHint:'Gratuit sur openweathermap.org — jusqu’à 1 000 appels/jour',
+owmLocLbl:'Lieu (ville ou coordonnées)',owmLocHint:'Nom de ville ex. Paris,FR ou coordonnées lat,lon',
+owmHint:'Température, humidité et qualité de l’air sont mises à jour toutes les 15 min.',
+cmdSent:'Commande envoyée',cmdAll:'Commande envoyée à tous',noDevices:'Aucun appareil',
+saved:'Enregistré',deleted:'Supprimé',copied:'Copié vers {d}',
+settingsSaved:'Paramètres enregistrés',settingsSavedLoading:'Paramètres enregistrés — chargement météo…',
+enterTimes:'Veuillez saisir les horaires',chooseDay:'Veuillez choisir un jour',
+online:'En ligne',offline:'Hors ligne',
+temp:'Temp.',humidity:'Humidité',filterAlarm:'⚠️ Remplacement du filtre requis',filterDays:' — depuis {d} jours',
+fanLabel:'Ventilateur',modeLabel:'Mode de fonctionnement',modeInfoHint:'ⓘ = Info mode',
+noSlots:'Aucune plage horaire',addSlot:'+ Ajouter une plage',addSlotTop:'+ Plage horaire',
+copyDay:'📅 Copier',detailsLink:'🔍 Voir les détails…',
+slotFrom:'De',slotTo:'À',slotMode:'Mode',slotFan:'Ventil.%',slotFanPh:'Auto',
+filterOk:'✓ OK',filterSection:'Filtre',lastChange:'Dernier remplacement',
+currentMode:'Mode actuel',activeMode:'Mode actif',sensorData:'Données capteur',
+lastMeasure:'Dernière mesure',time:'Heure',network:'Réseau',zone:'Zone',
+firmware:'Firmware',deviceId:'ID appareil',role:'Rôle',type:'Type d’appareil',status:'État',
+sensors:'Capteurs évalués :',logic:'Logique :',
+weatherSetup:'Configurer la météo extérieure',weatherHint:'Entrer la clé API pour temp., humidité & qualité air',
+weatherError:'Erreur météo : ',weatherRetry:'↻ Réessayer',weatherLoading:'Chargement météo…',
+weatherOutdoor:'Extérieur :',weatherHumidity:'Humidité :',weatherAgo:'il y a {m} min.',
+hrv_active:'Moyenne active',hrv_min:'Minimum actif',hrv_off:'Inactif',
+nightActive:'Actif la nuit',freeCoolCond:'T>24°C & Ext.>20°C & Ext.<Int.',
+inside:'Intérieur',outside:'Extérieur',coolPossible:'↓ Refroidissement possible',heatSugg:'↑ Chauffage conseillé',balanced:'≈ Équilibré',
+devSensor:'Capteur appareil',openWeather:'OpenWeather',weatherStation:'Station météo',
+aqi:['','Très bon','Bon','Modéré','Mauvais','Très mauvais'],
+masterSlaveNet:'Réseau Maître/Esclave',devices1:'1 appareil',devicesN:'{n} appareils',
+mon:'Lun',tue:'Mar',wed:'Mer',thu:'Jeu',fri:'Ven',sat:'Sam',sun:'Dim',
+Monday:'Lundi',Tuesday:'Mardi',Wednesday:'Mercredi',Thursday:'Jeudi',Friday:'Vendredi',Saturday:'Samedi',Sunday:'Dimanche',
+light:'Lumière',dark:'Sombre 🌙',bright:'Lumineux ☀️',hrv_label:'Récupération de chaleur',nightMode:'Mode nuit',freeCool:'Free-Cooling',active:'Actif',inactive:'Inactif',smartLogic:'Logique Smart',measures:'Mesures',automation:'Automatisme',histTitle:'Historique (dernière heure)',noHistory:'Pas encore de données — se remplira avec les données en direct',
+innerTemp:'Temp. intérieure',outerTemp:'Temp. extérieure',humIn:'Humidité intérieure',humOut:'Humidité extérieure',airQuality:'CO₂/COV',airQualityOut:'Qualité air extérieure',
+tempIn:'Temp int.',co2:'CO₂',hum:'Humidité',filterOkFull:'✓ OK',
+overnight:'+1',overnightHint:'⏳ Nuit: se termine le lendemain ({e})',overnightFormHint:'Heure de fin < heure de début → la plage dépasse minuit (se termine le jour suivant)'
 },
 es:{
-  connecting:'Conectando…',connected:'Conectado',disconnected:'Desconectado',
-  all:'Todos:',night:'Noche',hrv:'Ventilación',auto:'Automático',away:'Ausente',off:'Apagado',
-  tabDevices:'🏠 Dispositivos',tabSchedule:'📅 Programa semanal',tabSmart:'🧠 Modo Smart',
-  devices:'Sus dispositivos',devicesCount:'Sus dispositivos — {n} en línea',
-  noDevH:'No se encontraron dispositivos',noDevP:'Asegúrese de que el broker MQTT y Ambientika Bridge estén activos.',
-  schedTitle:'Programa semanal',smartTitle:'Modo Smart — Automatización en tiempo real',
-  footer:'Control local · Sin nube · Conforme al RGPD',
-  copyTitle:'📅 Copiar día a…',cancel:'Cancelar',copy:'Copiar',save:'Guardar',
-  settingsTitle:'Ajustes',owmSection:'Tiempo exterior (OpenWeatherMap)',
-  owmKeyLbl:'Clave API',owmKeyHint:'Gratuito en openweathermap.org — hasta 1.000 llamadas/día',
-  owmLocLbl:'Ubicación (ciudad o coordenadas)',owmLocHint:'Nombre ciudad p.ej. Madrid,ES o coordenadas lat,lon',
-  owmHint:'Temperatura, humedad y calidad del aire exteriores se actualizan cada 15 min.',
-  cmdSent:'Comando enviado',cmdAll:'Comando enviado a todos',noDevices:'Sin dispositivos',
-  saved:'Guardado',deleted:'Eliminado',copied:'Copiado a {d}',
-  settingsSaved:'Ajustes guardados',settingsSavedLoading:'Ajustes guardados — cargando tiempo…',
-  enterTimes:'Por favor introduzca los horarios',chooseDay:'Por favor seleccione un día',
-  online:'En línea',offline:'Sin conexión',
-  temp:'Temp.',humidity:'Humedad',filterAlarm:'⚠️ Cambio de filtro necesario',filterDays:' — desde hace {d} días',
-  fanLabel:'Ventilador',modeLabel:'Modo de funcionamiento',modeInfoHint:'ⓘ = Info modo',
-  noSlots:'Sin franja horaria',addSlot:'+ Añadir franja horaria',addSlotTop:'+ Franja horaria',
-  copyDay:'📅 Copiar',detailsLink:'🔍 Ver detalles…',
-  slotFrom:'De',slotTo:'A',slotMode:'Modo',slotFan:'Ventil.%',slotFanPh:'Auto',
-  filterOk:'✓ OK',filterSection:'Filtro',lastChange:'Último cambio',
-  currentMode:'Modo actual',activeMode:'Modo activo',sensorData:'Datos del sensor',
-  lastMeasure:'Última medición',time:'Hora',network:'Red',zone:'Zona',
-  firmware:'Firmware',deviceId:'ID dispositivo',role:'Rol',type:'Tipo de dispositivo',status:'Estado',
-  sensors:'Sensores evaluados:',logic:'Lógica:',
-  weatherSetup:'Configurar tiempo exterior',weatherHint:'Introduzca la clave API para temp., humedad & calidad del aire',
-  weatherError:'Error del tiempo: ',weatherRetry:'↻ Reintentar',weatherLoading:'Cargando datos meteorológicos…',
-  weatherOutdoor:'Exterior:',weatherHumidity:'Humedad:',weatherAgo:'hace {m} min.',
-  hrv_active:'Media activa',hrv_min:'Mínima activa',hrv_off:'Inactivo',
-  nightActive:'Activo de noche',freeCoolCond:'T>24°C & Ext.>20°C & Ext.<Int.',
-  inside:'Interior',outside:'Exterior',coolPossible:'↓ Enfriamiento posible',heatSugg:'↑ Calefacción aconsejada',balanced:'≈ Equilibrado',
-  devSensor:'Sensor del dispositivo',openWeather:'OpenWeather',weatherStation:'Estación meteorológica',
-  aqi:['','Muy bueno','Bueno','Moderado','Malo','Muy malo'],
-  masterSlaveNet:'Red Maestro/Esclavo',devices1:'1 dispositivo',devicesN:'{n} dispositivos',
-  mon:'Lun',tue:'Mar',wed:'Mié',thu:'Jue',fri:'Vie',sat:'Sáb',sun:'Dom',
-  Monday:'Lunes',Tuesday:'Martes',Wednesday:'Miércoles',Thursday:'Jueves',Friday:'Viernes',Saturday:'Sábado',Sunday:'Domingo',
-  light:'Luz',dark:'Oscuro 🌙',bright:'Luminoso ☀️',hrv_label:'Recuperación de calor',nightMode:'Modo noche',freeCool:'Free-Cooling',active:'Activo',inactive:'Inactivo',smartLogic:'Lógica Smart',measures:'Mediciones',automation:'Automatización',histTitle:'Historial (última hora)',noHistory:'Aún sin datos — se llenará con datos en vivo',
-  innerTemp:'Temp. interior',outerTemp:'Temp. exterior',humIn:'Humedad interior',humOut:'Humedad exterior',airQuality:'CO₂/VOC',airQualityOut:'Calidad del aire exterior',
-  tempIn:'Temp. interior',co2:'CO₂',hum:'Humedad',filterOkFull:'✓ OK'
+connecting:'Conectando…',connected:'Conectado',disconnected:'Desconectado',
+all:'Todos:',night:'Noche',hrv:'Ventilación',auto:'Automático',away:'Ausente',off:'Apagado',
+tabDevices:'🏠 Dispositivos',tabSchedule:'📅 Programa semanal',tabSmart:'🧠 Modo Smart',
+devices:'Sus dispositivos',devicesCount:'Sus dispositivos — {n} en línea',
+noDevH:'No se encontraron dispositivos',noDevP:'Asegúrese de que el broker MQTT y Ambientika Bridge estén activos.',
+schedTitle:'Programa semanal',smartTitle:'Modo Smart — Automatización en tiempo real',
+footer:'Control local · Sin nube · Conforme al RGPD',
+copyTitle:'📅 Copiar día a…',cancel:'Cancelar',copy:'Copiar',save:'Guardar',
+settingsTitle:'Ajustes',owmSection:'Tiempo exterior (OpenWeatherMap)',
+owmKeyLbl:'Clave API',owmKeyHint:'Gratuito en openweathermap.org — hasta 1.000 llamadas/día',
+owmLocLbl:'Ubicación (ciudad o coordenadas)',owmLocHint:'Nombre ciudad p.ej. Madrid,ES o coordenadas lat,lon',
+owmHint:'Temperatura, humedad y calidad del aire exteriores se actualizan cada 15 min.',
+cmdSent:'Comando enviado',cmdAll:'Comando enviado a todos',noDevices:'Sin dispositivos',
+saved:'Guardado',deleted:'Eliminado',copied:'Copiado a {d}',
+settingsSaved:'Ajustes guardados',settingsSavedLoading:'Ajustes guardados — cargando tiempo…',
+enterTimes:'Por favor introduzca los horarios',chooseDay:'Por favor seleccione un día',
+online:'En línea',offline:'Sin conexión',
+temp:'Temp.',humidity:'Humedad',filterAlarm:'⚠️ Cambio de filtro necesario',filterDays:' — desde hace {d} días',
+fanLabel:'Ventilador',modeLabel:'Modo de funcionamiento',modeInfoHint:'ⓘ = Info modo',
+noSlots:'Sin franja horaria',addSlot:'+ Añadir franja horaria',addSlotTop:'+ Franja horaria',
+copyDay:'📅 Copiar',detailsLink:'🔍 Ver detalles…',
+slotFrom:'De',slotTo:'A',slotMode:'Modo',slotFan:'Ventil.%',slotFanPh:'Auto',
+filterOk:'✓ OK',filterSection:'Filtro',lastChange:'Último cambio',
+currentMode:'Modo actual',activeMode:'Modo activo',sensorData:'Datos del sensor',
+lastMeasure:'Última medición',time:'Hora',network:'Red',zone:'Zona',
+firmware:'Firmware',deviceId:'ID dispositivo',role:'Rol',type:'Tipo de dispositivo',status:'Estado',
+sensors:'Sensores evaluados:',logic:'Lógica:',
+weatherSetup:'Configurar tiempo exterior',weatherHint:'Introduzca la clave API para temp., humedad & calidad del aire',
+weatherError:'Error del tiempo: ',weatherRetry:'↻ Reintentar',weatherLoading:'Cargando datos meteorológicos…',
+weatherOutdoor:'Exterior:',weatherHumidity:'Humedad:',weatherAgo:'hace {m} min.',
+hrv_active:'Media activa',hrv_min:'Mínima activa',hrv_off:'Inactivo',
+nightActive:'Activo de noche',freeCoolCond:'T>24°C & Ext.>20°C & Ext.<Int.',
+inside:'Interior',outside:'Exterior',coolPossible:'↓ Enfriamiento posible',heatSugg:'↑ Calefacción aconsejada',balanced:'≈ Equilibrado',
+devSensor:'Sensor del dispositivo',openWeather:'OpenWeather',weatherStation:'Estación meteorológica',
+aqi:['','Muy bueno','Bueno','Moderado','Malo','Muy malo'],
+masterSlaveNet:'Red Maestro/Esclavo',devices1:'1 dispositivo',devicesN:'{n} dispositivos',
+mon:'Lun',tue:'Mar',wed:'Mié',thu:'Jue',fri:'Vie',sat:'Sáb',sun:'Dom',
+Monday:'Lunes',Tuesday:'Martes',Wednesday:'Miércoles',Thursday:'Jueves',Friday:'Viernes',Saturday:'Sábado',Sunday:'Domingo',
+light:'Luz',dark:'Oscuro 🌙',bright:'Luminoso ☀️',hrv_label:'Recuperación de calor',nightMode:'Modo noche',freeCool:'Free-Cooling',active:'Activo',inactive:'Inactivo',smartLogic:'Lógica Smart',measures:'Mediciones',automation:'Automatización',histTitle:'Historial (última hora)',noHistory:'Aún sin datos — se llenará con datos en vivo',
+innerTemp:'Temp. interior',outerTemp:'Temp. exterior',humIn:'Humedad interior',humOut:'Humedad exterior',airQuality:'CO₂/VOC',airQualityOut:'Calidad del aire exterior',
+tempIn:'Temp. interior',co2:'CO₂',hum:'Humedad',filterOkFull:'✓ OK',
+overnight:'+1',overnightHint:'⏳ Medianoche: termina el día siguiente ({e})',overnightFormHint:'Hora de fin < hora de inicio → la franja cruza la medianoche (termina al día siguiente)'
 }};
 let lang='de';
 function T(k){const t=LANGS[lang]||LANGS.de;return t[k]!==undefined?t[k]:((LANGS.de[k])||k);}
-function Tf(k,...args){let s=T(k);args.forEach((v,i)=>{s=s.replace('{'+['n','d','m'][i]+'}',v);});return s;}
+function Tf(k,...args){let s=T(k);args.forEach((v,i)=>{s=s.replace('{'+['n','d','m','e'][i]+'}',v);});return s;}
 function setLang(l){lang=l;localStorage.setItem('lang',l);document.getElementById('lang-select').value=l;applyLang();renderAllCards();const cont=document.getElementById('schedule-container');if(cont)cont.innerHTML='';Object.keys(schedules).forEach(did=>renderScCard(did));if(activeSmartDevice&&document.getElementById('view-smart').style.display!=='none')loadSmart(activeSmartDevice);}
 function applyLang(){
-  document.getElementById('mqtt-label').textContent=T('connecting');
-  document.getElementById('lbl-all').textContent=T('all');
-  document.querySelectorAll('.t-night').forEach(e=>e.textContent=T('night'));
-  document.querySelectorAll('.t-hrv').forEach(e=>e.textContent=T('hrv'));
-  document.querySelectorAll('.t-auto').forEach(e=>e.textContent=T('auto'));
-  document.querySelectorAll('.t-away').forEach(e=>e.textContent=T('away'));
-  document.querySelectorAll('.t-off').forEach(e=>e.textContent=T('off'));
-  document.getElementById('tab-devices').textContent=T('tabDevices');
-  document.getElementById('tab-schedule').textContent=T('tabSchedule');
-  document.getElementById('tab-smart').textContent=T('tabSmart');
-  const dt=document.getElementById('devices-title');if(dt&&!Object.keys(devices).length)dt.textContent=T('devices');
-  document.getElementById('t-empty-h').textContent=T('noDevH');
-  document.getElementById('t-empty-p').textContent=T('noDevP');
-  document.getElementById('t-sched-title').textContent=T('schedTitle');
-  document.getElementById('t-smart-title').textContent=T('smartTitle');
-  document.getElementById('t-footer').textContent=T('footer');
-  document.getElementById('t-copy-title').textContent=T('copyTitle');
-  document.getElementById('t-cancel1').textContent=T('cancel');
-  document.getElementById('t-copy-btn').textContent=T('copy');
-  document.getElementById('t-settings-title').textContent=T('settingsTitle');
-  document.getElementById('t-owm-section').textContent=T('owmSection');
-  document.getElementById('t-owm-key-lbl').textContent=T('owmKeyLbl');
-  document.getElementById('t-owm-key-hint').textContent=T('owmKeyHint');
-  document.getElementById('t-owm-loc-lbl').textContent=T('owmLocLbl');
-  document.getElementById('t-owm-loc-hint').textContent=T('owmLocHint');
-  document.getElementById('t-owm-hint').textContent=T('owmHint');
-  document.getElementById('t-cancel2').textContent=T('cancel');
-  document.getElementById('t-save-btn').textContent=T('save');
-  renderWeatherBar(owmData);
+document.getElementById('mqtt-label').textContent=T('connecting');
+document.getElementById('lbl-all').textContent=T('all');
+document.querySelectorAll('.t-night').forEach(e=>e.textContent=T('night'));
+document.querySelectorAll('.t-hrv').forEach(e=>e.textContent=T('hrv'));
+document.querySelectorAll('.t-auto').forEach(e=>e.textContent=T('auto'));
+document.querySelectorAll('.t-away').forEach(e=>e.textContent=T('away'));
+document.querySelectorAll('.t-off').forEach(e=>e.textContent=T('off'));
+document.getElementById('tab-devices').textContent=T('tabDevices');
+document.getElementById('tab-schedule').textContent=T('tabSchedule');
+document.getElementById('tab-smart').textContent=T('tabSmart');
+const dt=document.getElementById('devices-title');if(dt&&!Object.keys(devices).length)dt.textContent=T('devices');
+document.getElementById('t-empty-h').textContent=T('noDevH');
+document.getElementById('t-empty-p').textContent=T('noDevP');
+document.getElementById('t-sched-title').textContent=T('schedTitle');
+document.getElementById('t-smart-title').textContent=T('smartTitle');
+document.getElementById('t-footer').textContent=T('footer');
+document.getElementById('t-copy-title').textContent=T('copyTitle');
+document.getElementById('t-cancel1').textContent=T('cancel');
+document.getElementById('t-copy-btn').textContent=T('copy');
+document.getElementById('t-settings-title').textContent=T('settingsTitle');
+document.getElementById('t-owm-section').textContent=T('owmSection');
+document.getElementById('t-owm-key-lbl').textContent=T('owmKeyLbl');
+document.getElementById('t-owm-key-hint').textContent=T('owmKeyHint');
+document.getElementById('t-owm-loc-lbl').textContent=T('owmLocLbl');
+document.getElementById('t-owm-loc-hint').textContent=T('owmLocHint');
+document.getElementById('t-owm-hint').textContent=T('owmHint');
+document.getElementById('t-cancel2').textContent=T('cancel');
+document.getElementById('t-save-btn').textContent=T('save');
+renderWeatherBar(owmData);
 }
 const MODES=['SMART','AUTO','HRV','MANUAL_HRV','NIGHT','AWAY','MONITORING','BOOST','EXHAUST','SUPPLY','MS_FLOW','SM_FLOW','TIMED_EXHAUST','OFF'];
 const ML_BASE={SMART:'Smart',AUTO:'Auto',HRV:'HRV',MANUAL_HRV:'HRV man.',NIGHT:'Night',AWAY:'Away',MONITORING:'Monitor',BOOST:'Boost',EXHAUST:'Exhaust',SUPPLY:'Supply',MS_FLOW:'MS-Flow',SM_FLOW:'SM-Flow',TIMED_EXHAUST:'Timed Exh.',OFF:'Off'};
 function ML(m){const map={SMART:'Smart',AUTO:T('auto'),HRV:T('hrv'),MANUAL_HRV:'HRV man.',NIGHT:T('night'),AWAY:T('away'),MONITORING:'Monitor',BOOST:'Boost',EXHAUST:'Exh.',SUPPLY:'Supply',MS_FLOW:'MS-Flow',SM_FLOW:'SM-Flow',TIMED_EXHAUST:'T-Exh.',OFF:T('off')};return map[m]||m;}
 const MI_DE={SMART:{icon:'⚡',title:'Smart-Modus',desc:'Vollautomatischer Betrieb. Das Master-Gerät wertet alle Sensoren aus und steuert auch die Slave-Geräte.',sensors:['Innentemperatur','Luftfeuchte innen','CO₂/VOC','Lichtstärke (Tag/Nacht)','Außentemperatur (Wetterstation)'],logic:'Wechselt automatisch zwischen Wärmerückgewinnung, Nachtmodus und Free-Cooling je nach Messwerten.'},AUTO:{icon:'🤖',title:'Automatik',desc:'Halbautomatischer Betrieb nach vordefinierten Schwellwerten.',sensors:['Innentemperatur','Luftfeuchte'],logic:'Lüftet bei CO₂-Anstieg oder Feuchteüberschreitung.'},HRV:{icon:'🌬️',title:'Wärmerückgewinnung (HRV)',desc:'Kontinuierliche Lüftung mit Wärmerückgewinnung. Frischluft wird über den Wärmetauscher vortemperiert.',sensors:['keine — Lüftung permanent auf eingestellter Stufe'],logic:'Spart bis zu 90 % der Lüftungswärmeverluste.'},MANUAL_HRV:{icon:'⚙️',title:'Manuell HRV',desc:'Wärmerückgewinnung mit manuell eingestellter Drehzahl.',sensors:['keine — manuelle Stufe fix'],logic:'Wie HRV, aber Drehzahl wird nicht automatisch angepasst.'},NIGHT:{icon:'🌙',title:'Nachtmodus',desc:'Stiller Betrieb mit minimaler Drehzahl für geräuscharmen Schlaf.',sensors:['Lichtstärke (optional)'],logic:'Lüfter auf Nachtgeschwindigkeit (∲20–30 %), kein Boost.'},AWAY:{icon:'🏠',title:'Außer Haus',desc:'Abwesenheitsmodus: Minimale Grundlüftung zum Schutz vor Schimmel.',sensors:['keine aktive Regelung'],logic:'Sehr langsame Lüftung für leere Wohnung.'},MONITORING:{icon:'📊',title:'Überwachungsmodus',desc:'Reine Sensorüberwachung ohne aktive Lüftung.',sensors:['Innentemperatur','Luftfeuchte','CO₂/VOC','Lichtstärke'],logic:'Lüfter ausgeschaltet — nur Datenerfassung.'},BOOST:{icon:'💨',title:'Boost-Modus',desc:'Kurzzeitige maximale Lüftung (z.B. nach Kochen, Sport).',sensors:['CO₂/VOC (optional)'],logic:'Lüfter auf 100 % für einstellbare Dauer, dann automatisch zurück.'},EXHAUST:{icon:'⬆️',title:'Abluft',desc:'Nur Abluft: Luft wird abgesaugt, kein Frischluft-Einzug.',sensors:['keine'],logic:'Typisch für Bad/Küche als Abluftelement.'},SUPPLY:{icon:'⬇️',title:'Zuluft',desc:'Nur Zuluft: Frischluft wird eingepresst.',sensors:['keine'],logic:'Gegenteil zu Abluft.'},MS_FLOW:{icon:'⇄',title:'Master-Slave Fluss',desc:'Master steuert den Luftstrom, Slave folgt der Vorgabe.',sensors:['Master: alle Sensoren aktiv','Slave: passiv'],logic:'Druckausgleich. Mind. 8 mm Türspalt nötig.'},SM_FLOW:{icon:'⇆',title:'Slave-Master Fluss',desc:'Umgekehrte Flussrichtung: Slave übernimmt Luftführungsrolle.',sensors:['wie MS_FLOW, umgekehrt'],logic:'Seltener Sonderfall.'},TIMED_EXHAUST:{icon:'⏱️',title:'Zeit-Abluft',desc:'Abluft für definierte Dauer, dann automatischer Rück in Grundmodus.',sensors:['keine'],logic:'Badlüfter-Funktion mit automatischem Abschalten.'},OFF:{icon:'⚪',title:'Gerät Aus',desc:'Gerät komplett deaktiviert. Keine Lüftung, keine Sensorauswertung.',sensors:['keine'],logic:'Nur für Wartung.'}};
-const MI_IT={SMART:{icon:'⚡',title:'Modalità Smart',desc:'Funzionamento completamente automatico. Il dispositivo master valuta tutti i sensori.',sensors:['Temp. interna','Umidità interna','CO₂/VOC','Luminosità (giorno/notte)','Temp. esterna (stazione)'],logic:'Passa automaticamente tra recupero di calore, modalità notte e free-cooling.'},AUTO:{icon:'🤖',title:'Automatico',desc:'Funzionamento semi-automatico con soglie predefinite.',sensors:['Temp. interna','Umidità'],logic:'Ventila se CO₂ o umidità superano i limiti.'},HRV:{icon:'🌬️',title:'Recupero di calore (HRV)',desc:'Ventilazione continua con recupero di calore.',sensors:['nessuno — ventilazione permanente'],logic:'Risparmia fino al 90 % del calore di ventilazione.'},MANUAL_HRV:{icon:'⚙️',title:'HRV manuale',desc:'Recupero di calore con velocità impostata manualmente.',sensors:['nessuno'],logic:'Come HRV, ma la velocità non viene regolata automaticamente.'},NIGHT:{icon:'🌙',title:'Modalità notte',desc:'Funzionamento silenzioso a velocità minima.',sensors:['Luminosità (opzionale)'],logic:'Ventilatore alla velocità notturna (~20-30 %).'},AWAY:{icon:'🏠',title:'Fuori casa',desc:'Modalità assenza: ventilazione minima anti-muffa.',sensors:['nessuna regolazione attiva'],logic:'Ventilazione lenta per abitazione vuota.'},MONITORING:{icon:'📊',title:'Monitoraggio',desc:'Solo monitoraggio sensori, nessuna ventilazione.',sensors:['Temp.','Umidità','CO₂/VOC','Luce'],logic:'Ventilatore spento — solo acquisizione dati.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilazione massima temporanea (es. dopo cucina).',sensors:['CO₂/VOC (opz.)'],logic:'Ventilatore al 100 %, poi ritorno automatico.'},EXHAUST:{icon:'⬆️',title:'Estrazione',desc:'Solo estrazione: aria aspirata, nessuna immissione.',sensors:['nessuno'],logic:'Tipico per bagno/cucina.'},SUPPLY:{icon:'⬇️',title:'Immissione',desc:'Solo immissione: aria fresca insufflata.',sensors:['nessuno'],logic:'Opposto a Estrazione.'},MS_FLOW:{icon:'⇄',title:'Flusso Master-Slave',desc:'Master controlla il flusso, Slave segue.',sensors:['Master: tutti i sensori','Slave: passivo'],logic:'Equilibrio di pressione. Almeno 8 mm sotto la porta.'},SM_FLOW:{icon:'⇆',title:'Flusso Slave-Master',desc:'Direzione invertita: Slave guida il flusso.',sensors:['come MS_FLOW, invertito'],logic:'Caso speciale raro.'},TIMED_EXHAUST:{icon:'⏱️',title:'Estrazione temporizzata',desc:'Estrazione per durata definita, poi ritorno automatico.',sensors:['nessuno'],logic:'Funzione bagno con spegnimento automatico.'},OFF:{icon:'⚪',title:'Spento',desc:'Dispositivo completamente disattivato.',sensors:['nessuno'],logic:'Solo per manutenzione.'}};
-const MI_EN={SMART:{icon:'⚡',title:'Smart Mode',desc:'Fully automatic operation. Master device evaluates all sensors.',sensors:['Indoor temperature','Indoor humidity','CO₂/VOC','Light intensity (day/night)','Outdoor temp. (weather station)'],logic:'Switches automatically between heat recovery, night mode and free-cooling.'},AUTO:{icon:'🤖',title:'Automatic',desc:'Semi-automatic with predefined thresholds.',sensors:['Indoor temperature','Humidity'],logic:'Ventilates when CO₂ or humidity exceed limits.'},HRV:{icon:'🌬️',title:'Heat Recovery (HRV)',desc:'Continuous ventilation with heat recovery.',sensors:['none — ventilation always on'],logic:'Saves up to 90 % of ventilation heat losses.'},MANUAL_HRV:{icon:'⚙️',title:'Manual HRV',desc:'Heat recovery with manually set fan speed.',sensors:['none'],logic:'Like HRV, but speed not auto-adjusted.'},NIGHT:{icon:'🌙',title:'Night Mode',desc:'Quiet operation at minimum fan speed.',sensors:['Light intensity (optional)'],logic:'Fan at night speed (~20-30 %), no boost.'},AWAY:{icon:'🏠',title:'Away',desc:'Absence mode: minimal ventilation to prevent mould.',sensors:['no active control'],logic:'Very slow ventilation for empty home.'},MONITORING:{icon:'📊',title:'Monitoring',desc:'Sensor monitoring only, no active ventilation.',sensors:['Temp.','Humidity','CO₂/VOC','Light'],logic:'Fan off — data collection only.'},BOOST:{icon:'💨',title:'Boost',desc:'Temporary maximum ventilation (e.g. after cooking).',sensors:['CO₂/VOC (optional)'],logic:'Fan at 100 %, then automatic return.'},EXHAUST:{icon:'⬆️',title:'Exhaust',desc:'Exhaust only: air extracted, no fresh air supply.',sensors:['none'],logic:'Typical for bathroom/kitchen.'},SUPPLY:{icon:'⬇️',title:'Supply',desc:'Supply only: fresh air blown in.',sensors:['none'],logic:'Opposite of exhaust.'},MS_FLOW:{icon:'⇄',title:'Master-Slave Flow',desc:'Master controls airflow, Slave follows.',sensors:['Master: all sensors','Slave: passive'],logic:'Pressure balance. Min. 8 mm door gap needed.'},SM_FLOW:{icon:'⇆',title:'Slave-Master Flow',desc:'Reversed flow: Slave takes airflow role.',sensors:['like MS_FLOW, reversed'],logic:'Rare special case.'},TIMED_EXHAUST:{icon:'⏱️',title:'Timed Exhaust',desc:'Exhaust for set duration, then automatic return.',sensors:['none'],logic:'Bathroom fan function with auto off.'},OFF:{icon:'⚪',title:'Device Off',desc:'Device fully disabled. No ventilation, no sensors.',sensors:['none'],logic:'Only for maintenance.'}};
-const MI_FR={SMART:{icon:'⚡',title:'Mode Smart',desc:'Fonctionnement entierement automatique. Le maître évalue tous les capteurs.',sensors:['Temp. intérieure','Humidité intérieure','CO₂/COV','Luminosité (jour/nuit)','Temp. extérieure (station)'],logic:'Bascule automatiquement entre récupération de chaleur, mode nuit et free-cooling.'},AUTO:{icon:'🤖',title:'Automatique',desc:'Semi-automatique avec seuils prédéfinis.',sensors:['Temp. intérieure','Humidité'],logic:'Ventile si CO₂ ou humidité dépassent les limites.'},HRV:{icon:'🌬️',title:'Récupération de chaleur (VMC)',desc:'Ventilation continue avec récupération de chaleur.',sensors:['aucun — ventilation permanente'],logic:'Economise jusqu’à 90 % des pertes thermiques.'},MANUAL_HRV:{icon:'⚙️',title:'VMC manuelle',desc:'Récupération de chaleur à vitesse manuelle.',sensors:['aucun'],logic:'Comme VMC, mais vitesse non ajustée automatiquement.'},NIGHT:{icon:'🌙',title:'Mode nuit',desc:'Fonctionnement silencieux à vitesse minimale.',sensors:['Luminosité (optionnel)'],logic:'Ventilateur à vitesse nocturne (~20-30 %).'},AWAY:{icon:'🏠',title:'Absent',desc:'Mode absence: ventilation minimale anti-moisissures.',sensors:['aucun contrôle actif'],logic:'Très lente ventilation pour logement vide.'},MONITORING:{icon:'📊',title:'Surveillance',desc:'Surveillance capteurs uniquement, sans ventilation.',sensors:['Temp.','Humidité','CO₂/COV','Lumière'],logic:'Ventilateur arrêté — collecte de données uniquement.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilation maximale temporaire (ex. après cuisine).',sensors:['CO₂/COV (optionnel)'],logic:'Ventilateur à 100 %, puis retour automatique.'},EXHAUST:{icon:'⬆️',title:'Extraction',desc:'Extraction seule: air aspiré, pas d’insufflation.',sensors:['aucun'],logic:'Typique salle de bain/cuisine.'},SUPPLY:{icon:'⬇️',title:'Insufflation',desc:'Insufflation seule: air frais soufflé.',sensors:['aucun'],logic:'Opposé à Extraction.'},MS_FLOW:{icon:'⇄',title:'Flux Maître-Esclave',desc:'Le maître contrôle le flux, l’esclave suit.',sensors:['Maître: tous capteurs','Esclave: passif'],logic:'Équilibre de pression. Min. 8 mm sous la porte.'},SM_FLOW:{icon:'⇆',title:'Flux Esclave-Maître',desc:'Direction inversée: l’esclave guide le flux.',sensors:['comme MS_FLOW, inversé'],logic:'Cas spécial rare.'},TIMED_EXHAUST:{icon:'⏱️',title:'Extraction temporisée',desc:'Extraction pour durée définie, puis retour automatique.',sensors:['aucun'],logic:'Ventilateur de salle de bain avec arrêt auto.'},OFF:{icon:'⚪',title:'Appareil éteint',desc:'Appareil complètement désactivé.',sensors:['aucun'],logic:'Uniquement pour maintenance.'}};
-const MI_ES={SMART:{icon:'⚡',title:'Modo Smart',desc:'Funcionamiento totalmente automático. El dispositivo maestro evalúa todos los sensores.',sensors:['Temp. interior','Humedad interior','CO₂/VOC','Luminosidad (día/noche)','Temp. exterior (estación)'],logic:'Cambia automáticamente entre recuperación de calor, modo noche y free-cooling.'},AUTO:{icon:'🤖',title:'Automático',desc:'Semi-automático con umbrales predefinidos.',sensors:['Temp. interior','Humedad'],logic:'Ventila si CO₂ o humedad superan los límites.'},HRV:{icon:'🌬️',title:'Recuperación de calor (VMC)',desc:'Ventilación continua con recuperación de calor.',sensors:['ninguno — ventilación permanente'],logic:'Ahorra hasta el 90 % de las pérdidas de calor.'},MANUAL_HRV:{icon:'⚙️',title:'VMC manual',desc:'Recuperación de calor con velocidad manual.',sensors:['ninguno'],logic:'Como VMC, pero velocidad no ajustada automáticamente.'},NIGHT:{icon:'🌙',title:'Modo noche',desc:'Funcionamiento silencioso a velocidad mínima.',sensors:['Luminosidad (opcional)'],logic:'Ventilador a velocidad nocturna (~20-30 %).'},AWAY:{icon:'🏠',title:'Ausente',desc:'Modo ausencia: ventilación mínima antimoho.',sensors:['sin control activo'],logic:'Ventilación muy lenta para hogar vacío.'},MONITORING:{icon:'📊',title:'Monitorización',desc:'Solo monitorización de sensores, sin ventilación.',sensors:['Temp.','Humedad','CO₂/VOC','Luz'],logic:'Ventilador apagado — solo recogida de datos.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilación máxima temporal (ej. después de cocinar).',sensors:['CO₂/VOC (opcional)'],logic:'Ventilador al 100 %, luego retorno automático.'},EXHAUST:{icon:'⬆️',title:'Extracción',desc:'Solo extracción: aire aspirado, sin entrada de aire.',sensors:['ninguno'],logic:'Típico para baño/cocina.'},SUPPLY:{icon:'⬇️',title:'Impulsón',desc:'Solo impulsón: aire fresco insuflado.',sensors:['ninguno'],logic:'Opuesto a Extracción.'},MS_FLOW:{icon:'⇄',title:'Flujo Maestro-Esclavo',desc:'El maestro controla el flujo, el esclavo sigue.',sensors:['Maestro: todos los sensores','Esclavo: pasivo'],logic:'Equilibrio de presión. Mín. 8 mm bajo la puerta.'},SM_FLOW:{icon:'⇆',title:'Flujo Esclavo-Maestro',desc:'Dirección invertida: el esclavo guia el flujo.',sensors:['como MS_FLOW, invertido'],logic:'Caso especial raro.'},TIMED_EXHAUST:{icon:'⏱️',title:'Extracción temporizada',desc:'Extracción por duración definida, luego retorno automático.',sensors:['ninguno'],logic:'Extractor de baño con apagado automático.'},OFF:{icon:'⚪',title:'Dispositivo apagado',desc:'Dispositivo completamente desactivado.',sensors:['ninguno'],logic:'Solo para mantenimiento.'}};
+const MI_IT={SMART:{icon:'⚡',title:'Modalità Smart',desc:'Funzionamento completamente automatico. Il dispositivo master valuta tutti i sensori.',sensors:['Temp. interna','Umidità interna','CO₂/VOC','Luminosità (giorno/notte)','Temp. esterna (stazione)'],logic:'Passa automaticamente tra recupero di calore, modalità notte e free-cooling.'},AUTO:{icon:'🤖',title:'Automatico',desc:'Funzionamento semi-automatico con soglie predefinite.',sensors:['Temp. interna','Umidità'],logic:'Ventila se CO₂ o umidità superano i limiti.'},HRV:{icon:'🌬️',title:'Recupero di calore (HRV)',desc:'Ventilazione continua con recupero di calore.',sensors:['nessuno — ventilazione permanente'],logic:'Risparmia fino al 90 % del calore di ventilazione.'},MANUAL_HRV:{icon:'⚙️',title:'HRV manuale',desc:'Recupero di calore con velocità impostata manualmente.',sensors:['nessuno'],logic:'Come HRV, ma la velocità non viene regolata automaticamente.'},NIGHT:{icon:'🌙',title:'Modalità notte',desc:'Funzionamento silenzioso a velocità minima.',sensors:['Luminosità (opzionale)'],logic:'Ventilatore alla velocità notturna (∲20-30 %).'},AWAY:{icon:'🏠',title:'Fuori casa',desc:'Modalità assenza: ventilazione minima anti-muffa.',sensors:['nessuna regolazione attiva'],logic:'Ventilazione lenta per abitazione vuota.'},MONITORING:{icon:'📊',title:'Monitoraggio',desc:'Solo monitoraggio sensori, nessuna ventilazione.',sensors:['Temp.','Umidità','CO₂/VOC','Luce'],logic:'Ventilatore spento — solo acquisizione dati.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilazione massima temporanea (es. dopo cucina).',sensors:['CO₂/VOC (opz.)'],logic:'Ventilatore al 100 %, poi ritorno automatico.'},EXHAUST:{icon:'⬆️',title:'Estrazione',desc:'Solo estrazione: aria aspirata, nessuna immissione.',sensors:['nessuno'],logic:'Tipico per bagno/cucina.'},SUPPLY:{icon:'⬇️',title:'Immissione',desc:'Solo immissione: aria fresca insufflata.',sensors:['nessuno'],logic:'Opposto a Estrazione.'},MS_FLOW:{icon:'⇄',title:'Flusso Master-Slave',desc:'Master controlla il flusso, Slave segue.',sensors:['Master: tutti i sensori','Slave: passivo'],logic:'Equilibrio di pressione. Almeno 8 mm sotto la porta.'},SM_FLOW:{icon:'⇆',title:'Flusso Slave-Master',desc:'Direzione invertita: Slave guida il flusso.',sensors:['come MS_FLOW, invertito'],logic:'Caso speciale raro.'},TIMED_EXHAUST:{icon:'⏱️',title:'Estrazione temporizzata',desc:'Estrazione per durata definita, poi ritorno automatico.',sensors:['nessuno'],logic:'Funzione bagno con spegnimento automatico.'},OFF:{icon:'⚪',title:'Spento',desc:'Dispositivo completamente disattivato.',sensors:['nessuno'],logic:'Solo per manutenzione.'}};
+const MI_EN={SMART:{icon:'⚡',title:'Smart Mode',desc:'Fully automatic operation. Master device evaluates all sensors.',sensors:['Indoor temperature','Indoor humidity','CO₂/VOC','Light intensity (day/night)','Outdoor temp. (weather station)'],logic:'Switches automatically between heat recovery, night mode and free-cooling.'},AUTO:{icon:'🤖',title:'Automatic',desc:'Semi-automatic with predefined thresholds.',sensors:['Indoor temperature','Humidity'],logic:'Ventilates when CO₂ or humidity exceed limits.'},HRV:{icon:'🌬️',title:'Heat Recovery (HRV)',desc:'Continuous ventilation with heat recovery.',sensors:['none — ventilation always on'],logic:'Saves up to 90 % of ventilation heat losses.'},MANUAL_HRV:{icon:'⚙️',title:'Manual HRV',desc:'Heat recovery with manually set fan speed.',sensors:['none'],logic:'Like HRV, but speed not auto-adjusted.'},NIGHT:{icon:'🌙',title:'Night Mode',desc:'Quiet operation at minimum fan speed.',sensors:['Light intensity (optional)'],logic:'Fan at night speed (∲20-30 %), no boost.'},AWAY:{icon:'🏠',title:'Away',desc:'Absence mode: minimal ventilation to prevent mould.',sensors:['no active control'],logic:'Very slow ventilation for empty home.'},MONITORING:{icon:'📊',title:'Monitoring',desc:'Sensor monitoring only, no active ventilation.',sensors:['Temp.','Humidity','CO₂/VOC','Light'],logic:'Fan off — data collection only.'},BOOST:{icon:'💨',title:'Boost',desc:'Temporary maximum ventilation (e.g. after cooking).',sensors:['CO₂/VOC (optional)'],logic:'Fan at 100 %, then automatic return.'},EXHAUST:{icon:'⬆️',title:'Exhaust',desc:'Exhaust only: air extracted, no fresh air supply.',sensors:['none'],logic:'Typical for bathroom/kitchen.'},SUPPLY:{icon:'⬇️',title:'Supply',desc:'Supply only: fresh air blown in.',sensors:['none'],logic:'Opposite of exhaust.'},MS_FLOW:{icon:'⇄',title:'Master-Slave Flow',desc:'Master controls airflow, Slave follows.',sensors:['Master: all sensors','Slave: passive'],logic:'Pressure balance. Min. 8 mm door gap needed.'},SM_FLOW:{icon:'⇆',title:'Slave-Master Flow',desc:'Reversed flow: Slave takes airflow role.',sensors:['like MS_FLOW, reversed'],logic:'Rare special case.'},TIMED_EXHAUST:{icon:'⏱️',title:'Timed Exhaust',desc:'Exhaust for set duration, then automatic return.',sensors:['none'],logic:'Bathroom fan function with auto off.'},OFF:{icon:'⚪',title:'Device Off',desc:'Device fully disabled. No ventilation, no sensors.',sensors:['none'],logic:'Only for maintenance.'}};
+const MI_FR={SMART:{icon:'⚡',title:'Mode Smart',desc:'Fonctionnement entièrement automatique. Le maître évalue tous les capteurs.',sensors:['Temp. intérieure','Humidité intérieure','CO₂/COV','Luminosité (jour/nuit)','Temp. extérieure (station)'],logic:'Bascule automatiquement entre récupération de chaleur, mode nuit et free-cooling.'},AUTO:{icon:'🤖',title:'Automatique',desc:'Semi-automatique avec seuils prédéfinis.',sensors:['Temp. intérieure','Humidité'],logic:'Ventile si CO₂ ou humidité dépassent les limites.'},HRV:{icon:'🌬️',title:'Récupération de chaleur (VMC)',desc:'Ventilation continue avec récupération de chaleur.',sensors:['aucun — ventilation permanente'],logic:'Economise jusqu’à 90 % des pertes thermiques.'},MANUAL_HRV:{icon:'⚙️',title:'VMC manuelle',desc:'Récupération de chaleur à vitesse manuelle.',sensors:['aucun'],logic:'Comme VMC, mais vitesse non ajustée automatiquement.'},NIGHT:{icon:'🌙',title:'Mode nuit',desc:'Fonctionnement silencieux à vitesse minimale.',sensors:['Luminosité (optionnel)'],logic:'Ventilateur à vitesse nocturne (∲20-30 %).'},AWAY:{icon:'🏠',title:'Absent',desc:'Mode absence: ventilation minimale anti-moisissures.',sensors:['aucun contrôle actif'],logic:'Très lente ventilation pour logement vide.'},MONITORING:{icon:'📊',title:'Surveillance',desc:'Surveillance capteurs uniquement, sans ventilation.',sensors:['Temp.','Humidité','CO₂/COV','Lumière'],logic:'Ventilateur arrêté — collecte de données uniquement.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilation maximale temporaire (ex. après cuisine).',sensors:['CO₂/COV (optionnel)'],logic:'Ventilateur à 100 %, puis retour automatique.'},EXHAUST:{icon:'⬆️',title:'Extraction',desc:'Extraction seule: air aspiré, pas d’insufflation.',sensors:['aucun'],logic:'Typique salle de bain/cuisine.'},SUPPLY:{icon:'⬇️',title:'Insufflation',desc:'Insufflation seule: air frais soufflé.',sensors:['aucun'],logic:'Opposé à Extraction.'},MS_FLOW:{icon:'⇄',title:'Flux Maître-Esclave',desc:'Le maître contrôle le flux, l’esclave suit.',sensors:['Maître: tous capteurs','Esclave: passif'],logic:'Équilibre de pression. Min. 8 mm sous la porte.'},SM_FLOW:{icon:'⇆',title:'Flux Esclave-Maître',desc:'Direction inversée: l’esclave guide le flux.',sensors:['comme MS_FLOW, inversé'],logic:'Cas spécial rare.'},TIMED_EXHAUST:{icon:'⏱️',title:'Extraction temporisée',desc:'Extraction pour durée définie, puis retour automatique.',sensors:['aucun'],logic:'Ventilateur de salle de bain avec arrêt auto.'},OFF:{icon:'⚪',title:'Appareil éteint',desc:'Appareil complètement désactivé.',sensors:['aucun'],logic:'Uniquement pour maintenance.'}};
+const MI_ES={SMART:{icon:'⚡',title:'Modo Smart',desc:'Funcionamiento totalmente automático. El dispositivo maestro evalúa todos los sensores.',sensors:['Temp. interior','Humedad interior','CO₂/VOC','Luminosidad (día/noche)','Temp. exterior (estación)'],logic:'Cambia automáticamente entre recuperación de calor, modo noche y free-cooling.'},AUTO:{icon:'🤖',title:'Automático',desc:'Semi-automático con umbrales predefinidos.',sensors:['Temp. interior','Humedad'],logic:'Ventila si CO₂ o humedad superan los límites.'},HRV:{icon:'🌬️',title:'Recuperación de calor (VMC)',desc:'Ventilación continua con recuperación de calor.',sensors:['ninguno — ventilación permanente'],logic:'Ahorra hasta el 90 % de las pérdidas de calor.'},MANUAL_HRV:{icon:'⚙️',title:'VMC manual',desc:'Recuperación de calor con velocidad manual.',sensors:['ninguno'],logic:'Como VMC, pero velocidad no ajustada automáticamente.'},NIGHT:{icon:'🌙',title:'Modo noche',desc:'Funcionamiento silencioso a velocidad mínima.',sensors:['Luminosidad (opcional)'],logic:'Ventilador a velocidad nocturna (∲20-30 %).'},AWAY:{icon:'🏠',title:'Ausente',desc:'Modo ausencia: ventilación mínima antimoho.',sensors:['sin control activo'],logic:'Ventilación muy lenta para hogar vacío.'},MONITORING:{icon:'📊',title:'Monitorización',desc:'Solo monitorización de sensores, sin ventilación.',sensors:['Temp.','Humedad','CO₂/VOC','Luz'],logic:'Ventilador apagado — solo recogida de datos.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilación máxima temporal (ej. después de cocinar).',sensors:['CO₂/VOC (opcional)'],logic:'Ventilador al 100 %, luego retorno automático.'},EXHAUST:{icon:'⬆️',title:'Extracción',desc:'Solo extracción: aire aspirado, sin entrada de aire.',sensors:['ninguno'],logic:'Típico para baño/cocina.'},SUPPLY:{icon:'⬇️',title:'Impulsión',desc:'Solo impulsión: aire fresco insuflado.',sensors:['ninguno'],logic:'Opuesto a Extracción.'},MS_FLOW:{icon:'⇄',title:'Flujo Maestro-Esclavo',desc:'El maestro controla el flujo, el esclavo sigue.',sensors:['Maestro: todos los sensores','Esclavo: pasivo'],logic:'Equilibrio de presión. Mín. 8 mm bajo la puerta.'},SM_FLOW:{icon:'⇆',title:'Flujo Esclavo-Maestro',desc:'Dirección invertida: el esclavo guía el flujo.',sensors:['como MS_FLOW, invertido'],logic:'Caso especial raro.'},TIMED_EXHAUST:{icon:'⏱️',title:'Extracción temporizada',desc:'Extracción por duración definida, luego retorno automático.',sensors:['ninguno'],logic:'Extractor de baño con apagado automático.'},OFF:{icon:'⚪',title:'Dispositivo apagado',desc:'Dispositivo completamente desactivado.',sensors:['ninguno'],logic:'Solo para mantenimiento.'}};
 function getMI(mode){const maps={de:MI_DE,it:MI_IT,en:MI_EN,fr:MI_FR,es:MI_ES};return (maps[lang]||MI_DE)[mode];}
-
 const WD=['mon','tue','wed','thu','fri','sat','sun'];
 const savedTheme=localStorage.getItem('theme')||'light';
 document.documentElement.setAttribute('data-theme',savedTheme);
@@ -572,40 +577,39 @@ async function apiFetch(path,method='GET',body=null){const opts={method,headers:
 async function sendAll(cmd){const ids=Object.keys(devices);if(!ids.length){toast(T('noDevices'));return;}await Promise.all(ids.map(id=>apiFetch('/devices/'+id+'/command','POST',cmd).catch(()=>{})));toast(T('cmdAll'));}
 async function loadDevices(){try{const list=await apiFetch('/devices');list.forEach(d=>{devices[d.deviceId]=d;});renderAllCards();document.getElementById('devices-title').textContent=Tf('devicesCount',list.length);if(!list.length)document.getElementById('empty-state').style.display='block';list.forEach(d=>loadSchedule(d.deviceId));refreshSmartSel();}catch(e){document.getElementById('empty-state').style.display='block';}}
 function renderAllCards(){
-  const grid=document.getElementById('devices-grid');grid.innerHTML='';
-  const ids=Object.keys(devices);
-  if(!ids.length){document.getElementById('empty-state').style.display='block';return;}
-  document.getElementById('empty-state').style.display='none';
-  const zones={};
-  ids.forEach(id=>{const d=devices[id];const z=d.zone||d.networkId||T('devices');if(!zones[z])zones[z]=[];zones[z].push(id);});
-  Object.keys(zones).sort().forEach(zone=>{
-    const zids=zones[zone];
-    const hasMaster=zids.some(id=>(devices[id].role||'MASTER')==='MASTER');
-    const zg=document.createElement('div');zg.className='zone-group';
-    const cnt=zids.length===1?T('devices1'):Tf('devicesN',zids.length);
-    zg.innerHTML='<div class="zone-group-header"><span class="zone-group-title">🏠 '+zone+'</span>'+(hasMaster?'<span class="zone-group-badge zone-master-badge">'+T('masterSlaveNet')+'</span>':'<span class="zone-group-badge">'+cnt+'</span>')+'</div><div class="zone-grid" id="zg-'+zone.replace(/[^a-z0-9]/gi,'_')+'"></div>';
-    grid.appendChild(zg);
-    const zGrid=zg.querySelector('.zone-grid');
-    zids.forEach(id=>zGrid.appendChild(makeCard(id)));
-  });
+const grid=document.getElementById('devices-grid');grid.innerHTML='';
+const ids=Object.keys(devices);
+if(!ids.length){document.getElementById('empty-state').style.display='block';return;}
+document.getElementById('empty-state').style.display='none';
+const zones={};
+ids.forEach(id=>{const d=devices[id];const z=d.zone||d.networkId||T('devices');if(!zones[z])zones[z]=[];zones[z].push(id);});
+Object.keys(zones).sort().forEach(zone=>{
+const zids=zones[zone];
+const hasMaster=zids.some(id=>(devices[id].role||'MASTER')==='MASTER');
+const zg=document.createElement('div');zg.className='zone-group';
+const cnt=zids.length===1?T('devices1'):Tf('devicesN',zids.length);
+zg.innerHTML='<div class="zone-group-header"><span class="zone-group-title">🏠 '+zone+'</span>'+(hasMaster?'<span class="zone-group-badge zone-master-badge">'+T('masterSlaveNet')+'</span>':'<span class="zone-group-badge">'+cnt+'</span>')+'</div><div class="zone-grid" id="zg-'+zone.replace(/[^a-z0-9]/gi,'_')+'"></div>';
+grid.appendChild(zg);
+const zGrid=zg.querySelector('.zone-grid');
+zids.forEach(id=>zGrid.appendChild(makeCard(id)));
+});
 }
 function makeCard(did){const d=devices[did];const c=document.createElement('div');c.className='device-card';c.id='card-'+did;c.onclick=(e)=>{if(!e.target.closest('.mode-btn')&&!e.target.closest('.mode-info-btn')&&!e.target.closest('input'))openDetail(did);};updateCardInner(c,d,did);return c;}
 function renderCard(did){const d=devices[did];let c=document.getElementById('card-'+did);if(!c){renderAllCards();return;}updateCardInner(c,d,did);}
 function updateCardInner(c,d,did){
-  const isSm=d.mode==='SMART';const dt=d.deviceType||'Smart';const role=d.role||'MASTER';
-  const rCls=role==='MASTER'?'role-master':'role-slave';
-  const fa=d.filterChangedAt?Math.floor((Date.now()-new Date(d.filterChangedAt).getTime())/(86400000)):null;
-  const modeButtons=MODES.map(m=>{const isCur=d.mode===m;const cls='mode-btn'+(isCur?(m==='SMART'?' smart-active':' active'):'');return '<div class="mode-btn-wrap"><button class="'+cls+'" onclick="event.stopPropagation();sendCmd(''+did+'',{mode:''+m+''})" title="'+ML(m)+'">'+ML(m)+'</button><button class="mode-info-btn" onclick="event.stopPropagation();showModeInfo(''+m+'',this)" title="Info">ⓘ</button></div>';}).join('');
-  c.innerHTML='<div class="card-header"><div class="card-title"><h2>'+(d.name||did)+(isSm?' <span class="smart-badge">⚡ Smart</span>':'')+'</h2><div class="card-meta"><span class="device-type-badge">'+dt+'</span><span class="role-badge '+rCls+'">'+role+'</span></div></div><span class="status-dot '+(d.online?'online':'')+'" title="'+(d.online?T('online'):T('offline'))+'"></span></div>'
-  +'<div class="metrics"><div class="metric"><div class="val">'+(d.temperature!=null?d.temperature.toFixed(1)+'°C':'—')+'</div><div class="lbl">'+T('temp')+'</div></div><div class="metric"><div class="val">'+(d.humidity!=null?d.humidity+'%':'—')+'</div><div class="lbl">'+T('humidity')+'</div></div><div class="metric"><div class="val">'+(d.airQuality!=null?d.airQuality+'ppm':'—')+'</div><div class="lbl">CO₂</div></div></div>'
-  +'<div class="modes-label"><span>'+T('modeLabel')+'</span><span style="font-size:.6rem;color:var(--muted);font-weight:400">'+T('modeInfoHint')+'</span></div>'
-  +'<div class="modes">'+modeButtons+'</div>'
-  +'<div class="fan-row"><label>'+T('fanLabel')+'</label><input type="range" min="0" max="100" value="'+(d.fanSpeed??50)+'" oninput="this.nextElementSibling.textContent=this.value+'%'" onchange="event.stopPropagation();sendCmd(''+did+'',{fanSpeed:+this.value})"/><span class="fan-val">'+(d.fanSpeed??50)+'%</span></div>'
-  +(d.filterAlarm?'<div class="filter-alarm">'+T('filterAlarm')+(fa!=null?Tf('filterDays',fa):'')+'</div>':'')
-  +'<div style="margin-top:.65rem;font-size:.62rem;color:var(--muted);text-align:right">'+T('detailsLink')+'</div>';
+const isSm=d.mode==='SMART';const dt=d.deviceType||'Smart';const role=d.role||'MASTER';
+const rCls=role==='MASTER'?'role-master':'role-slave';
+const fa=d.filterChangedAt?Math.floor((Date.now()-new Date(d.filterChangedAt).getTime())/(86400000)):null;
+const modeButtons=MODES.map(m=>{const isCur=d.mode===m;const cls='mode-btn'+(isCur?(m==='SMART'?' smart-active':' active'):'');return '<div class="mode-btn-wrap"><button class="'+cls+'" onclick="event.stopPropagation();sendCmd(''+did+'',{mode:''+m+''})" title="'+ML(m)+'">'+ML(m)+'</button><button class="mode-info-btn" onclick="event.stopPropagation();showModeInfo(''+m+'',this)" title="Info">ⓘ</button></div>';}).join('');
+c.innerHTML='<div class="card-header"><div class="card-title"><h2>'+(d.name||did)+(isSm?' <span class="smart-badge">⚡ Smart</span>':'')+'</h2><div class="card-meta"><span class="device-type-badge">'+dt+'</span><span class="role-badge '+rCls+'">'+role+'</span></div></div><span class="status-dot '+(d.online?'online':'')+'" title="'+(d.online?T('online'):T('offline'))+'"></span></div>'
++'<div class="metrics"><div class="metric"><div class="val">'+(d.temperature!=null?d.temperature.toFixed(1)+'°C':'—')+'</div><div class="lbl">'+T('temp')+'</div></div><div class="metric"><div class="val">'+(d.humidity!=null?d.humidity+'%':'—')+'</div><div class="lbl">'+T('humidity')+'</div></div><div class="metric"><div class="val">'+(d.airQuality!=null?d.airQuality+'ppm':'—')+'</div><div class="lbl">CO₂</div></div></div>'
++'<div class="modes-label"><span>'+T('modeLabel')+'</span><span style="font-size:.6rem;color:var(--muted);font-weight:400">'+T('modeInfoHint')+'</span></div>'
++'<div class="modes">'+modeButtons+'</div>'
++'<div class="fan-row"><label>'+T('fanLabel')+'</label><input type="range" min="0" max="100" value="'+(d.fanSpeed??50)+'" oninput="this.nextElementSibling.textContent=this.value+'%'" onchange="event.stopPropagation();sendCmd(''+did+'',{fanSpeed:+this.value})"/><span class="fan-val">'+(d.fanSpeed??50)+'%</span></div>'
++(d.filterAlarm?'<div class="filter-alarm">'+T('filterAlarm')+(fa!=null?Tf('filterDays',fa):'')+'</div>':'')
++'<div style="margin-top:.65rem;font-size:.62rem;color:var(--muted);text-align:right">'+T('detailsLink')+'</div>';
 }
 async function sendCmd(did,cmd){try{await apiFetch('/devices/'+did+'/command','POST',cmd);toast(T('cmdSent'));}catch(e){toast('Fehler: '+e.message);}}
-
 function showModeInfo(mode,btn){const info=getMI(mode);if(!info)return;const popup=document.getElementById('mode-popup');document.getElementById('mp-title').innerHTML=info.icon+' '+info.title;let body='<p>'+info.desc+'</p>';if(info.sensors&&info.sensors.length){body+='<p style="font-size:.64rem;font-weight:700;color:var(--text);margin-top:.3rem">'+T('sensors')+'</p><ul>'+info.sensors.map(s=>'<li>'+s+'</li>').join('')+'</ul>';}if(info.logic){body+='<p style="font-size:.64rem;font-weight:700;color:var(--text);margin-top:.3rem">'+T('logic')+'</p><p>'+info.logic+'</p>';}document.getElementById('mp-body').innerHTML=body;const rect=btn.getBoundingClientRect();const pw=260,ph=200;let left=rect.left,top=rect.bottom+6;if(left+pw>window.innerWidth-10)left=window.innerWidth-pw-10;if(top+ph>window.innerHeight-10)top=rect.top-ph-6;popup.style.left=Math.max(6,left)+'px';popup.style.top=Math.max(6,top)+'px';popup.classList.add('open');}
 function closeModePopup(){document.getElementById('mode-popup').classList.remove('open');}
 document.addEventListener('click',e=>{const p=document.getElementById('mode-popup');if(p.classList.contains('open')&&!p.contains(e.target)&&!e.target.classList.contains('mode-info-btn'))closeModePopup();});
@@ -616,10 +620,105 @@ const scSt={};
 async function loadSchedule(did){try{const w=await apiFetch('/devices/'+did+'/schedule');schedules[did]=w;renderScCard(did);}catch(e){}}
 function getWDL(){return {mon:T('mon'),tue:T('tue'),wed:T('wed'),thu:T('thu'),fri:T('fri'),sat:T('sat'),sun:T('sun')};}
 function getWDN(){return {mon:T('Monday'),tue:T('Tuesday'),wed:T('Wednesday'),thu:T('Thursday'),fri:T('Friday'),sat:T('Saturday'),sun:T('Sunday')};}
-function renderScCard(did){const cont=document.getElementById('schedule-container');const d=devices[did]||{};if(!scSt[did])scSt[did]={day:'mon',showForm:false};const s=scSt[did];let c=document.getElementById('scard-'+did);if(!c){c=document.createElement('div');c.className='schedule-card';c.id='scard-'+did;cont.appendChild(c);}const w=schedules[did]||{};const sl=(w[s.day]||[]);const WDL=getWDL();const WDN=getWDN();c.innerHTML='<div class="sc-header"><h2>'+(d.name||did)+'</h2><div class="sc-header-btns"><button class="copy-day-btn" onclick="openCopy(''+did+'',''+s.day+'')">📅 '+T('copy')+'</button><button class="add-slot-btn-top" onclick="toggleForm(''+did+'')">'+T('addSlotTop')+'</button></div></div><div class="weekdays">'+WD.map(wd=>'<div class="wd '+(s.day===wd?'active':'')+'" onclick="setDay(''+did+'',''+wd+'')">'+WDL[wd]+'</div>').join('')+'</div><div class="sc-body"><p style="font-size:.66rem;color:var(--muted);margin-bottom:.6rem;font-weight:600;">'+WDN[s.day]+'</p>'+(!sl.length?'<p style="text-align:center;color:var(--muted);font-size:.75rem;padding:.65rem">'+T('noSlots')+'</p>':'')+sl.map((x,i)=>'<div class="time-slot"><span class="ts-time">'+x.start+' – '+x.end+'</span><span class="ts-mode m-'+x.mode+'">'+(ML(x.mode)||x.mode)+'</span><span class="ts-fan">'+(x.fanSpeed!=null?x.fanSpeed+'%':T('slotFanPh'))+'</span><button class="ts-del" onclick="delSlot(''+did+'','+i+')">✕</button></div>').join('')+(s.showForm?'<div class="slot-form"><div><label>'+T('slotFrom')+'</label><input type="time" id="sf-s-'+did+'" value="08:00"/></div><div><label>'+T('slotTo')+'</label><input type="time" id="sf-e-'+did+'" value="18:00"/></div><div><label>'+T('slotMode')+'</label><select id="sf-m-'+did+'">'+MODES.map(m=>'<option value="'+m+'">'+ML(m)+'</option>').join('')+'</select></div><div><label>'+T('slotFan')+'</label><input type="number" id="sf-f-'+did+'" min="0" max="100" placeholder="'+T('slotFanPh')+'"/></div><div class="slot-form-actions"><button class="btn-cancel" onclick="toggleForm(''+did+'')">'+T('cancel')+'</button><button class="btn-save" onclick="saveSlot(''+did+'')">'+T('save')+'</button></div></div>':'<button class="add-slot-btn" onclick="toggleForm(''+did+'')">+ '+T('addSlot')+'</button>')+'</div>';}
+
+/* Helper: check if a slot crosses midnight */
+function isOvernight(slot){
+  if(slot.isOvernight)return true;
+  if(!slot.start||!slot.end)return false;
+  return slot.end<=slot.start;
+}
+
+/* Render a single time slot row */
+function renderSlotRow(x,i,did){
+  const ov=isOvernight(x);
+  const timeStr=ov?x.start+' ▸ '+x.end+' ('+T('overnight')+')':x.start+' – '+x.end;
+  const ovBadge=ov?'<span class="ts-overnight" title="'+Tf('overnightHint',x.end)+'">'+T('overnight')+'</span>':'';
+  return '<div class="time-slot'+(ov?' style="border-color:rgba(128,90,213,.35)"':'')+'">'+
+    '<span class="ts-time">'+timeStr+'</span>'+ovBadge+
+    '<span class="ts-mode m-'+x.mode+'">'+(ML(x.mode)||x.mode)+'</span>'+
+    '<span class="ts-fan">'+(x.fanSpeed!=null?x.fanSpeed+'%':T('slotFanPh'))+'</span>'+
+    '<button class="ts-del" onclick="delSlot(''+did+'','+i+')">&#10005;</button>'+
+    '</div>';
+}
+
+function renderScCard(did){
+  const cont=document.getElementById('schedule-container');
+  const d=devices[did]||{};
+  if(!scSt[did])scSt[did]={day:'mon',showForm:false};
+  const s=scSt[did];
+  let c=document.getElementById('scard-'+did);
+  if(!c){c=document.createElement('div');c.className='schedule-card';c.id='scard-'+did;cont.appendChild(c);}
+  const w=schedules[did]||{};
+  const sl=(w[s.day]||[]);
+  const WDL=getWDL();const WDN=getWDN();
+  c.innerHTML='<div class="sc-header"><h2>'+(d.name||did)+'</h2>'+
+    '<div class="sc-header-btns">'+
+    '<button class="copy-day-btn" onclick="openCopy(''+did+'',''+s.day+'')">&#128197; '+T('copy')+'</button>'+
+    '<button class="add-slot-btn-top" onclick="toggleForm(''+did+'')">'+T('addSlotTop')+'</button>'+
+    '</div></div>'+
+    '<div class="weekdays">'+WD.map(wd=>'<div class="wd '+(s.day===wd?'active':'')+'" onclick="setDay(''+did+'',''+wd+'')">'+WDL[wd]+'</div>').join('')+'</div>'+
+    '<div class="sc-body">'+
+    '<p style="font-size:.66rem;color:var(--muted);margin-bottom:.6rem;font-weight:600;">'+WDN[s.day]+'</p>'+
+    (!sl.length?'<p style="text-align:center;color:var(--muted);font-size:.75rem;padding:.65rem">'+T('noSlots')+'</p>':'')+
+    sl.map((x,i)=>renderSlotRow(x,i,did)).join('')+
+    (s.showForm?renderSlotForm(did):'<button class="add-slot-btn" onclick="toggleForm(''+did+'')">+ '+T('addSlot')+'</button>')+
+    '</div>';
+}
+
+function renderSlotForm(did){
+  return '<div class="slot-form">'+
+    '<div><label>'+T('slotFrom')+'</label><input type="time" id="sf-s-'+did+'" value="22:00" oninput="checkOvernight(''+did+'')"/></div>'+
+    '<div><label>'+T('slotTo')+'</label><input type="time" id="sf-e-'+did+'" value="06:00" oninput="checkOvernight(''+did+'')"/></div>'+
+    '<div><label>'+T('slotMode')+'</label><select id="sf-m-'+did+'">'+MODES.map(m=>'<option value="'+m+'">'+ML(m)+'</option>').join('')+'</select></div>'+
+    '<div><label>'+T('slotFan')+'</label><input type="number" id="sf-f-'+did+'" min="0" max="100" placeholder="'+T('slotFanPh')+'"/></div>'+
+    '<div class="slot-form-hint" id="sf-hint-'+did+'">&#8987; '+T('overnightFormHint')+'</div>'+
+    '<div class="slot-form-actions">'+
+    '<button class="btn-cancel" onclick="toggleForm(''+did+'')">'+T('cancel')+'</button>'+
+    '<button class="btn-save" onclick="saveSlot(''+did+'')">'+T('save')+'</button>'+
+    '</div></div>';
+}
+
+function checkOvernight(did){
+  const sv=document.getElementById('sf-s-'+did);
+  const ev=document.getElementById('sf-e-'+did);
+  const hint=document.getElementById('sf-hint-'+did);
+  if(!sv||!ev||!hint)return;
+  const ov=ev.value&&sv.value&&ev.value<=sv.value;
+  hint.classList.toggle('visible',!!ov);
+}
+
 function setDay(did,day){scSt[did].day=day;scSt[did].showForm=false;renderScCard(did);}
-function toggleForm(did){scSt[did].showForm=!scSt[did].showForm;renderScCard(did);}
-async function saveSlot(did){const sst=scSt[did];const sv=document.getElementById('sf-s-'+did).value,en=document.getElementById('sf-e-'+did).value,mo=document.getElementById('sf-m-'+did).value,fv=document.getElementById('sf-f-'+did).value;if(!sv||!en){toast(T('enterTimes'));return;}const w=schedules[did]||{};const day=sst.day;const sl=[...(w[day]||[]),{start:sv,end:en,mode:mo,fanSpeed:fv!==''?parseInt(fv):null}];sl.sort((a,b)=>a.start.localeCompare(b.start));try{await apiFetch('/devices/'+did+'/schedule/'+day,'PUT',sl);schedules[did]={...w,[day]:sl};sst.showForm=false;renderScCard(did);toast(T('saved'));}catch(e){toast('Err: '+e.message);}}
+function toggleForm(did){scSt[did].showForm=!scSt[did].showForm;renderScCard(did);if(scSt[did].showForm)setTimeout(()=>checkOvernight(did),50);}
+
+async function saveSlot(did){
+  const sst=scSt[did];
+  const sv=document.getElementById('sf-s-'+did).value;
+  const en=document.getElementById('sf-e-'+did).value;
+  const mo=document.getElementById('sf-m-'+did).value;
+  const fv=document.getElementById('sf-f-'+did).value;
+  if(!sv||!en){toast(T('enterTimes'));return;}
+  const ov=en<=sv; /* overnight if end <= start */
+  const w=schedules[did]||{};
+  const day=sst.day;
+  const newSlot={start:sv,end:en,mode:mo,fanSpeed:fv!==''?parseInt(fv):null};
+  if(ov)newSlot.isOvernight=true;
+  const sl=[...(w[day]||[]),newSlot];
+  /* Sort: overnight slots go last (after all same-day slots) */
+  sl.sort((a,b)=>{
+    const aOv=isOvernight(a),bOv=isOvernight(b);
+    if(aOv&&!bOv)return 1;
+    if(!aOv&&bOv)return -1;
+    return a.start.localeCompare(b.start);
+  });
+  try{
+    await apiFetch('/devices/'+did+'/schedule/'+day,'PUT',sl);
+    schedules[did]={...w,[day]:sl};
+    sst.showForm=false;
+    renderScCard(did);
+    toast(ov?'⏳ '+T('saved')+' (+1)':T('saved'));
+  }catch(e){toast('Err: '+e.message);}
+}
+
 async function delSlot(did,idx){const sst=scSt[did];const day=sst.day;const sl=[...((schedules[did]||{})[day]||[])];sl.splice(idx,1);try{await apiFetch('/devices/'+did+'/schedule/'+day,'PUT',sl);schedules[did][day]=sl;renderScCard(did);toast(T('deleted'));}catch(e){toast('Err: '+e.message);}}
 function openCopy(did,day){copySource={did,day};const WDL=getWDL();const g=document.getElementById('copy-days-grid');g.innerHTML=WD.filter(d=>d!==day).map(d=>'<label class="copy-day-check"><input type="checkbox" value="'+d+'"/>'+WDL[d]+'</label>').join('');document.getElementById('copy-modal').classList.add('open');}
 function closeCopyModal(){document.getElementById('copy-modal').classList.remove('open');copySource=null;}
