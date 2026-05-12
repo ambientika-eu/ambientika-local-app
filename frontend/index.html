@@ -32,6 +32,8 @@ header{background:var(--header-bg);border-bottom:1px solid var(--border);padding
 #mqtt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#fc8181}
 #mqtt-dot.connected{background:#68d391}
 .dark-toggle{background:none;border:1.5px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer;font-size:1rem;color:var(--muted)}
+.settings-btn{background:none;border:1.5px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer;font-size:.85rem;color:var(--muted)}
+.settings-btn:hover{border-color:var(--primary);color:var(--primary)}
 .all-bar{background:var(--card);border-bottom:1px solid var(--border);padding:.5rem 1.2rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
 .all-bar-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:.3rem;white-space:nowrap}
 .all-btn{padding:.3rem .7rem;border:1.5px solid var(--border);border-radius:7px;background:var(--card);font-size:.67rem;font-weight:700;cursor:pointer;color:var(--muted)}
@@ -101,7 +103,6 @@ main{max-width:1100px;margin:0 auto;padding:1.25rem}
 .m-SUPPLY{background:#ecfdf5;color:#065f46}
 .m-MS_FLOW,.m-SM_FLOW{background:#e0f2fe;color:#075985}
 .m-OFF{background:#f7fafc;color:var(--muted)}
-/* FIX: Dark mode overrides for ALL mode badges */
 [data-theme="dark"] .m-HRV,[data-theme="dark"] .m-MANUAL_HRV{background:#1a2e3d;color:#63b3ed}
 [data-theme="dark"] .m-NIGHT{background:#2d1f4e;color:#b794f4}
 [data-theme="dark"] .m-SMART{background:#2d1f4e;color:#d6bcfa}
@@ -161,6 +162,53 @@ main{max-width:1100px;margin:0 auto;padding:1.25rem}
 .chart-wrap{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:1.05rem;margin-bottom:1.1rem}
 .chart-wrap h3{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem}
 canvas{width:100%!important;height:155px!important}
+/* Weather widget */
+.weather-bar{background:var(--card);border-bottom:1px solid var(--border);padding:.45rem 1.2rem;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;font-size:.72rem}
+.weather-loc{font-weight:700;color:var(--text);display:flex;align-items:center;gap:.3rem}
+.weather-item{display:flex;align-items:center;gap:.28rem;color:var(--muted)}
+.weather-item strong{color:var(--text);font-weight:800}
+.weather-aqi{padding:.18rem .5rem;border-radius:6px;font-size:.65rem;font-weight:700}
+.aqi-1{background:#c6f6d5;color:#276749}
+.aqi-2{background:#fefcbf;color:#744210}
+.aqi-3{background:#fed7aa;color:#c05621}
+.aqi-4{background:#fed7d7;color:#9b2c2c}
+.aqi-5{background:#e9d8fd;color:#553c9a}
+[data-theme="dark"] .aqi-1{background:#1a2e22;color:#68d391}
+[data-theme="dark"] .aqi-2{background:#2d2a14;color:#f6e05e}
+[data-theme="dark"] .aqi-3{background:#2d1e14;color:#f6ad55}
+[data-theme="dark"] .aqi-4{background:#2d1515;color:#fc8181}
+[data-theme="dark"] .aqi-5{background:#2d1f4e;color:#b794f4}
+.weather-refresh{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.75rem;margin-left:.2rem;padding:.1rem .3rem}
+.weather-refresh:hover{color:var(--primary)}
+.weather-no-key{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:.4rem}
+/* Settings modal */
+.settings-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center}
+.settings-modal.open{display:flex}
+.settings-box{background:var(--card);border-radius:var(--radius);padding:1.5rem;min-width:300px;max-width:420px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.3)}
+.settings-box h3{font-size:1rem;font-weight:800;margin-bottom:1.1rem;display:flex;align-items:center;gap:.4rem}
+.settings-section{margin-bottom:1.1rem}
+.settings-section h4{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.55rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
+.settings-row{margin-bottom:.65rem}
+.settings-row label{font-size:.7rem;font-weight:700;color:var(--muted);display:block;margin-bottom:.25rem}
+.settings-row input{width:100%;padding:.42rem .6rem;border:1.5px solid var(--border);border-radius:7px;font-size:.8rem;background:var(--bg);color:var(--text);outline:none}
+.settings-row input:focus{border-color:var(--primary)}
+.settings-row small{font-size:.62rem;color:var(--muted);margin-top:.2rem;display:block}
+.settings-hint{font-size:.66rem;color:var(--muted);background:var(--bg);border-radius:7px;padding:.5rem .7rem;margin-top:.4rem;line-height:1.5}
+.settings-btns{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}
+/* Outdoor comparison row in smart */
+.outdoor-compare{background:var(--bg);border-radius:9px;border:1px solid var(--border);padding:.65rem .85rem;margin-bottom:.85rem;display:grid;grid-template-columns:1fr auto 1fr;gap:.5rem;align-items:center}
+.oc-side{font-size:.72rem}
+.oc-side h4{font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
+.oc-val{font-size:.85rem;font-weight:800;color:var(--text);margin-bottom:.12rem}
+.oc-sub{font-size:.62rem;color:var(--muted)}
+.oc-arrow{text-align:center;font-size:1rem;color:var(--muted)}
+.oc-badge{font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:5px;display:inline-block;margin-top:.1rem}
+.oc-in{background:#ebf8ff;color:#2b6cb0}
+.oc-out{background:#f0fff4;color:#276749}
+.oc-warn{background:#fff5f0;color:#c05621}
+[data-theme="dark"] .oc-in{background:#1a2e3d;color:#63b3ed}
+[data-theme="dark"] .oc-out{background:#1a2e22;color:#68d391}
+[data-theme="dark"] .oc-warn{background:#2d1e14;color:#f6ad55}
 #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(2rem);background:#2d3748;color:#fff;padding:.55rem 1.2rem;border-radius:999px;font-size:.75rem;opacity:0;transition:all .3s;pointer-events:none;z-index:999}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 footer{text-align:center;padding:2rem;font-size:.65rem;color:var(--muted)}
@@ -172,11 +220,10 @@ main{padding:.85rem}
 .modes{grid-template-columns:repeat(3,1fr)}
 }
 </style>
-</head>
-<body>
+</head><body>
 <header>
 <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 46">
-<text x="0" y="36" font-family="'Arial Black','Arial',sans-serif" font-size="38" font-weight="900" fill="currentColor">s&#xFC;d</text>
+<text x="0" y="36" font-family="'Arial Black','Arial',sans-serif" font-size="38" font-weight="900" fill="currentColor">süd</text>
 <polygon points="96,4 110,33 82,33" fill="currentColor"/>
 <path d="M77,37 Q86,33 96,37 Q106,41 116,37" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/>
 <path d="M75,43 Q84,39 93,43 Q102,47 111,43 Q120,39 129,43" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/>
@@ -185,45 +232,47 @@ main{padding:.85rem}
 <div class="header-divider"></div>
 <span class="app-label">ambientika local</span>
 <div class="header-right">
+<button class="settings-btn" id="settings-btn" title="Einstellungen" onclick="openSettings()">&#9881;&#65039;</button>
 <button class="dark-toggle" id="dark-toggle" title="Dark Mode" onclick="toggleDark()">&#127769;</button>
-<span class="badge"><span id="mqtt-dot"></span>&nbsp;<span id="mqtt-label">Verbinde&#x2026;</span></span>
+<span class="badge"><span id="mqtt-dot"></span>&nbsp;<span id="mqtt-label">Verbinde…</span></span>
 </div>
 </header>
 <div class="all-bar">
 <span class="all-bar-label">Alle:</span>
 <button class="all-btn" onclick="sendAll({mode:'SMART'})">&#129504; Smart</button>
 <button class="all-btn" onclick="sendAll({mode:'NIGHT'})">&#127769; Nacht</button>
-<button class="all-btn" onclick="sendAll({mode:'HRV'})">&#127788;&#65039; L&#252;ftung</button>
+<button class="all-btn" onclick="sendAll({mode:'HRV'})">&#127788;&#65039; Lüftung</button>
 <button class="all-btn" onclick="sendAll({mode:'AUTO'})">&#129302; Auto</button>
-<button class="all-btn" onclick="sendAll({mode:'AWAY'})">&#127968; Au&#223;er Haus</button>
+<button class="all-btn" onclick="sendAll({mode:'AWAY'})">&#127968; Außer Haus</button>
 <button class="all-btn" onclick="sendAll({mode:'OFF'})">&#9210; Aus</button>
 </div>
+<div id="weather-bar" class="weather-bar"></div>
 <nav>
-<div class="nav-tab active" id="tab-devices" onclick="showTab('devices')">&#127968; Ger&#228;te</div>
+<div class="nav-tab active" id="tab-devices" onclick="showTab('devices')">&#127968; Geräte</div>
 <div class="nav-tab" id="tab-schedule" onclick="showTab('schedule')">&#128197; Wochenzeitplan</div>
 <div class="nav-tab" id="tab-smart" onclick="showTab('smart')">&#129504; Smart-Modus</div>
 </nav>
 <main>
 <div id="view-devices">
-<p class="section-title" style="margin-top:.2rem" id="devices-title">Ihre Ger&#228;te</p>
+<p class="section-title" style="margin-top:.2rem" id="devices-title">Ihre Geräte</p>
 <div id="devices-grid"></div>
-<div id="empty-state" style="display:none"><h2>Keine Ger&#228;te gefunden</h2><p>Stelle sicher, dass MQTT-Broker und Ambientika Bridge laufen.</p></div>
+<div id="empty-state" style="display:none"><h2>Keine Geräte gefunden</h2><p>Stelle sicher, dass MQTT-Broker und Ambientika Bridge laufen.</p></div>
 </div>
 <div id="view-schedule" style="display:none">
 <p class="section-title" style="margin-top:.2rem">Wochenzeitplan</p>
 <div id="schedule-container"></div>
 </div>
 <div id="view-smart" style="display:none">
-<p class="section-title" style="margin-top:.2rem">Smart-Modus &#8212; Echtzeit Automatik</p>
+<p class="section-title" style="margin-top:.2rem">Smart-Modus — Echtzeit Automatik</p>
 <div class="smart-dev-select" id="smart-dev-select"></div>
 <div id="smart-content"></div>
 </div>
 </main>
-<footer><strong>S&#252;dwind GmbH &#183; Ambientika Local</strong> &nbsp;&#183;&nbsp; Lokale Steuerung &#183; Keine Cloud &#183; DSGVO-konform</footer>
+<footer><strong>Südwind GmbH · Ambientika Local</strong> &nbsp;·&nbsp; Lokale Steuerung · Keine Cloud · DSGVO-konform</footer>
 <div id="toast"></div>
 <div class="copy-modal" id="copy-modal">
 <div class="copy-modal-box">
-<h3>&#128197; Tag kopieren nach&#x2026;</h3>
+<h3>&#128197; Tag kopieren nach…</h3>
 <div class="copy-days-grid" id="copy-days-grid"></div>
 <div class="copy-modal-btns">
 <button class="btn-cancel" onclick="closeCopyModal()">Abbrechen</button>
@@ -231,7 +280,31 @@ main{padding:.85rem}
 </div>
 </div>
 </div>
-<script>
+<div class="settings-modal" id="settings-modal">
+<div class="settings-box">
+<h3>&#9881;&#65039; Einstellungen</h3>
+<div class="settings-section">
+<h4>&#127780;&#65039; Außenwetter (OpenWeatherMap)</h4>
+<div class="settings-row">
+<label>API-Key</label>
+<input type="text" id="set-owm-key" placeholder="z.B. fd63e10dc82769ac..." autocomplete="off"/>
+<small>Kostenlos auf openweathermap.org — bis 1.000 Calls/Tag</small>
+</div>
+<div class="settings-row">
+<label>Standort (Stadt oder Koordinaten)</label>
+<input type="text" id="set-owm-loc" placeholder="z.B. Vienna,AT oder 48.2,16.4"/>
+<small>Stadtname mit Landcode (z.B. Munich,DE) oder lat,lon</small>
+</div>
+<div class="settings-hint">
+Außentemperatur, Luftfeuchtigkeit und Luftqualität werden alle 15 Minuten aktualisiert und im Smart-Modus als Vergleich angezeigt.
+</div>
+</div>
+<div class="settings-btns">
+<button class="btn-cancel" onclick="closeSettings()">Abbrechen</button>
+<button class="btn-save" onclick="saveSettings()">Speichern</button>
+</div>
+</div>
+</div><script>
 const API=(window.location.origin+'/api'),WS=((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws');
 const devices={},schedules={},history_data={};
 let activeSmartDevice=null,ws=null,copySource=null;
@@ -250,11 +323,11 @@ function connectWS(){ws=new WebSocket(WS);ws.onopen=()=>setMqtt(true);ws.onclose
 async function apiFetch(path,method='GET',body=null){const opts={method,headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);const r=await fetch(API+path,opts);if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sendAll(cmd){const ids=Object.keys(devices);if(!ids.length){toast('Keine Geräte');return;}await Promise.all(ids.map(id=>apiFetch('/devices/'+id+'/command','POST',cmd).catch(()=>{})));toast('Befehl an alle gesendet');}
 async function loadDevices(){try{const list=await apiFetch('/devices');list.forEach(d=>{devices[d.deviceId]=d;renderCard(d.deviceId);});document.getElementById('devices-title').textContent='Ihre Geräte — '+list.length+' online';if(!list.length)document.getElementById('empty-state').style.display='block';list.forEach(d=>loadSchedule(d.deviceId));refreshSmartSel();}catch(e){document.getElementById('empty-state').style.display='block';}}
-function renderCard(did){const d=devices[did];const grid=document.getElementById('devices-grid');document.getElementById('empty-state').style.display='none';let c=document.getElementById('card-'+did);if(!c){c=document.createElement('div');c.className='device-card';c.id='card-'+did;grid.appendChild(c);}const isSm=d.mode==='SMART';const dt=d.deviceType||'Smart';const role=d.role||'MASTER';const rCls=role==='MASTER'?'role-master':'role-slave';const fa=d.filterChangedAt?Math.floor((Date.now()-new Date(d.filterChangedAt).getTime())/(86400000)):null;c.innerHTML='<div class="card-header"><div class="card-title"><h2>'+( d.name||did)+(isSm?' <span class="smart-badge">⚡ Smart</span>':'')+'</h2><div class="card-meta"><span class="device-type-badge">'+dt+'</span><span class="role-badge '+rCls+'">'+role+'</span></div></div><span class="status-dot '+(d.online?'online':'')+'" title="'+(d.online?'Online':'Offline')+'"></span></div><div class="metrics"><div class="metric"><div class="val">'+(d.temperature!=null?d.temperature.toFixed(1)+'°C':'—')+'</div><div class="lbl">Temp</div></div><div class="metric"><div class="val">'+(d.humidity!=null?d.humidity+'%':'—')+'</div><div class="lbl">Feuchte</div></div><div class="metric"><div class="val">'+(d.airQuality!=null?d.airQuality+'ppm':'—')+'</div><div class="lbl">CO₂</div></div></div><div class="modes-label">Betriebsmodus</div><div class="modes">'+MODES.map(m=>'<button class="mode-btn '+(d.mode===m?(m==='SMART'?'smart-active':'active'):'')+'" onclick="sendCmd(''+did+'',{mode:''+m+''})" title="'+ML[m]+'">'+ML[m]+'</button>').join('')+'</div><div class="fan-row"><label>Lüfter</label><input type="range" min="0" max="100" value="'+(d.fanSpeed??50)+'" oninput="this.nextElementSibling.textContent=this.value+'%'" onchange="sendCmd(''+did+'',{fanSpeed:+this.value})"/><span class="fan-val">'+(d.fanSpeed??50)+'%</span></div>'+(d.filterAlarm?'<div class="filter-alarm">⚠️ Filterwechsel erforderlich'+(fa!=null?' — seit '+fa+' Tagen':'')+'</div>':'');}
+function renderCard(did){const d=devices[did];const grid=document.getElementById('devices-grid');document.getElementById('empty-state').style.display='none';let c=document.getElementById('card-'+did);if(!c){c=document.createElement('div');c.className='device-card';c.id='card-'+did;grid.appendChild(c);}const isSm=d.mode==='SMART';const dt=d.deviceType||'Smart';const role=d.role||'MASTER';const rCls=role==='MASTER'?'role-master':'role-slave';const fa=d.filterChangedAt?Math.floor((Date.now()-new Date(d.filterChangedAt).getTime())/(86400000)):null;c.innerHTML='<div class="card-header"><div class="card-title"><h2>'+(d.name||did)+(isSm?' <span class="smart-badge">⚡ Smart</span>':'')+'</h2><div class="card-meta"><span class="device-type-badge">'+dt+'</span><span class="role-badge '+rCls+'">'+role+'</span></div></div><span class="status-dot '+(d.online?'online':'')+'" title="'+(d.online?'Online':'Offline')+'"></span></div><div class="metrics"><div class="metric"><div class="val">'+(d.temperature!=null?d.temperature.toFixed(1)+'°C':'—')+'</div><div class="lbl">Temp</div></div><div class="metric"><div class="val">'+(d.humidity!=null?d.humidity+'%':'—')+'</div><div class="lbl">Feuchte</div></div><div class="metric"><div class="val">'+(d.airQuality!=null?d.airQuality+'ppm':'—')+'</div><div class="lbl">CO₂</div></div></div><div class="modes-label">Betriebsmodus</div><div class="modes">'+MODES.map(m=>'<button class="mode-btn '+(d.mode===m?(m==='SMART'?'smart-active':'active'):'')+'" onclick="sendCmd(''+did+'',{mode:''+m+''})" title="'+ML[m]+'">'+ML[m]+'</button>').join('')+'</div><div class="fan-row"><label>Lüfter</label><input type="range" min="0" max="100" value="'+(d.fanSpeed??50)+'" oninput="this.nextElementSibling.textContent=this.value+'%'" onchange="sendCmd(''+did+'',{fanSpeed:+this.value})"/><span class="fan-val">'+(d.fanSpeed??50)+'%</span></div>'+(d.filterAlarm?'<div class="filter-alarm">⚠️ Filterwechsel erforderlich'+(fa!=null?' — seit '+fa+' Tagen':'')+'</div>':'');}
 async function sendCmd(did,cmd){try{await apiFetch('/devices/'+did+'/command','POST',cmd);toast('Befehl gesendet');}catch(e){toast('Fehler: '+e.message);}}
 const scSt={};
 async function loadSchedule(did){try{const w=await apiFetch('/devices/'+did+'/schedule');schedules[did]=w;renderScCard(did);}catch(e){}}
-function renderScCard(did){const cont=document.getElementById('schedule-container');const d=devices[did]||{};if(!scSt[did])scSt[did]={day:'mon',showForm:false};const s=scSt[did];let c=document.getElementById('scard-'+did);if(!c){c=document.createElement('div');c.className='schedule-card';c.id='scard-'+did;cont.appendChild(c);}const w=schedules[did]||{};const sl=(w[s.day]||[]);c.innerHTML='<div class="sc-header"><h2>'+(d.name||did)+'</h2><div class="sc-header-btns"><button class="copy-day-btn" onclick="openCopy(''+did+'',''+s.day+'')">📅 Kopieren</button><button class="add-slot-btn-top" onclick="toggleForm(''+did+'')">+ Zeitfenster</button></div></div><div class="weekdays">'+WD.map(wd=>'<div class="wd '+(s.day===wd?'active':'')+'" onclick="setDay(''+did+'',''+wd+'')">'+WDL[wd]+'</div>').join('')+'</div><div class="sc-body"><p style="font-size:.66rem;color:var(--muted);margin-bottom:.6rem;font-weight:600;">'+WDN[s.day]+'</p>'+(!sl.length?'<p style="text-align:center;color:var(--muted);font-size:.75rem;padding:.65rem">Kein Zeitfenster</p>':'')+sl.map((x,i)=>'<div class="time-slot"><span class="ts-time">'+x.start+' – '+x.end+'</span><span class="ts-mode m-'+x.mode+'">'+(ML[x.mode]||x.mode)+'</span><span class="ts-fan">'+(x.fanSpeed!=null?x.fanSpeed+'%':'Auto')+'</span><button class="ts-del" onclick="delSlot(''+did+'','+i+')">✕</button></div>').join('')+(s.showForm?'<div class="slot-form"><div><label>Von</label><input type="time" id="sf-s-'+did+'" value="08:00"/></div><div><label>Bis</label><input type="time" id="sf-e-'+did+'" value="18:00"/></div><div><label>Modus</label><select id="sf-m-'+did+'">'+MODES.map(m=>'<option value="'+m+'">'+ML[m]+'</option>').join('')+'</select></div><div><label>Lüfter%</label><input type="number" id="sf-f-'+did+'" min="0" max="100" placeholder="Auto"/></div><div class="slot-form-actions"><button class="btn-cancel" onclick="toggleForm(''+did+'')">Abbrechen</button><button class="btn-save" onclick="saveSlot(''+did+'')">Speichern</button></div></div>':'<button class="add-slot-btn" onclick="toggleForm(''+did+''">＋ Zeitfenster hinzufügen</button>')+'</div>';}
+function renderScCard(did){const cont=document.getElementById('schedule-container');const d=devices[did]||{};if(!scSt[did])scSt[did]={day:'mon',showForm:false};const s=scSt[did];let c=document.getElementById('scard-'+did);if(!c){c=document.createElement('div');c.className='schedule-card';c.id='scard-'+did;cont.appendChild(c);}const w=schedules[did]||{};const sl=(w[s.day]||[]);c.innerHTML='<div class="sc-header"><h2>'+(d.name||did)+'</h2><div class="sc-header-btns"><button class="copy-day-btn" onclick="openCopy(''+did+'',''+s.day+'')">&#128197; Kopieren</button><button class="add-slot-btn-top" onclick="toggleForm(''+did+'')">+ Zeitfenster</button></div></div><div class="weekdays">'+WD.map(wd=>'<div class="wd '+(s.day===wd?'active':'')+'" onclick="setDay(''+did+'',''+wd+'')">'+WDL[wd]+'</div>').join('')+'</div><div class="sc-body"><p style="font-size:.66rem;color:var(--muted);margin-bottom:.6rem;font-weight:600;">'+WDN[s.day]+'</p>'+(!sl.length?'<p style="text-align:center;color:var(--muted);font-size:.75rem;padding:.65rem">Kein Zeitfenster</p>':'')+sl.map((x,i)=>'<div class="time-slot"><span class="ts-time">'+x.start+' – '+x.end+'</span><span class="ts-mode m-'+x.mode+'">'+(ML[x.mode]||x.mode)+'</span><span class="ts-fan">'+(x.fanSpeed!=null?x.fanSpeed+'%':'Auto')+'</span><button class="ts-del" onclick="delSlot(''+did+'','+i+')">&#10005;</button></div>').join('')+(s.showForm?'<div class="slot-form"><div><label>Von</label><input type="time" id="sf-s-'+did+'" value="08:00"/></div><div><label>Bis</label><input type="time" id="sf-e-'+did+'" value="18:00"/></div><div><label>Modus</label><select id="sf-m-'+did+'">'+MODES.map(m=>'<option value="'+m+'">'+ML[m]+'</option>').join('')+'</select></div><div><label>Lüfter%</label><input type="number" id="sf-f-'+did+'" min="0" max="100" placeholder="Auto"/></div><div class="slot-form-actions"><button class="btn-cancel" onclick="toggleForm(''+did+'')">Abbrechen</button><button class="btn-save" onclick="saveSlot(''+did+'')">Speichern</button></div></div>':'<button class="add-slot-btn" onclick="toggleForm(''+did+'')">&#xFF0B; Zeitfenster hinzufügen</button>')+'</div>';}
 function setDay(did,day){scSt[did].day=day;scSt[did].showForm=false;renderScCard(did);}
 function toggleForm(did){scSt[did].showForm=!scSt[did].showForm;renderScCard(did);}
 async function saveSlot(did){const sst=scSt[did];const sv=document.getElementById('sf-s-'+did).value,en=document.getElementById('sf-e-'+did).value,mo=document.getElementById('sf-m-'+did).value,fv=document.getElementById('sf-f-'+did).value;if(!sv||!en){toast('Bitte Zeiten angeben');return;}const w=schedules[did]||{};const day=sst.day;const sl=[...(w[day]||[]),{start:sv,end:en,mode:mo,fanSpeed:fv!==''?parseInt(fv):null}];sl.sort((a,b)=>a.start.localeCompare(b.start));try{await apiFetch('/devices/'+did+'/schedule/'+day,'PUT',sl);schedules[did]={...w,[day]:sl};sst.showForm=false;renderScCard(did);toast('Gespeichert');}catch(e){toast('Fehler: '+e.message);}}
@@ -264,12 +337,184 @@ function closeCopyModal(){document.getElementById('copy-modal').classList.remove
 async function confirmCopy(){if(!copySource)return;const did=copySource.did,day=copySource.day;const ch=[...document.querySelectorAll('#copy-days-grid input:checked')].map(i=>i.value);if(!ch.length){toast('Bitte Tag wählen');return;}const sl=(schedules[did]||{})[day]||[];try{await Promise.all(ch.map(d=>apiFetch('/devices/'+did+'/schedule/'+d,'PUT',sl)));const w=schedules[did]||{};ch.forEach(d=>{w[d]=[...sl];});schedules[did]=w;closeCopyModal();renderScCard(did);toast('Kopiert nach '+ch.map(d=>WDL[d]).join(', '));}catch(e){toast('Fehler: '+e.message);}}
 function refreshSmartSel(){const sel=document.getElementById('smart-dev-select');const ids=Object.keys(devices);if(!activeSmartDevice&&ids.length)activeSmartDevice=ids[0];sel.innerHTML=ids.map(id=>'<div class="dev-chip '+(id===activeSmartDevice?'active':'')+'" onclick="selSmartDev(''+id+'')">'+( devices[id].name||id)+'</div>').join('');}
 function selSmartDev(id){activeSmartDevice=id;refreshSmartSel();loadSmart(id);}
-async function loadSmart(did){const el=document.getElementById('smart-content');try{const s=await apiFetch('/devices/'+did+'/smart');const sensors=s.sensors||{};el.innerHTML='<div class="chart-wrap"><h3>📈 Verlauf (letzte Stunde)</h3><canvas id="hist-chart"></canvas></div><div class="smart-grid"><div class="smart-card"><h3>📡 Messwerte</h3>'+row('Innentemp.',sensors.temperature_in!=null?sensors.temperature_in.toFixed(1)+' °C':'—')+row('Außentemp.',sensors.temperature_out!=null?sensors.temperature_out.toFixed(1)+' °C':'—')+row('Feuchte innen',sensors.humidity_in!=null?sensors.humidity_in+' %':'—')+row('Feuchte außen',sensors.humidity_out!=null?sensors.humidity_out+' %':'—')+row('CO₂/VOC',sensors.airQuality_voc!=null?sensors.airQuality_voc+' ppm':'—',(sensors.airQuality_voc||0)>600?'warn':'ok')+row('Licht',sensors.isDark?'Dunkel 🌙':'Hell ☀️',sensors.isDark?'warn':'ok')+'</div><div class="smart-card"><h3>🧠 Automatik</h3>'+modeInd('🌬️','Wärmerückgewinnung',s.activeMode==='HRV_MEDIUM'?'Mittel aktiv':s.activeMode==='HRV_MIN'?'Minimal aktiv':'Inaktiv',s.activeMode==='HRV_MEDIUM'||s.activeMode==='HRV_MIN')+modeInd('🌙','Nachtmodus','Bei Dunkelheit aktiv',s.conditions&&s.conditions.nightModeActive)+modeInd('☀️','Free-Cooling','T>24°C & Außen>20°C & Außen<Innen',false,s.conditions&&s.conditions.freeCoolingActive)+'</div></div><div class="smart-card" style="margin-bottom:1.1rem"><h3>⚙️ Smart-Logik</h3>'+((s.logic||[]).map(l=>'<div class="cond-row"><span class="cond-label">'+l.condition+'</span><span class="cond-val">→ '+l.result+'</span></div>').join(''))+'</div>';drawChart(did);}catch(e){el.innerHTML='<p style="color:var(--red);padding:1rem">Fehler: '+e.message+'</p>';}}
-function drawChart(did){const hist=history_data[did]||[];const canvas=document.getElementById('hist-chart');if(!canvas)return;const W=canvas.offsetWidth||800,H=155;canvas.width=W;canvas.height=H;const isDark=document.documentElement.getAttribute('data-theme')==='dark';const bg=isDark?'#1a1f2e':'#fff',gridC=isDark?'#2d3748':'#e2e8f0',textC=isDark?'#a0aec0':'#718096';const ctx=canvas.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);if(hist.length<2){ctx.fillStyle=textC;ctx.font='11px sans-serif';ctx.fillText('Noch keine Verlaufsdaten — wird mit Echtzeit-Daten gefüllt',16,H/2);return;}const pad={l:46,r:10,t:8,b:22};const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;ctx.strokeStyle=gridC;ctx.lineWidth=1;[0,.5,1].forEach(f=>{const y=pad.t+cH*(1-f);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();});function dl(key,color,minV,maxV){const range=maxV-minV||1;let started=false;ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;for(let i=0;i<hist.length;i++){const v=hist[i][key];if(v==null)continue;const x=pad.l+i/(hist.length-1)*cW;const y=pad.t+cH*(1-(v-minV)/range);if(!started){ctx.moveTo(x,y);started=true;}else{ctx.lineTo(x,y);}}if(started)ctx.stroke();}const temps=hist.map(h=>h.temp).filter(v=>v!=null);const co2s=hist.map(h=>h.co2).filter(v=>v!=null);if(temps.length>1)dl('temp','#0066cc',Math.min(...temps)-1,Math.max(...temps)+1);if(co2s.length>1)dl('co2','#dd6b20',Math.min(...co2s)-50,Math.max(...co2s)+50);ctx.fillStyle=textC;ctx.font='10px sans-serif';ctx.textAlign='right';if(temps.length)ctx.fillText(temps[temps.length-1].toFixed(1)+'°',pad.l-3,pad.t+12);if(co2s.length)ctx.fillText(co2s[co2s.length-1]+'ppm',pad.l-3,H-pad.b+2);ctx.textAlign='center';[0,.5,1].forEach(f=>{const idx=Math.floor(f*(hist.length-1));if(!hist[idx])return;const d=new Date(hist[idx].ts);ctx.fillText(d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'),pad.l+f*cW,H-4);});ctx.textAlign='left';ctx.font='bold 10px sans-serif';ctx.fillStyle='#0066cc';ctx.fillText('— Temp',pad.l,pad.t+12);ctx.fillStyle='#dd6b20';ctx.fillText('— CO₂',pad.l+60,pad.t+12);}
+/* ===== OpenWeatherMap Integration ===== */
+let owmData=null,owmTimer=null;
+function getOwmKey(){return localStorage.getItem('owm_key')||'';}
+function getOwmLoc(){return localStorage.getItem('owm_loc')||'';}
+function openSettings(){
+  document.getElementById('set-owm-key').value=getOwmKey();
+  document.getElementById('set-owm-loc').value=getOwmLoc();
+  document.getElementById('settings-modal').classList.add('open');
+}
+function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}
+function saveSettings(){
+  const k=document.getElementById('set-owm-key').value.trim();
+  const l=document.getElementById('set-owm-loc').value.trim();
+  localStorage.setItem('owm_key',k);
+  localStorage.setItem('owm_loc',l);
+  closeSettings();
+  if(k&&l){fetchWeather();toast('Einstellungen gespeichert — Wetter wird geladen...');}
+  else toast('Einstellungen gespeichert');
+}
+function aqiLabel(aqi){const labels=['—','Sehr gut','Gut','Mäßig','Schlecht','Sehr schlecht'];return labels[aqi]||'—';}
+function aqiClass(aqi){return 'aqi-'+(aqi||1);}
+async function fetchWeather(){
+  const key=getOwmKey(),loc=getOwmLoc();
+  if(!key||!loc){renderWeatherBar(null);return;}
+  try{
+    let lat,lon;
+    if(/^-?[d.]+s*,s*-?[d.]+$/.test(loc)){
+      [lat,lon]=loc.split(',').map(s=>parseFloat(s.trim()));
+    } else {
+      const geo=await fetch('https://api.openweathermap.org/geo/1.0/direct?q='+encodeURIComponent(loc)+'&limit=1&appid='+key);
+      const gd=await geo.json();
+      if(!gd.length)throw new Error('Ort nicht gefunden: '+loc);
+      lat=gd[0].lat;lon=gd[0].lon;
+    }
+    const [wRes,aRes]=await Promise.all([
+      fetch('https://api.openweathermap.org/data/2.5/weather?lat='+lat+'&lon='+lon+'&units=metric&lang=de&appid='+key),
+      fetch('https://api.openweathermap.org/data/2.5/air_pollution?lat='+lat+'&lon='+lon+'&appid='+key)
+    ]);
+    const w=await wRes.json();
+    const a=await aRes.json();
+    owmData={
+      temp:w.main.temp,
+      temp_feels:w.main.feels_like,
+      humidity:w.main.humidity,
+      desc:w.weather[0].description,
+      city:w.name,
+      country:w.sys.country,
+      aqi:a.list[0].main.aqi,
+      pm25:a.list[0].components.pm2_5,
+      co:a.list[0].components.co,
+      updated:Date.now()
+    };
+    renderWeatherBar(owmData);
+    if(activeSmartDevice&&document.getElementById('view-smart').style.display!=='none')loadSmart(activeSmartDevice);
+  }catch(err){renderWeatherBar(null,err.message);}
+}
+function renderWeatherBar(d,err){
+  const bar=document.getElementById('weather-bar');
+  if(!getOwmKey()||!getOwmLoc()){
+    bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; <a href="#" onclick="openSettings();return false;" style="color:var(--primary);font-weight:700">Außenwetter einrichten</a> — API-Key eingeben für Temperatur, Feuchte & Luftqualität</span>';
+    return;
+  }
+  if(err){bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; Wetterfehler: '+err+' <button class="weather-refresh" onclick="fetchWeather()">&#8635; Wiederholen</button></span>';return;}
+  if(!d){bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; Lade Wetterdaten...</span>';return;}
+  const age=Math.round((Date.now()-d.updated)/60000);
+  bar.innerHTML=
+    '<span class="weather-loc">&#127780;&#65039; '+d.city+', '+d.country+'</span>'+
+    '<span class="weather-item">&#127777;&#65039; Außen: <strong>'+d.temp.toFixed(1)+'°C</strong></span>'+
+    '<span class="weather-item">&#128167; Feuchte: <strong>'+d.humidity+'%</strong></span>'+
+    '<span class="weather-item">Luft: <span class="weather-aqi '+aqiClass(d.aqi)+'">'+aqiLabel(d.aqi)+'</span></span>'+
+    '<span class="weather-item" style="color:var(--muted);font-size:.65rem">vor '+age+' Min. <button class="weather-refresh" onclick="fetchWeather()" title="Aktualisieren">&#8635;</button></span>';
+}
+function startWeatherTimer(){
+  if(owmTimer)clearInterval(owmTimer);
+  fetchWeather();
+  owmTimer=setInterval(fetchWeather,15*60*1000);
+}
+
+/* ===== Smart-Modus mit Outdoor-Vergleich ===== */
+async function loadSmart(did){
+  const el=document.getElementById('smart-content');
+  try{
+    const s=await apiFetch('/devices/'+did+'/smart');
+    const sensors=s.sensors||{};
+    const tin=sensors.temperature_in;
+    const hin=sensors.humidity_in;
+    const tout=owmData?owmData.temp:sensors.temperature_out;
+    const hout=owmData?owmData.humidity:sensors.humidity_out;
+    let compareHtml='';
+    if(tin!=null&&tout!=null){
+      const diff=tin-tout;
+      const arrow=diff>0?'↓ Kühlen möglich':diff<-1?'↑ Heizen sinnvoll':'≈ Ausgeglichen';
+      const tempOcBadge=Math.abs(diff)>2?'oc-warn':'oc-out';
+      const humDiff=hin!=null&&hout!=null?Math.abs(hin-hout):null;
+      compareHtml='<div class="outdoor-compare">'+
+        '<div class="oc-side"><h4>&#127968; Innen</h4><div class="oc-val">'+tin.toFixed(1)+'°C</div>'+(hin!=null?'<div class="oc-sub">'+hin+'% rF</div>':'')+'<span class="oc-badge oc-in">Gerätesensor</span></div>'+
+        '<div class="oc-arrow">&#8652;<br/><span style="font-size:.6rem;color:var(--muted)">'+arrow+'</span></div>'+
+        '<div class="oc-side" style="text-align:right"><h4>&#127780;&#65039; Außen</h4><div class="oc-val">'+tout.toFixed(1)+'°C</div>'+(hout!=null?'<div class="oc-sub">'+hout+'% rF</div>':'')+'<span class="oc-badge '+tempOcBadge+'">'+(owmData?'OpenWeather':'Wetterstation')+'</span></div>'+
+        '</div>';
+    }
+    el.innerHTML=
+      compareHtml+
+      '<div class="chart-wrap"><h3>&#128200; Verlauf (letzte Stunde)</h3><canvas id="hist-chart"></canvas></div>'+
+      '<div class="smart-grid">'+
+        '<div class="smart-card"><h3>&#128225; Messwerte</h3>'+
+          row('Innentemp.',tin!=null?tin.toFixed(1)+' °C':'—')+
+          row('Außentemp.',tout!=null?tout.toFixed(1)+' °C':'—')+
+          row('Feuchte innen',hin!=null?hin+' %':'—')+
+          row('Feuchte außen',hout!=null?hout+' %':'—')+
+          row('CO₂/VOC',sensors.airQuality_voc!=null?sensors.airQuality_voc+' ppm':'—',(sensors.airQuality_voc||0)>600?'warn':'ok')+
+          row('Licht',sensors.isDark?'Dunkel 🌙':'Hell ☀️',sensors.isDark?'warn':'ok')+
+          (owmData?row('Luftqualität außen','<span class="weather-aqi '+aqiClass(owmData.aqi)+'">'+aqiLabel(owmData.aqi)+'</span>',''):'')
+        +'</div>'+
+        '<div class="smart-card"><h3>&#129504; Automatik</h3>'+
+          modeInd('🌬️','Wärmerückgewinnung',s.activeMode==='HRV_MEDIUM'?'Mittel aktiv':s.activeMode==='HRV_MIN'?'Minimal aktiv':'Inaktiv',s.activeMode==='HRV_MEDIUM'||s.activeMode==='HRV_MIN')+
+          modeInd('🌙','Nachtmodus','Bei Dunkelheit aktiv',s.conditions&&s.conditions.nightModeActive)+
+          modeInd('☀️','Free-Cooling','T>24°C & Außen>20°C & Außen<Innen',false,s.conditions&&s.conditions.freeCoolingActive)+
+        '</div>'+
+      '</div>'+
+      '<div class="smart-card" style="margin-bottom:1.1rem"><h3>⚙️ Smart-Logik</h3>'+
+        ((s.logic||[]).map(l=>'<div class="cond-row"><span class="cond-label">'+l.condition+'</span><span class="cond-val">→ '+l.result+'</span></div>').join(''))+
+      '</div>';
+    drawChart(did);
+  }catch(e){el.innerHTML='<p style="color:var(--red);padding:1rem">Fehler: '+e.message+'</p>';}
+}
+function drawChart(did){
+  const hist=history_data[did]||[];
+  const canvas=document.getElementById('hist-chart');
+  if(!canvas)return;
+  const W=canvas.offsetWidth||800,H=155;
+  canvas.width=W;canvas.height=H;
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const bg=isDark?'#1a1f2e':'#fff',gridC=isDark?'#2d3748':'#e2e8f0',textC=isDark?'#a0aec0':'#718096';
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  if(hist.length<2){ctx.fillStyle=textC;ctx.font='11px sans-serif';ctx.fillText('Noch keine Verlaufsdaten — wird mit Echtzeit-Daten gefüllt',16,H/2);return;}
+  const pad={l:46,r:10,t:8,b:22};
+  const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
+  ctx.strokeStyle=gridC;ctx.lineWidth=1;
+  [0,.5,1].forEach(f=>{const y=pad.t+cH*(1-f);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();});
+  function dl(data,color,minV,maxV,dashed=false){
+    const range=maxV-minV||1;let started=false;
+    ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;
+    if(dashed)ctx.setLineDash([5,4]);else ctx.setLineDash([]);
+    for(let i=0;i<data.length;i++){
+      const v=data[i];if(v==null)continue;
+      const x=pad.l+i/(data.length-1)*cW;
+      const y=pad.t+cH*(1-(v-minV)/range);
+      if(!started){ctx.moveTo(x,y);started=true;}else{ctx.lineTo(x,y);}
+    }
+    if(started)ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  const temps=hist.map(h=>h.temp).filter(v=>v!=null);
+  const co2s=hist.map(h=>h.co2).filter(v=>v!=null);
+  const tMin=temps.length?Math.min(...temps)-1:0,tMax=temps.length?Math.max(...temps)+1:1;
+  if(temps.length>1)dl(hist.map(h=>h.temp),'#0066cc',tMin,tMax);
+  // Außentemp als gestrichelte Linie (wenn OWM-Daten vorhanden)
+  if(owmData&&temps.length>1){
+    const outerLine=hist.map(()=>owmData.temp);
+    dl(outerLine,'#38a169',tMin,tMax,true);
+  }
+  if(co2s.length>1)dl(hist.map(h=>h.co2),'#dd6b20',Math.min(...co2s)-50,Math.max(...co2s)+50);
+  ctx.fillStyle=textC;ctx.font='10px sans-serif';ctx.textAlign='right';
+  if(temps.length)ctx.fillText(temps[temps.length-1].toFixed(1)+'°',pad.l-3,pad.t+12);
+  if(co2s.length)ctx.fillText(co2s[co2s.length-1]+'ppm',pad.l-3,H-pad.b+2);
+  ctx.textAlign='center';
+  [0,.5,1].forEach(f=>{const idx=Math.floor(f*(hist.length-1));if(!hist[idx])return;const d=new Date(hist[idx].ts);ctx.fillStyle=textC;ctx.fillText(d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'),pad.l+f*cW,H-4);});
+  ctx.textAlign='left';ctx.font='bold 10px sans-serif';
+  ctx.fillStyle='#0066cc';ctx.fillText('— Temp innen',pad.l,pad.t+12);
+  if(owmData){ctx.setLineDash([5,4]);ctx.beginPath();ctx.strokeStyle='#38a169';ctx.lineWidth=2;ctx.moveTo(pad.l+90,pad.t+8);ctx.lineTo(pad.l+105,pad.t+8);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#38a169';ctx.fillText(' Außen',pad.l+105,pad.t+12);}
+  ctx.setLineDash([]);
+  ctx.fillStyle='#dd6b20';ctx.fillText('— CO₂',pad.l+(owmData?175:60),pad.t+12);
+}
 function row(l,v,c=''){return '<div class="cond-row"><span class="cond-label">'+l+'</span><span class="cond-val '+(c||'')+'">'+v+'</span></div>';}
 function modeInd(icon,name,desc,active,isSummer){const cl=isSummer?'summer':active?'active':'';const bc=isSummer?'sun':active?'on':'';const bt=(isSummer||active)?'Aktiv':'Inaktiv';return '<div class="mode-ind '+cl+'"><div class="mi-icon">'+icon+'</div><div class="mi-info"><div class="mi-name">'+name+'</div><div class="mi-desc">'+desc+'</div></div><span class="mi-badge '+bc+'">'+bt+'</span></div>';}
 function showTab(tab){['devices','schedule','smart'].forEach(t=>{document.getElementById('view-'+t).style.display=t===tab?'block':'none';document.getElementById('tab-'+t).classList.toggle('active',t===tab);});if(tab==='smart'&&activeSmartDevice)loadSmart(activeSmartDevice);}
-loadDevices();connectWS();
+loadDevices();connectWS();startWeatherTimer();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
