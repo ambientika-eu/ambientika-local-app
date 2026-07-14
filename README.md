@@ -82,7 +82,7 @@ Browser: **http://DEINE-IP:8080**
 | Lüftergeschwindigkeit steuern | ✅ |
 | Temperatur / Feuchte / CO₂ Echtzeit | ✅ |
 | Filter-Alarm Anzeige | ✅ |
-| **Patented NeuraCell-X® – Radon-Schutz** | ✅ |
+| **NeuraCell-X® – Radon-Schutz (Patent angemeldet)** | ✅ |
 | **NeuraCell-X® – Taupunktsteuerung** | ✅ |
 | PWA – installierbar auf Handy & PC | ✅ |
 | Offline-Modus (Service Worker) | ✅ |
@@ -92,9 +92,9 @@ Browser: **http://DEINE-IP:8080**
 
 ---
 
-## 🛡️ Patented NeuraCell-X®
+## 🛡️ NeuraCell-X® (zum Patent angemeldet)
 
-Die App bringt **NeuraCell-X®** – die patentierte Schutztechnologie von Ambientika –
+Die App bringt **NeuraCell-X®** – die zum Patent angemeldete Schutztechnologie von Ambientika –
 direkt auf einen eigenen Tab, vollständig lokal:
 
 - ☢️ **Radon-Schutz (höchste Priorität).** Bei Radon-Alarm schaltet NeuraCell-X *alle*
