@@ -199,6 +199,49 @@ canvas{width:100%!important;height:155px!important}
 footer{text-align:center;padding:2rem;font-size:.65rem;color:var(--muted)}
 footer strong{color:var(--text)}
 @media(max-width:520px){header{padding:.5rem .75rem}.logo-svg{height:32px}main{padding:.85rem}.modes{grid-template-columns:repeat(3,1fr)}}
+
+/* ===== NeuraCell-X (patented) ===== */
+.nc-hero{display:flex;align-items:center;gap:1rem;background:linear-gradient(135deg,#0b3d2e 0%,#0f766e 55%,#0891b2 100%);border-radius:16px;padding:1.15rem 1.3rem;margin-bottom:1.15rem;color:#fff;box-shadow:0 6px 24px rgba(8,145,178,.28);position:relative;overflow:hidden}
+.nc-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%);pointer-events:none}
+.nc-logo{flex-shrink:0}
+.nc-logo svg{display:block;height:56px;width:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
+.nc-hero-txt{flex:1;min-width:0}
+.nc-hero-txt h1{font-size:1.12rem;font-weight:900;letter-spacing:.01em;display:flex;align-items:baseline;gap:.15rem}
+.nc-reg{font-size:.7rem;font-weight:700;opacity:.85}
+.nc-hero-txt p{font-size:.74rem;opacity:.92;margin-top:.2rem;font-weight:600}
+.nc-status-pill{flex-shrink:0;font-size:.68rem;font-weight:800;padding:.4rem .8rem;border-radius:999px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);white-space:nowrap}
+.nc-status-pill.warn{background:#dd6b20;border-color:#f6ad55}
+.nc-status-pill.prot{background:#e53e3e;border-color:#fc8181}
+.nc-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.15rem;margin-bottom:1rem}
+@media(max-width:640px){.nc-grid{grid-template-columns:1fr}}
+.nc-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:1.15rem;position:relative}
+.nc-card.on{border-color:#f6ad55;box-shadow:0 0 0 2px rgba(221,107,32,.18),var(--shadow)}
+.nc-card.on.danger{border-color:#fc8181;box-shadow:0 0 0 2px rgba(229,62,62,.2),var(--shadow)}
+.nc-card-head{display:flex;align-items:center;gap:.55rem;margin-bottom:.85rem}
+.nc-card-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.05rem;background:var(--bg);border:1px solid var(--border);flex-shrink:0}
+.nc-card-title{font-size:.9rem;font-weight:800}
+.nc-card-sub{font-size:.6rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+.nc-badge{margin-left:auto;font-size:.62rem;font-weight:800;padding:.24rem .6rem;border-radius:999px;background:#f0fff4;color:#276749;border:1px solid #c6f6d5;white-space:nowrap}
+.nc-badge.on{background:#fffaf0;color:#c05621;border-color:#fbd38d}
+.nc-badge.danger{background:#fff5f5;color:#c53030;border-color:#feb2b2}
+[data-theme="dark"] .nc-badge{background:#14291f;color:#68d391;border-color:#276749}
+[data-theme="dark"] .nc-badge.on{background:#2d2014;color:#f6ad55;border-color:#744210}
+[data-theme="dark"] .nc-badge.danger{background:#2d1515;color:#fc8181;border-color:#822727}
+.nc-readout{display:flex;gap:.5rem;margin:.55rem 0 .35rem}
+.nc-metric{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:.5rem .55rem;text-align:center}
+.nc-metric .v{font-size:1.02rem;font-weight:900;color:var(--text)}
+.nc-metric .l{font-size:.55rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;font-weight:700}
+.nc-bar{height:7px;border-radius:99px;background:var(--border);overflow:hidden;margin:.55rem 0 .2rem}
+.nc-bar > i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#38a169,#dd6b20 70%,#e53e3e);transition:width .4s}
+.nc-desc{font-size:.68rem;color:var(--muted);line-height:1.5;margin:.5rem 0 .85rem}
+.nc-btns{display:flex;gap:.5rem}
+.nc-btn{flex:1;padding:.5rem .4rem;border-radius:8px;border:1.5px solid var(--border);background:var(--card);font-size:.68rem;font-weight:800;cursor:pointer;color:var(--text)}
+.nc-btn:hover{border-color:var(--primary);color:var(--primary)}
+.nc-btn.primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.nc-btn.danger{background:#e53e3e;border-color:#e53e3e;color:#fff}
+.nc-btn.danger:hover{filter:brightness(1.05);color:#fff}
+.nc-note{font-size:.66rem;color:var(--muted);line-height:1.55;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem;display:flex;gap:.5rem;align-items:flex-start}
+.nc-note b{color:var(--text)}
 </style>
 </head><body><header>
 <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 46">
@@ -238,6 +281,7 @@ footer strong{color:var(--text)}
 <div class="nav-tab active" id="tab-devices" onclick="showTab('devices')"></div>
 <div class="nav-tab" id="tab-schedule" onclick="showTab('schedule')"></div>
 <div class="nav-tab" id="tab-smart" onclick="showTab('smart')"></div>
+<div class="nav-tab" id="tab-neuracell" onclick="showTab('neuracell')"></div>
 </nav>
 <main>
 <div id="view-devices">
@@ -253,6 +297,23 @@ footer strong{color:var(--text)}
 <p class="section-title" style="margin-top:.2rem" id="t-smart-title"></p>
 <div class="smart-dev-select" id="smart-dev-select"></div>
 <div id="smart-content"></div>
+</div>
+<div id="view-neuracell" style="display:none">
+<div class="nc-hero">
+<div class="nc-logo"><svg viewBox="0 0 132 64" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NeuraCell-X">
+<defs><linearGradient id="ncg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6fffa"/><stop offset="1" stop-color="#a7f3d0"/></linearGradient></defs>
+<path d="M32 4 L56 15 V33 C56 47 45 56 32 60 C19 56 8 47 8 33 V15 Z" fill="rgba(255,255,255,.12)" stroke="#e6fffa" stroke-width="2.5"/>
+<polygon points="32,17 43,23.5 43,36.5 32,43 21,36.5 21,23.5" fill="none" stroke="url(#ncg)" stroke-width="2.4"/>
+<circle cx="32" cy="30" r="4.6" fill="#e6fffa"/>
+<path d="M32 21 V17 M40 25.5 L43 23.5 M40 34.5 L43 36.5 M32 39 V43 M24 34.5 L21 36.5 M24 25.5 L21 23.5" stroke="#a7f3d0" stroke-width="2" stroke-linecap="round"/>
+<text x="70" y="28" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="900" fill="#fff">Neura</text>
+<text x="70" y="46" font-family="Arial,Helvetica,sans-serif" font-size="15" font-weight="900" fill="#fff">Cell<tspan fill="#a7f3d0">-X</tspan></text>
+</svg></div>
+<div class="nc-hero-txt"><h1>Patented NeuraCell-X<span class="nc-reg">&reg;</span></h1><p id="nc-tagline"></p></div>
+<span class="nc-status-pill" id="nc-overall">…</span>
+</div>
+<div id="nc-body"></div>
+<p class="nc-note" id="nc-note"></p>
 </div>
 </main>
 <footer><strong>Südwind GmbH · Ambientika Local</strong> &nbsp;·&nbsp; <span id="t-footer"></span></footer>
@@ -566,7 +627,7 @@ innerTemp:'Vnút. teplota',outerTemp:'Vnej. teplota',humIn:'Vlhkosť vnútri',hu
 tempIn:'Teplota vnútri',co2:'CO₂',hum:'Vlhkosť',filterOkFull:'✓ V poriadku',
 overnight:'+1',overnightHint:'⏳ Cez polnoc: končí nasledujúci deň ({e})',overnightFormHint:'Čas konca < čas začiatku → časové okno prechádza cez polnoc (končí nasledujúci deň)'
 }
-}};
+};
 let lang='de';
 function T(k){const t=LANGS[lang]||LANGS.de;return t[k]!==undefined?t[k]:((LANGS.de[k])||k);}
 function Tf(k,...args){let s=T(k);args.forEach((v,i)=>{s=s.replace('{'+['n','d','m','e'][i]+'}',v);});return s;}
@@ -582,6 +643,8 @@ document.querySelectorAll('.t-off').forEach(e=>e.textContent=T('off'));
 document.getElementById('tab-devices').textContent=T('tabDevices');
 document.getElementById('tab-schedule').textContent=T('tabSchedule');
 document.getElementById('tab-smart').textContent=T('tabSmart');
+var _nct=document.getElementById('tab-neuracell');if(_nct)_nct.innerHTML='\uD83D\uDEE1\uFE0F NeuraCell-X';
+renderNeuracell();
 const dt=document.getElementById('devices-title');if(dt&&!Object.keys(devices).length)dt.textContent=T('devices');
 document.getElementById('t-empty-h').textContent=T('noDevH');
 document.getElementById('t-empty-p').textContent=T('noDevP');
@@ -619,7 +682,7 @@ if(savedTheme==='dark')document.getElementById('dark-toggle').textContent='☀�
 function toggleDark(){const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('dark-toggle').textContent=t==='dark'?'☀️':'🌙';}
 function toast(m,d=2500){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
 function setMqtt(ok){document.getElementById('mqtt-dot').className=ok?'connected':'';document.getElementById('mqtt-label').textContent=ok?T('connected'):T('disconnected');}
-function connectWS(){ws=new WebSocket(WS);ws.onopen=()=>setMqtt(true);ws.onclose=()=>{setMqtt(false);setTimeout(connectWS,3000)};ws.onerror=()=>setMqtt(false);ws.onmessage=e=>{const{event,deviceId,data}=JSON.parse(e.data);if(event==='status'||event==='availability'){devices[deviceId]={...devices[deviceId],...data,deviceId};if(!history_data[deviceId])history_data[deviceId]=[];if(data.temperature!=null||data.airQuality!=null){history_data[deviceId].push({ts:Date.now(),temp:data.temperature,co2:data.airQuality,hum:data.humidity});if(history_data[deviceId].length>60)history_data[deviceId].shift();}renderCard(deviceId);refreshSmartSel();}};}
+function connectWS(){ws=new WebSocket(WS);ws.onopen=()=>setMqtt(true);ws.onclose=()=>{setMqtt(false);setTimeout(connectWS,3000)};ws.onerror=()=>setMqtt(false);ws.onmessage=e=>{const{event,deviceId,data}=JSON.parse(e.data);if(event==='neuracell'){neuracell=data;renderNeuracell();return;}if(event==='status'||event==='availability'){devices[deviceId]={...devices[deviceId],...data,deviceId};if(!history_data[deviceId])history_data[deviceId]=[];if(data.temperature!=null||data.airQuality!=null){history_data[deviceId].push({ts:Date.now(),temp:data.temperature,co2:data.airQuality,hum:data.humidity});if(history_data[deviceId].length>60)history_data[deviceId].shift();}renderCard(deviceId);refreshSmartSel();}};}
 async function apiFetch(path,method='GET',body=null){const opts={method,headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);const r=await fetch(API+path,opts);if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sendAll(cmd){const ids=Object.keys(devices);if(!ids.length){toast(T('noDevices'));return;}await Promise.all(ids.map(id=>apiFetch('/devices/'+id+'/command','POST',cmd).catch(()=>{})));toast(T('cmdAll'));}
 async function loadDevices(){try{const list=await apiFetch('/devices');list.forEach(d=>{devices[d.deviceId]=d;});renderAllCards();document.getElementById('devices-title').textContent=Tf('devicesCount',list.length);if(!list.length)document.getElementById('empty-state').style.display='block';list.forEach(d=>loadSchedule(d.deviceId));refreshSmartSel();}catch(e){document.getElementById('empty-state').style.display='block';}}
@@ -647,12 +710,12 @@ function updateCardInner(c,d,did){
 const isSm=d.mode==='SMART';const dt=d.deviceType||'Smart';const role=d.role||'MASTER';
 const rCls=role==='MASTER'?'role-master':'role-slave';
 const fa=d.filterChangedAt?Math.floor((Date.now()-new Date(d.filterChangedAt).getTime())/(86400000)):null;
-const modeButtons=MODES.map(m=>{const isCur=d.mode===m;const cls='mode-btn'+(isCur?(m==='SMART'?' smart-active':' active'):'');return '<div class="mode-btn-wrap"><button class="'+cls+'" onclick="event.stopPropagation();sendCmd(''+did+'',{mode:''+m+''})" title="'+ML(m)+'">'+ML(m)+'</button><button class="mode-info-btn" onclick="event.stopPropagation();showModeInfo(''+m+'',this)" title="Info">ⓘ</button></div>';}).join('');
+const modeButtons=MODES.map(m=>{const isCur=d.mode===m;const cls='mode-btn'+(isCur?(m==='SMART'?' smart-active':' active'):'');return '<div class="mode-btn-wrap"><button class="'+cls+'" onclick="event.stopPropagation();sendCmd(\''+did+'\',{mode:\''+m+'\'})" title="'+ML(m)+'">'+ML(m)+'</button><button class="mode-info-btn" onclick="event.stopPropagation();showModeInfo(\''+m+'\',this)" title="Info">ⓘ</button></div>';}).join('');
 c.innerHTML='<div class="card-header"><div class="card-title"><h2>'+(d.name||did)+(isSm?' <span class="smart-badge">⚡ Smart</span>':'')+'</h2><div class="card-meta"><span class="device-type-badge">'+dt+'</span><span class="role-badge '+rCls+'">'+role+'</span></div></div><span class="status-dot '+(d.online?'online':'')+'" title="'+(d.online?T('online'):T('offline'))+'"></span></div>'
 +'<div class="metrics"><div class="metric"><div class="val">'+(d.temperature!=null?d.temperature.toFixed(1)+'°C':'—')+'</div><div class="lbl">'+T('temp')+'</div></div><div class="metric"><div class="val">'+(d.humidity!=null?d.humidity+'%':'—')+'</div><div class="lbl">'+T('humidity')+'</div></div><div class="metric"><div class="val">'+(d.airQuality!=null?d.airQuality+'ppm':'—')+'</div><div class="lbl">CO₂</div></div></div>'
 +'<div class="modes-label"><span>'+T('modeLabel')+'</span><span style="font-size:.6rem;color:var(--muted);font-weight:400">'+T('modeInfoHint')+'</span></div>'
 +'<div class="modes">'+modeButtons+'</div>'
-+'<div class="fan-row"><label>'+T('fanLabel')+'</label><input type="range" min="0" max="100" value="'+(d.fanSpeed??50)+'" oninput="this.nextElementSibling.textContent=this.value+'%'" onchange="event.stopPropagation();sendCmd(''+did+'',{fanSpeed:+this.value})"/><span class="fan-val">'+(d.fanSpeed??50)+'%</span></div>'
++'<div class="fan-row"><label>'+T('fanLabel')+'</label><input type="range" min="0" max="100" value="'+(d.fanSpeed??50)+'" oninput="this.nextElementSibling.textContent=this.value+'%'" onchange="event.stopPropagation();sendCmd(\''+did+'\',{fanSpeed:+this.value})"/><span class="fan-val">'+(d.fanSpeed??50)+'%</span></div>'
 +(d.filterAlarm?'<div class="filter-alarm">'+T('filterAlarm')+(fa!=null?Tf('filterDays',fa):'')+'</div>':'')
 +'<div style="margin-top:.65rem;font-size:.62rem;color:var(--muted);text-align:right">'+T('detailsLink')+'</div>';
 }
@@ -684,7 +747,7 @@ function renderSlotRow(x,i,did){
     '<span class="ts-time">'+timeStr+'</span>'+ovBadge+
     '<span class="ts-mode m-'+x.mode+'">'+(ML(x.mode)||x.mode)+'</span>'+
     '<span class="ts-fan">'+(x.fanSpeed!=null?x.fanSpeed+'%':T('slotFanPh'))+'</span>'+
-    '<button class="ts-del" onclick="delSlot(''+did+'','+i+')">&#10005;</button>'+
+    '<button class="ts-del" onclick="delSlot(\''+did+'\','+i+')">&#10005;</button>'+
     '</div>';
 }
 
@@ -700,28 +763,28 @@ function renderScCard(did){
   const WDL=getWDL();const WDN=getWDN();
   c.innerHTML='<div class="sc-header"><h2>'+(d.name||did)+'</h2>'+
     '<div class="sc-header-btns">'+
-    '<button class="copy-day-btn" onclick="openCopy(''+did+'',''+s.day+'')">&#128197; '+T('copy')+'</button>'+
-    '<button class="add-slot-btn-top" onclick="toggleForm(''+did+'')">'+T('addSlotTop')+'</button>'+
+    '<button class="copy-day-btn" onclick="openCopy(\''+did+'\',\''+s.day+'\')">&#128197; '+T('copy')+'</button>'+
+    '<button class="add-slot-btn-top" onclick="toggleForm(\''+did+'\')">'+T('addSlotTop')+'</button>'+
     '</div></div>'+
-    '<div class="weekdays">'+WD.map(wd=>'<div class="wd '+(s.day===wd?'active':'')+'" onclick="setDay(''+did+'',''+wd+'')">'+WDL[wd]+'</div>').join('')+'</div>'+
+    '<div class="weekdays">'+WD.map(wd=>'<div class="wd '+(s.day===wd?'active':'')+'" onclick="setDay(\''+did+'\',\''+wd+'\')">'+WDL[wd]+'</div>').join('')+'</div>'+
     '<div class="sc-body">'+
     '<p style="font-size:.66rem;color:var(--muted);margin-bottom:.6rem;font-weight:600;">'+WDN[s.day]+'</p>'+
     (!sl.length?'<p style="text-align:center;color:var(--muted);font-size:.75rem;padding:.65rem">'+T('noSlots')+'</p>':'')+
     sl.map((x,i)=>renderSlotRow(x,i,did)).join('')+
-    (s.showForm?renderSlotForm(did):'<button class="add-slot-btn" onclick="toggleForm(''+did+'')">+ '+T('addSlot')+'</button>')+
+    (s.showForm?renderSlotForm(did):'<button class="add-slot-btn" onclick="toggleForm(\''+did+'\')">+ '+T('addSlot')+'</button>')+
     '</div>';
 }
 
 function renderSlotForm(did){
   return '<div class="slot-form">'+
-    '<div><label>'+T('slotFrom')+'</label><input type="time" id="sf-s-'+did+'" value="22:00" oninput="checkOvernight(''+did+'')"/></div>'+
-    '<div><label>'+T('slotTo')+'</label><input type="time" id="sf-e-'+did+'" value="06:00" oninput="checkOvernight(''+did+'')"/></div>'+
+    '<div><label>'+T('slotFrom')+'</label><input type="time" id="sf-s-'+did+'" value="22:00" oninput="checkOvernight(\''+did+'\')"/></div>'+
+    '<div><label>'+T('slotTo')+'</label><input type="time" id="sf-e-'+did+'" value="06:00" oninput="checkOvernight(\''+did+'\')"/></div>'+
     '<div><label>'+T('slotMode')+'</label><select id="sf-m-'+did+'">'+MODES.map(m=>'<option value="'+m+'">'+ML(m)+'</option>').join('')+'</select></div>'+
     '<div><label>'+T('slotFan')+'</label><input type="number" id="sf-f-'+did+'" min="0" max="100" placeholder="'+T('slotFanPh')+'"/></div>'+
     '<div class="slot-form-hint" id="sf-hint-'+did+'">&#8987; '+T('overnightFormHint')+'</div>'+
     '<div class="slot-form-actions">'+
-    '<button class="btn-cancel" onclick="toggleForm(''+did+'')">'+T('cancel')+'</button>'+
-    '<button class="btn-save" onclick="saveSlot(''+did+'')">'+T('save')+'</button>'+
+    '<button class="btn-cancel" onclick="toggleForm(\''+did+'\')">'+T('cancel')+'</button>'+
+    '<button class="btn-save" onclick="saveSlot(\''+did+'\')">'+T('save')+'</button>'+
     '</div></div>';
 }
 
@@ -770,7 +833,7 @@ async function delSlot(did,idx){const sst=scSt[did];const day=sst.day;const sl=[
 function openCopy(did,day){copySource={did,day};const WDL=getWDL();const g=document.getElementById('copy-days-grid');g.innerHTML=WD.filter(d=>d!==day).map(d=>'<label class="copy-day-check"><input type="checkbox" value="'+d+'"/>'+WDL[d]+'</label>').join('');document.getElementById('copy-modal').classList.add('open');}
 function closeCopyModal(){document.getElementById('copy-modal').classList.remove('open');copySource=null;}
 async function confirmCopy(){if(!copySource)return;const did=copySource.did,day=copySource.day;const WDL=getWDL();const ch=[...document.querySelectorAll('#copy-days-grid input:checked')].map(i=>i.value);if(!ch.length){toast(T('chooseDay'));return;}const sl=(schedules[did]||{})[day]||[];try{await Promise.all(ch.map(d=>apiFetch('/devices/'+did+'/schedule/'+d,'PUT',sl)));const w=schedules[did]||{};ch.forEach(d=>{w[d]=[...sl];});schedules[did]=w;closeCopyModal();renderScCard(did);toast(Tf('copied',ch.map(d=>WDL[d]).join(', ')));}catch(e){toast('Err: '+e.message);}}
-function refreshSmartSel(){const sel=document.getElementById('smart-dev-select');const ids=Object.keys(devices);if(!activeSmartDevice&&ids.length)activeSmartDevice=ids[0];sel.innerHTML=ids.map(id=>'<div class="dev-chip '+(id===activeSmartDevice?'active':'')+'" onclick="selSmartDev(''+id+'')">'+(devices[id].name||id)+'</div>').join('');}
+function refreshSmartSel(){const sel=document.getElementById('smart-dev-select');const ids=Object.keys(devices);if(!activeSmartDevice&&ids.length)activeSmartDevice=ids[0];sel.innerHTML=ids.map(id=>'<div class="dev-chip '+(id===activeSmartDevice?'active':'')+'" onclick="selSmartDev(\''+id+'\')">'+(devices[id].name||id)+'</div>').join('');}
 function selSmartDev(id){activeSmartDevice=id;refreshSmartSel();loadSmart(id);}
 let owmData=null,owmTimer=null;
 function getOwmKey(){return localStorage.getItem('owm_key')||'';}
@@ -788,815 +851,91 @@ el.innerHTML=compareHtml+'<div class="chart-wrap"><h3>&#128200; '+T('histTitle')
 function drawChart(did){const hist=history_data[did]||[];const canvas=document.getElementById('hist-chart');if(!canvas)return;const W=canvas.offsetWidth||800,H=155;canvas.width=W;canvas.height=H;const isDark=document.documentElement.getAttribute('data-theme')==='dark';const bg=isDark?'#1a1f2e':'#fff',gridC=isDark?'#2d3748':'#e2e8f0',textC=isDark?'#a0aec0':'#718096';const ctx=canvas.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);if(hist.length<2){ctx.fillStyle=textC;ctx.font='11px sans-serif';ctx.fillText(T('noHistory'),16,H/2);return;}const pad={l:46,r:10,t:8,b:22};const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;ctx.strokeStyle=gridC;ctx.lineWidth=1;[0,.5,1].forEach(f=>{const y=pad.t+cH*(1-f);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();});function dl(data,color,minV,maxV,dashed=false){const range=maxV-minV||1;let started=false;ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;if(dashed)ctx.setLineDash([5,4]);else ctx.setLineDash([]);for(let i=0;i<data.length;i++){const v=data[i];if(v==null)continue;const x=pad.l+i/(data.length-1)*cW;const y=pad.t+cH*(1-(v-minV)/range);if(!started){ctx.moveTo(x,y);started=true;}else{ctx.lineTo(x,y);}}if(started)ctx.stroke();ctx.setLineDash([]);}const temps=hist.map(h=>h.temp).filter(v=>v!=null);const co2s=hist.map(h=>h.co2).filter(v=>v!=null);const tMin=temps.length?Math.min(...temps)-1:0,tMax=temps.length?Math.max(...temps)+1:1;if(temps.length>1)dl(hist.map(h=>h.temp),'#0066cc',tMin,tMax);if(owmData&&temps.length>1)dl(hist.map(()=>owmData.temp),'#38a169',tMin,tMax,true);if(co2s.length>1)dl(hist.map(h=>h.co2),'#dd6b20',Math.min(...co2s)-50,Math.max(...co2s)+50);ctx.fillStyle=textC;ctx.font='10px sans-serif';ctx.textAlign='right';if(temps.length)ctx.fillText(temps[temps.length-1].toFixed(1)+'°',pad.l-3,pad.t+12);if(co2s.length)ctx.fillText(co2s[co2s.length-1]+'ppm',pad.l-3,H-pad.b+2);ctx.textAlign='center';[0,.5,1].forEach(f=>{const idx=Math.floor(f*(hist.length-1));if(!hist[idx])return;const d=new Date(hist[idx].ts);ctx.fillStyle=textC;ctx.fillText(d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'),pad.l+f*cW,H-4);});ctx.textAlign='left';ctx.font='bold 10px sans-serif';ctx.fillStyle='#0066cc';ctx.fillText('— '+T('tempIn'),pad.l,pad.t+12);if(owmData){ctx.setLineDash([5,4]);ctx.beginPath();ctx.strokeStyle='#38a169';ctx.lineWidth=2;ctx.moveTo(pad.l+90,pad.t+8);ctx.lineTo(pad.l+105,pad.t+8);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#38a169';ctx.fillText(' '+T('outside'),pad.l+105,pad.t+12);}ctx.setLineDash([]);ctx.fillStyle='#dd6b20';ctx.fillText('— '+T('co2'),pad.l+(owmData?175:60),pad.t+12);}
 function row(l,v,c=''){return '<div class="cond-row"><span class="cond-label">'+l+'</span><span class="cond-val '+(c||'')+'">'+v+'</span></div>';}
 function modeInd(icon,name,desc,active,isSummer){const cl=isSummer?'summer':active?'active':'';const bc=isSummer?'sun':active?'on':'';const bt=(isSummer||active)?T('active'):T('inactive');return '<div class="mode-ind '+cl+'"><div class="mi-icon">'+icon+'</div><div class="mi-info"><div class="mi-name">'+name+'</div><div class="mi-desc">'+desc+'</div></div><span class="mi-badge '+bc+'">'+bt+'</span></div>';}
-function showTab(tab){['devices','schedule','smart'].forEach(t=>{document.getElementById('view-'+t).style.display=t===tab?'block':'none';document.getElementById('tab-'+t).classList.toggle('active',t===tab);});if(tab==='smart'&&activeSmartDevice)loadSmart(activeSmartDevice);}
+function showTab(tab){['devices','schedule','smart','neuracell'].forEach(t=>{document.getElementById('view-'+t).style.display=t===tab?'block':'none';document.getElementById('tab-'+t).classList.toggle('active',t===tab);});if(tab==='smart'&&activeSmartDevice)loadSmart(activeSmartDevice);if(tab==='neuracell')loadNeuracell();}
+
+/* ===== NeuraCell-X (patented) – radon protection + dew-point control ===== */
+let neuracell=null;
+const NCL={
+de:{tagline:'Radon-Schutz + Taupunktsteuerung – patentiert, vollautomatisch',
+ radonTitle:'Radon-Schutz',radonSub:'Patented NeuraCell-X',dewTitle:'Taupunktsteuerung',dewSub:'Feuchte-Schutz',
+ radonActive:'Aktiv',radonIdle:'Bereit',protecting:'Alle Geräte · Zuluft · Stufe 1',ready:'Überwachung läuft',
+ dewBlocked:'Lüftung gesperrt',dewClear:'Freigegeben',dewBlockDesc:'Lüften würde Feuchte hereinholen – Geräte aus',dewClearDesc:'Bedingungen gut – Lüftung freigegeben',
+ level:'Radon',threshold:'Schwelle',indoor:'Taupunkt innen',outdoor:'Taupunkt außen',
+ radonDesc:'Bei Radon-Alarm schaltet NeuraCell-X alle Geräte in den Zuluftmodus (Stufe 1) und erzeugt so einen leichten Überdruck gegen eindringendes Radon.',
+ btnTest:'Schutz-Test',btnReset:'Zurücksetzen',btnBlock:'Lüftung sperren',btnRelease:'Freigeben',
+ note:'Automatischer Betrieb: Sensoren steuern NeuraCell-X selbstständig. Radon-Schutz hat immer Vorrang vor der Taupunktsteuerung; danach wird der vorherige Modus exakt wiederhergestellt. Die Schaltflächen dienen als Selbsttest / manuelle Übersteuerung.',
+ overall_ok:'Alles im grünen Bereich',overall_radon:'Radon-Schutz aktiv',overall_dew:'Lüftung gesperrt',overall_both:'Radon-Schutz aktiv',
+ override:'Manuell',waiting:'Warte auf Bridge…',waitingDesc:'Sobald die Ambientika-Bridge mit NeuraCell-X läuft, erscheint hier der Live-Status.'},
+en:{tagline:'Radon protection + dew-point control – patented, fully automatic',
+ radonTitle:'Radon Protection',radonSub:'Patented NeuraCell-X',dewTitle:'Dew-Point Control',dewSub:'Humidity guard',
+ radonActive:'Active',radonIdle:'Ready',protecting:'All devices · Supply air · Level 1',ready:'Monitoring',
+ dewBlocked:'Ventilation blocked',dewClear:'Released',dewBlockDesc:'Ventilating would add humidity – devices off',dewClearDesc:'Conditions good – ventilation released',
+ level:'Radon',threshold:'Threshold',indoor:'Dew point in',outdoor:'Dew point out',
+ radonDesc:'On a radon alarm, NeuraCell-X switches every device to supply-air mode (level 1), creating a gentle overpressure against radon ingress.',
+ btnTest:'Self-test',btnReset:'Reset',btnBlock:'Block ventilation',btnRelease:'Release',
+ note:'Automatic operation: sensors drive NeuraCell-X on their own. Radon protection always overrides dew-point control; afterwards the previous mode is restored exactly. The buttons are a self-test / manual override.',
+ overall_ok:'All clear',overall_radon:'Radon protection active',overall_dew:'Ventilation blocked',overall_both:'Radon protection active',
+ override:'Manual',waiting:'Waiting for bridge…',waitingDesc:'Once the Ambientika bridge with NeuraCell-X is running, the live status appears here.'},
+it:{tagline:'Protezione radon + controllo punto di rugiada – brevettato, automatico',
+ radonTitle:'Protezione Radon',radonSub:'Patented NeuraCell-X',dewTitle:'Controllo punto di rugiada',dewSub:'Protezione umidità',
+ radonActive:'Attivo',radonIdle:'Pronto',protecting:'Tutti i dispositivi · Immissione · Livello 1',ready:'Monitoraggio',
+ dewBlocked:'Ventilazione bloccata',dewClear:'Rilasciata',dewBlockDesc:'Ventilare porterebbe umidità – dispositivi spenti',dewClearDesc:'Condizioni buone – ventilazione rilasciata',
+ level:'Radon',threshold:'Soglia',indoor:'Rugiada int.',outdoor:'Rugiada est.',
+ radonDesc:'In caso di allarme radon, NeuraCell-X porta ogni dispositivo in immissione (livello 1), creando una leggera sovrapressione contro il radon.',
+ btnTest:'Autotest',btnReset:'Reset',btnBlock:'Blocca ventilazione',btnRelease:'Rilascia',
+ note:'Funzionamento automatico: i sensori guidano NeuraCell-X. La protezione radon ha sempre priorità sul controllo del punto di rugiada; poi la modalità precedente viene ripristinata. I pulsanti sono un autotest / override manuale.',
+ overall_ok:'Tutto ok',overall_radon:'Protezione radon attiva',overall_dew:'Ventilazione bloccata',overall_both:'Protezione radon attiva',
+ override:'Manuale',waiting:'In attesa del bridge…',waitingDesc:'Quando il bridge Ambientika con NeuraCell-X è attivo, qui appare lo stato in tempo reale.'}
+};
+function TN(k){return ((NCL[lang]||NCL.de)[k]!==undefined?(NCL[lang]||NCL.de)[k]:(NCL.de[k]!==undefined?NCL.de[k]:k));}
+async function loadNeuracell(){try{const st=await apiFetch('/neuracell');neuracell=(st&&Object.keys(st).length)?st:neuracell;}catch(e){}renderNeuracell();}
+async function ncRadon(active){try{await apiFetch('/neuracell/radon','POST',{active});toast('NeuraCell-X · '+(active?TN('radonActive'):TN('radonIdle')));}catch(e){toast('Fehler: '+e.message);}}
+async function ncDewpoint(block){try{await apiFetch('/neuracell/dewpoint','POST',{block});toast('NeuraCell-X · '+(block?TN('dewBlocked'):TN('dewClear')));}catch(e){toast('Fehler: '+e.message);}}
+function renderNeuracell(){
+ const tg=document.getElementById('nc-tagline');if(!tg)return;
+ tg.textContent=TN('tagline');
+ document.getElementById('nc-note').innerHTML='<span>&#128161;</span><span>'+TN('note')+'</span>';
+ const overall=document.getElementById('nc-overall');const body=document.getElementById('nc-body');
+ const n=neuracell;
+ if(!n||Object.keys(n).length===0){overall.className='nc-status-pill';overall.textContent='…';
+  body.innerHTML='<div class="nc-card"><div class="nc-card-head"><div class="nc-card-icon">&#128225;</div><div><div class="nc-card-title">'+TN('waiting')+'</div></div></div><p class="nc-desc">'+TN('waitingDesc')+'</p></div>';return;}
+ const radon=n.radon_protection===true;const dew=n.dewpoint_block===true;const ov=n.override_active===true;
+ if(radon){overall.className='nc-status-pill prot';overall.textContent='☢️ '+TN('overall_radon');}
+ else if(dew){overall.className='nc-status-pill warn';overall.textContent='💧 '+TN('overall_dew');}
+ else{overall.className='nc-status-pill';overall.textContent='✅ '+TN('overall_ok');}
+ // radon metrics
+ const rv=(n.radon===null||n.radon===undefined)?null:n.radon;const th=n.radon_threshold||300;
+ const pct=rv===null?0:Math.max(0,Math.min(100,Math.round(rv/(th*1.6)*100)));
+ const rBadge=radon?'<span class="nc-badge danger">'+(ov?TN('override')+' · ':'')+TN('radonActive')+'</span>':'<span class="nc-badge">'+TN('radonIdle')+'</span>';
+ const dBadge=dew?'<span class="nc-badge on">'+(ov?TN('override')+' · ':'')+TN('dewBlocked')+'</span>':'<span class="nc-badge">'+TN('dewClear')+'</span>';
+ const fmt=(v,u)=>v===null||v===undefined?'&mdash;':(v+u);
+ let html='<div class="nc-grid">';
+ // Radon card
+ html+='<div class="nc-card'+(radon?' on danger':'')+'">'
+  +'<div class="nc-card-head"><div class="nc-card-icon">☢️</div><div><div class="nc-card-title">'+TN('radonTitle')+'</div><div class="nc-card-sub">'+TN('radonSub')+'</div></div>'+rBadge+'</div>'
+  +'<div class="nc-readout"><div class="nc-metric"><div class="v">'+fmt(rv,'')+'<span style="font-size:.6rem;font-weight:700;color:var(--muted)"> Bq/m³</span></div><div class="l">'+TN('level')+'</div></div>'
+  +'<div class="nc-metric"><div class="v">'+th+'</div><div class="l">'+TN('threshold')+'</div></div></div>'
+  +'<div class="nc-bar"><i style="width:'+pct+'%"></i></div>'
+  +'<div class="nc-desc">'+(radon?('<b style="color:var(--red)">'+TN('protecting')+'</b>'):TN('ready'))+' — '+TN('radonDesc')+'</div>'
+  +'<div class="nc-btns"><button class="nc-btn danger" onclick="ncRadon(true)">☢️ '+TN('btnTest')+'</button><button class="nc-btn" onclick="ncRadon(false)">'+TN('btnReset')+'</button></div></div>';
+ // Dew-point card
+ html+='<div class="nc-card'+(dew?' on':'')+'">'
+  +'<div class="nc-card-head"><div class="nc-card-icon">💧</div><div><div class="nc-card-title">'+TN('dewTitle')+'</div><div class="nc-card-sub">'+TN('dewSub')+'</div></div>'+dBadge+'</div>'
+  +'<div class="nc-readout"><div class="nc-metric"><div class="v">'+fmt(n.indoor_dew_point,' °C')+'</div><div class="l">'+TN('indoor')+'</div></div>'
+  +'<div class="nc-metric"><div class="v">'+fmt(n.outdoor_dew_point,' °C')+'</div><div class="l">'+TN('outdoor')+'</div></div></div>'
+  +'<div class="nc-desc">'+(dew?('<b style="color:var(--orange)">'+TN('dewBlocked')+'</b> — '+TN('dewBlockDesc')):('<b style="color:var(--green)">'+TN('dewClear')+'</b> — '+TN('dewClearDesc')))+(radon?' <span style="color:var(--muted)">('+TN('overall_radon')+')</span>':'')+'</div>'
+  +'<div class="nc-btns"><button class="nc-btn primary" onclick="ncDewpoint(true)">💧 '+TN('btnBlock')+'</button><button class="nc-btn" onclick="ncDewpoint(false)">'+TN('btnRelease')+'</button></div></div>';
+ html+='</div>';
+ body.innerHTML=html;
+}
+
 const API=(window.location.origin+'/api'),WS=((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws');
 const devices={},schedules={},history_data={};
 let activeSmartDevice=null,ws=null,copySource=null;
 lang=localStorage.getItem('lang')||'de';
 document.getElementById('lang-select').value=lang;
 applyLang();
-loadDevices();connectWS();startWeatherTimer();
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
-</script>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="de">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<meta name="theme-color" content="#0066cc"/>
-<title>Ambientika Local</title>
-<link rel="manifest" href="manifest.json"/>
-<link rel="icon" href="icons/icon-192.png"/>
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--primary:#0066cc;--primary-d:#004fa3;--bg:#f0f4f8;--card:#ffffff;--nav-bg:#ffffff;--header-bg:#ffffff;--text:#1a202c;--muted:#718096;--border:#e2e8f0;--green:#38a169;--red:#e53e3e;--orange:#dd6b20;--purple:#805ad5;--radius:12px;--shadow:0 2px 12px rgba(0,0,0,.08);}
-[data-theme="dark"]{--bg:#0f1117;--card:#1a1f2e;--nav-bg:#1a1f2e;--header-bg:#13161f;--text:#e2e8f0;--muted:#a0aec0;--border:#2d3748;--shadow:0 2px 12px rgba(0,0,0,.4);}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s}
-header{background:var(--header-bg);border-bottom:1px solid var(--border);padding:.6rem 1.2rem;display:flex;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-.logo-svg{display:block;height:38px;width:auto}
-.header-divider{width:1px;height:30px;background:var(--border);margin:0 14px}
-.app-label{font-size:.8rem;color:var(--muted);font-weight:600;letter-spacing:.03em}
-.header-right{margin-left:auto;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
-.badge{font-size:.72rem;background:#f0fff4;color:#276749;border:1px solid #c6f6d5;padding:.28rem .85rem;border-radius:999px;display:flex;align-items:center;gap:.4rem;font-weight:700}
-[data-theme="dark"] .badge{background:#1a2e22;color:#68d391;border-color:#276749}
-#mqtt-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#fc8181}
-#mqtt-dot.connected{background:#68d391}
-.dark-toggle,.settings-btn{background:none;border:1.5px solid var(--border);border-radius:8px;padding:.3rem .55rem;cursor:pointer;font-size:.85rem;color:var(--muted)}
-.dark-toggle{font-size:1rem}
-.settings-btn:hover,.dark-toggle:hover{border-color:var(--primary);color:var(--primary)}
-.lang-select{background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:.3rem .45rem;font-size:.75rem;color:var(--muted);cursor:pointer;outline:none}
-.lang-select:hover,.lang-select:focus{border-color:var(--primary);color:var(--primary)}
-.all-bar{background:var(--card);border-bottom:1px solid var(--border);padding:.5rem 1.2rem;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
-.all-bar-label{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-right:.3rem;white-space:nowrap}
-.all-btn{padding:.3rem .7rem;border:1.5px solid var(--border);border-radius:7px;background:var(--card);font-size:.67rem;font-weight:700;cursor:pointer;color:var(--muted)}
-.all-btn:hover{border-color:var(--primary);color:var(--primary)}
-[data-theme="dark"] .all-btn:hover{border-color:var(--primary);color:var(--primary);background:rgba(0,102,204,.15)}
-nav{background:var(--nav-bg);border-bottom:2px solid var(--border);padding:0 1.2rem;display:flex}
-.nav-tab{padding:.7rem 1.1rem;font-size:.8rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap}
-.nav-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
-main{max-width:1100px;margin:0 auto;padding:1.25rem}
-.section-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.9rem;font-weight:700}
-.zone-group{margin-bottom:1.6rem}
-.zone-group-header{display:flex;align-items:center;gap:.55rem;margin-bottom:.75rem;padding-bottom:.45rem;border-bottom:2px solid var(--border)}
-.zone-group-title{font-size:.78rem;font-weight:800;color:var(--text)}
-.zone-group-badge{font-size:.58rem;font-weight:700;padding:.15rem .5rem;border-radius:999px;background:var(--bg);color:var(--muted);border:1px solid var(--border)}
-.zone-master-badge{background:#fefcbf;color:#744210;border-color:#f6e05e}
-[data-theme="dark"] .zone-master-badge{background:#2d2a14;color:#f6e05e;border-color:#744210}
-.zone-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1.25rem}
-.device-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.2rem;border:1px solid var(--border);cursor:pointer;transition:box-shadow .15s,border-color .15s}
-.device-card:hover{box-shadow:0 4px 20px rgba(0,102,204,.13);border-color:rgba(0,102,204,.3)}
-.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.85rem;gap:.5rem}
-.card-title h2{font-size:.95rem;font-weight:700;display:flex;align-items:center;gap:.4rem;flex-wrap:wrap}
-.card-meta{display:flex;align-items:center;gap:.35rem;margin-top:.22rem;flex-wrap:wrap}
-.device-type-badge{font-size:.58rem;font-weight:700;padding:.13rem .42rem;border-radius:6px;background:#ebf8ff;color:#2b6cb0;border:1px solid #bee3f8}
-.role-badge{font-size:.58rem;font-weight:700;padding:.13rem .42rem;border-radius:6px}
-.role-master{background:#fefcbf;color:#744210;border:1px solid #f6e05e}
-.role-slave{background:#e9d8fd;color:#553c9a;border:1px solid #d6bcfa}
-[data-theme="dark"] .device-type-badge{background:#1a2e3d;color:#63b3ed;border-color:#2b6cb0}
-[data-theme="dark"] .role-master{background:#2d2a14;color:#f6e05e;border-color:#744210}
-[data-theme="dark"] .role-slave{background:#2d1f4e;color:#b794f4;border-color:#553c9a}
-.status-dot{width:9px;height:9px;border-radius:50%;background:var(--red);flex-shrink:0;margin-top:4px}
-.status-dot.online{background:var(--green)}
-.metrics{display:flex;gap:.55rem;margin-bottom:1rem}
-.metric{background:#f7fafc;border-radius:8px;padding:.48rem .55rem;text-align:center;flex:1;border:1px solid var(--border)}
-[data-theme="dark"] .metric{background:#0f1117}
-.metric .val{font-size:.95rem;font-weight:800;color:var(--primary)}
-.metric .lbl{font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
-.modes-label{font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.35rem;display:flex;align-items:center;justify-content:space-between}
-.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:.28rem;margin-bottom:.9rem}
-.mode-btn-wrap{position:relative;display:flex;flex-direction:column}
-.mode-btn{padding:.35rem .1rem;border:1.5px solid var(--border);border-radius:7px;background:var(--card);font-size:.59rem;font-weight:700;cursor:pointer;text-align:center;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
-.mode-btn:hover{border-color:var(--primary);color:var(--primary)}
-.mode-btn.active{border-color:var(--primary);background:var(--primary);color:#fff}
-.mode-btn.smart-active{border-color:var(--purple);background:var(--purple);color:#fff}
-.mode-info-btn{position:absolute;top:2px;right:3px;background:none;border:none;cursor:pointer;font-size:.58rem;color:rgba(0,0,0,.3);padding:0;line-height:1;z-index:2}
-.mode-btn.active .mode-info-btn,.mode-btn.smart-active .mode-info-btn{color:rgba(255,255,255,.7)}
-.mode-info-btn:hover{color:var(--primary)!important}
-.mode-popup{display:none;position:fixed;z-index:500;background:var(--card);border:1px solid var(--border);border-radius:10px;box-shadow:0 6px 28px rgba(0,0,0,.22);padding:.85rem 1rem;max-width:270px;width:260px}
-.mode-popup.open{display:block}
-.mode-popup h4{font-size:.78rem;font-weight:800;margin-bottom:.45rem;display:flex;align-items:center;gap:.4rem}
-.mode-popup p{font-size:.7rem;color:var(--muted);line-height:1.55;margin-bottom:.35rem}
-.mode-popup ul{font-size:.68rem;color:var(--muted);padding-left:1.1rem;line-height:1.6;margin-bottom:.35rem}
-.mode-popup-close{position:absolute;top:.45rem;right:.6rem;background:none;border:none;cursor:pointer;font-size:.85rem;color:var(--muted)}
-.fan-row{display:flex;align-items:center;gap:.6rem}
-.fan-row label{font-size:.7rem;color:var(--muted);white-space:nowrap;font-weight:600}
-.fan-row input[type=range]{flex:1;accent-color:var(--primary)}
-.fan-val{font-size:.78rem;font-weight:800;width:34px;text-align:right;color:var(--primary)}
-.filter-alarm{display:flex;align-items:center;gap:.45rem;margin-top:.85rem;padding:.48rem .7rem;background:#fff5f5;border-radius:8px;border:1px solid #fed7d7;font-size:.69rem;color:var(--red);font-weight:700}
-[data-theme="dark"] .filter-alarm{background:#2d1515;border-color:#822727}
-.smart-badge{font-size:.58rem;font-weight:700;padding:.13rem .42rem;border-radius:999px;background:#f5f0ff;color:var(--purple);border:1px solid #d6bcfa}
-.detail-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:flex-start;justify-content:center;overflow-y:auto;padding:1.5rem .75rem}
-.detail-modal.open{display:flex}
-.detail-box{background:var(--card);border-radius:var(--radius);padding:1.5rem;width:100%;max-width:520px;box-shadow:0 8px 40px rgba(0,0,0,.3);margin:auto;position:relative}
-.detail-box h2{font-size:1.05rem;font-weight:800;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-.detail-close{position:absolute;top:.9rem;right:1rem;background:none;border:none;cursor:pointer;font-size:1.1rem;color:var(--muted)}
-.detail-section{margin-bottom:1.1rem}
-.detail-section h3{font-size:.62rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.6rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:.38rem}
-.detail-row{display:flex;align-items:center;justify-content:space-between;padding:.3rem .5rem;background:var(--bg);border-radius:6px;font-size:.74rem}
-.detail-row .dl{color:var(--muted);font-size:.68rem}
-.detail-row .dv{font-weight:800;color:var(--text)}
-.detail-row .dv.ok{color:var(--green)}.detail-row .dv.warn{color:var(--orange)}.detail-row .dv.bad{color:var(--red)}
-.detail-mode-current{display:flex;align-items:center;gap:.6rem;padding:.6rem .8rem;border-radius:9px;background:var(--bg);border:1px solid var(--border);margin-bottom:.65rem}
-.dmc-icon{font-size:1.2rem}
-.dmc-info .dmc-label{font-size:.62rem;color:var(--muted);font-weight:600}
-.dmc-info .dmc-val{font-size:.88rem;font-weight:800}
-#empty-state{text-align:center;padding:4rem 1rem;color:var(--muted)}
-.schedule-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:1.1rem;overflow:hidden}
-.sc-header{background:var(--bg);padding:.75rem 1.1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:.5rem;flex-wrap:wrap}
-.sc-header h2{font-size:.88rem;font-weight:700}
-.sc-header-btns{display:flex;gap:.35rem}
-.add-slot-btn-top,.copy-day-btn{font-size:.66rem;font-weight:700;border:1.5px solid var(--border);padding:.23rem .6rem;border-radius:6px;background:var(--card);cursor:pointer;color:var(--muted)}
-.add-slot-btn-top{color:var(--primary);border-color:var(--primary)}
-.copy-day-btn:hover{border-color:var(--orange);color:var(--orange)}
-.weekdays{display:flex;border-bottom:1px solid var(--border)}
-.wd{flex:1;text-align:center;padding:.48rem .2rem;font-size:.66rem;font-weight:700;color:var(--muted);cursor:pointer;border-right:1px solid var(--border)}
-.wd:last-child{border-right:none}
-.wd.active{background:var(--primary);color:#fff}
-.sc-body{padding:.85rem 1.1rem}
-.time-slot{display:flex;align-items:center;gap:.45rem;padding:.48rem .7rem;background:var(--bg);border-radius:8px;border:1px solid var(--border);margin-bottom:.45rem}
-.ts-time{font-size:.75rem;font-weight:800;min-width:105px}
-.ts-overnight{font-size:.56rem;font-weight:700;padding:.1rem .32rem;border-radius:4px;background:#e9d8fd;color:#553c9a;border:1px solid #d6bcfa;white-space:nowrap;flex-shrink:0}
-[data-theme="dark"] .ts-overnight{background:#2d1f4e;color:#b794f4;border-color:#553c9a}
-.ts-mode{font-size:.62rem;font-weight:700;padding:.15rem .45rem;border-radius:6px;white-space:nowrap}.m-HRV,.m-MANUAL_HRV{background:#ebf8ff;color:#2b6cb0}.m-NIGHT{background:#e9d8fd;color:#3c366b}.m-BOOST,.m-TIMED_EXHAUST{background:#fff5f0;color:#c05621}.m-AWAY{background:#f0fff4;color:#276749}.m-SMART{background:#f5f0ff;color:#553c9a}.m-AUTO{background:#fffbeb;color:#744210}.m-MONITORING{background:#fef3c7;color:#92400e}.m-EXHAUST{background:#fce7f3;color:#9d174d}.m-SUPPLY{background:#ecfdf5;color:#065f46}.m-MS_FLOW,.m-SM_FLOW{background:#e0f2fe;color:#075985}.m-OFF{background:#f7fafc;color:var(--muted)}
-[data-theme="dark"] .m-HRV,[data-theme="dark"] .m-MANUAL_HRV{background:#1a2e3d;color:#63b3ed}[data-theme="dark"] .m-NIGHT{background:#2d1f4e;color:#b794f4}[data-theme="dark"] .m-SMART{background:#2d1f4e;color:#d6bcfa}[data-theme="dark"] .m-AUTO{background:#2d2a14;color:#f6e05e}[data-theme="dark"] .m-MONITORING{background:#2d2710;color:#f6d860}[data-theme="dark"] .m-BOOST,[data-theme="dark"] .m-TIMED_EXHAUST{background:#2d1e14;color:#f6ad55}[data-theme="dark"] .m-AWAY{background:#1a2e22;color:#68d391}[data-theme="dark"] .m-EXHAUST{background:#2d1525;color:#f687b3}[data-theme="dark"] .m-SUPPLY{background:#14291f;color:#6ee7b7}[data-theme="dark"] .m-MS_FLOW,[data-theme="dark"] .m-SM_FLOW{background:#0c2233;color:#7dd3fc}[data-theme="dark"] .m-OFF{background:#1a1f2e;color:var(--muted)}
-.ts-fan{margin-left:auto;font-size:.65rem;color:var(--muted);font-weight:600;white-space:nowrap}
-.ts-del{background:none;border:none;color:#ccc;cursor:pointer;font-size:.85rem;padding:0 .12rem;flex-shrink:0}
-.ts-del:hover{color:var(--red)}
-.add-slot-btn{width:100%;padding:.52rem;border:2px dashed var(--border);border-radius:8px;background:transparent;color:var(--muted);font-size:.7rem;font-weight:700;cursor:pointer;margin-top:.4rem}
-.add-slot-btn:hover{border-color:var(--primary);color:var(--primary)}
-.copy-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
-.copy-modal.open{display:flex}
-.copy-modal-box{background:var(--card);border-radius:var(--radius);padding:1.4rem;min-width:260px;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.25)}
-.copy-modal-box h3{font-size:.9rem;font-weight:800;margin-bottom:.9rem}
-.copy-days-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.4rem;margin-bottom:.9rem}
-.copy-day-check{display:flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;color:var(--muted);cursor:pointer}
-.copy-day-check input{accent-color:var(--primary)}
-.copy-modal-btns{display:flex;gap:.45rem;justify-content:flex-end}
-.slot-form{background:var(--bg);border-radius:8px;border:1px solid var(--border);padding:.85rem;margin-top:.55rem;display:grid;grid-template-columns:1fr 1fr;gap:.45rem}
-.slot-form label{font-size:.65rem;font-weight:700;color:var(--muted);display:block;margin-bottom:.15rem}
-.slot-form input,.slot-form select{width:100%;padding:.35rem .5rem;border:1.5px solid var(--border);border-radius:6px;font-size:.75rem;background:var(--card);color:var(--text)}
-.slot-form-hint{grid-column:span 2;font-size:.62rem;color:var(--purple);background:#f5f0ff;border:1px solid #d6bcfa;border-radius:6px;padding:.4rem .6rem;line-height:1.5;display:none}
-[data-theme="dark"] .slot-form-hint{background:#2d1f4e;border-color:#553c9a;color:#b794f4}
-.slot-form-hint.visible{display:block}
-.slot-form-actions{grid-column:span 2;display:flex;gap:.38rem;justify-content:flex-end;margin-top:.18rem}
-.btn-save{background:var(--primary);color:#fff;border:none;border-radius:6px;padding:.35rem .85rem;font-size:.72rem;font-weight:700;cursor:pointer}
-.btn-cancel{background:var(--card);color:var(--muted);border:1.5px solid var(--border);border-radius:6px;padding:.35rem .7rem;font-size:.72rem;font-weight:700;cursor:pointer}
-.smart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem;margin-bottom:1.1rem}
-@media(max-width:580px){.smart-grid{grid-template-columns:1fr}}
-.smart-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:1.05rem}
-.smart-card h3{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.8rem}
-.cond-row{display:flex;align-items:center;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.75rem}
-.cond-row:last-child{border-bottom:none}
-.cond-label{color:var(--muted);font-size:.7rem}
-.cond-val{font-weight:800}.cond-val.ok{color:var(--green)}.cond-val.warn{color:var(--orange)}
-.mode-ind{display:flex;align-items:center;gap:.55rem;padding:.55rem .75rem;border-radius:9px;margin-bottom:.5rem;border:1px solid var(--border);background:var(--bg)}
-.mode-ind.active{background:#f0fff4;border-color:#c6f6d5}.mode-ind.summer{background:#fffaf0;border-color:#fbd38d}
-[data-theme="dark"] .mode-ind.active{background:#1a2e22;border-color:#276749}[data-theme="dark"] .mode-ind.summer{background:#2d2014;border-color:#744210}
-.mi-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0;background:var(--border)}
-.mi-info{flex:1}.mi-name{font-size:.75rem;font-weight:800}.mi-desc{font-size:.62rem;color:var(--muted);margin-top:1px}
-.mi-badge{font-size:.6rem;font-weight:700;padding:.13rem .42rem;border-radius:999px;background:var(--border);color:var(--muted);white-space:nowrap}
-.mi-badge.on{background:#c6f6d5;color:#276749}.mi-badge.sun{background:#fbd38d;color:#744210}
-[data-theme="dark"] .mi-badge.on{background:#1a2e22;color:#68d391}
-.smart-dev-select{display:flex;gap:.45rem;margin-bottom:1rem;flex-wrap:wrap}
-.dev-chip{padding:.3rem .75rem;border-radius:999px;border:1.5px solid var(--border);background:var(--card);font-size:.7rem;font-weight:700;cursor:pointer;color:var(--muted)}
-.dev-chip.active{border-color:var(--purple);background:var(--purple);color:#fff}
-.chart-wrap{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);padding:1.05rem;margin-bottom:1.1rem}
-.chart-wrap h3{font-size:.65rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.65rem}
-canvas{width:100%!important;height:155px!important}
-.weather-bar{background:var(--card);border-bottom:1px solid var(--border);padding:.45rem 1.2rem;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;font-size:.72rem}
-.weather-loc{font-weight:700;color:var(--text);display:flex;align-items:center;gap:.3rem}
-.weather-item{display:flex;align-items:center;gap:.28rem;color:var(--muted)}
-.weather-item strong{color:var(--text);font-weight:800}
-.weather-aqi{padding:.18rem .5rem;border-radius:6px;font-size:.65rem;font-weight:700}
-.aqi-1{background:#c6f6d5;color:#276749}.aqi-2{background:#fefcbf;color:#744210}.aqi-3{background:#fed7aa;color:#c05621}.aqi-4{background:#fed7d7;color:#9b2c2c}.aqi-5{background:#e9d8fd;color:#553c9a}
-[data-theme="dark"] .aqi-1{background:#1a2e22;color:#68d391}[data-theme="dark"] .aqi-2{background:#2d2a14;color:#f6e05e}[data-theme="dark"] .aqi-3{background:#2d1e14;color:#f6ad55}[data-theme="dark"] .aqi-4{background:#2d1515;color:#fc8181}[data-theme="dark"] .aqi-5{background:#2d1f4e;color:#b794f4}
-.weather-refresh{background:none;border:none;cursor:pointer;color:var(--muted);font-size:.75rem;margin-left:.2rem;padding:.1rem .3rem}
-.weather-refresh:hover{color:var(--primary)}
-.weather-no-key{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:.4rem}
-.settings-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center}
-.settings-modal.open{display:flex}
-.settings-box{background:var(--card);border-radius:var(--radius);padding:1.5rem;min-width:300px;max-width:420px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.3)}
-.settings-box h3{font-size:1rem;font-weight:800;margin-bottom:1.1rem;display:flex;align-items:center;gap:.4rem}
-.settings-section{margin-bottom:1.1rem}
-.settings-section h4{font-size:.68rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.55rem;padding-bottom:.3rem;border-bottom:1px solid var(--border)}
-.settings-row{margin-bottom:.65rem}
-.settings-row label{font-size:.7rem;font-weight:700;color:var(--muted);display:block;margin-bottom:.25rem}
-.settings-row input{width:100%;padding:.42rem .6rem;border:1.5px solid var(--border);border-radius:7px;font-size:.8rem;background:var(--bg);color:var(--text);outline:none}
-.settings-row input:focus{border-color:var(--primary)}
-.settings-row small{font-size:.62rem;color:var(--muted);margin-top:.2rem;display:block}
-.settings-hint{font-size:.66rem;color:var(--muted);background:var(--bg);border-radius:7px;padding:.5rem .7rem;margin-top:.4rem;line-height:1.5}
-.settings-btns{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem}
-.outdoor-compare{background:var(--bg);border-radius:9px;border:1px solid var(--border);padding:.65rem .85rem;margin-bottom:.85rem;display:grid;grid-template-columns:1fr auto 1fr;gap:.5rem;align-items:center}
-.oc-side{font-size:.72rem}.oc-side h4{font-size:.6rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
-.oc-val{font-size:.85rem;font-weight:800;color:var(--text);margin-bottom:.12rem}.oc-sub{font-size:.62rem;color:var(--muted)}
-.oc-arrow{text-align:center;font-size:1rem;color:var(--muted)}
-.oc-badge{font-size:.58rem;font-weight:700;padding:.1rem .35rem;border-radius:5px;display:inline-block;margin-top:.1rem}
-.oc-in{background:#ebf8ff;color:#2b6cb0}.oc-out{background:#f0fff4;color:#276749}.oc-warn{background:#fff5f0;color:#c05621}
-[data-theme="dark"] .oc-in{background:#1a2e3d;color:#63b3ed}[data-theme="dark"] .oc-out{background:#1a2e22;color:#68d391}[data-theme="dark"] .oc-warn{background:#2d1e14;color:#f6ad55}
-#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(2rem);background:#2d3748;color:#fff;padding:.55rem 1.2rem;border-radius:999px;font-size:.75rem;opacity:0;transition:all .3s;pointer-events:none;z-index:999}
-#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-footer{text-align:center;padding:2rem;font-size:.65rem;color:var(--muted)}
-footer strong{color:var(--text)}
-@media(max-width:520px){header{padding:.5rem .75rem}.logo-svg{height:32px}main{padding:.85rem}.modes{grid-template-columns:repeat(3,1fr)}}
-</style>
-</head><body><header>
-<svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 46">
-<text x="0" y="36" font-family="'Arial Black','Arial',sans-serif" font-size="38" font-weight="900" fill="currentColor">süd</text>
-<polygon points="96,4 110,33 82,33" fill="currentColor"/>
-<path d="M77,37 Q86,33 96,37 Q106,41 116,37" stroke="currentColor" stroke-width="3" fill="none" stroke-linecap="round"/>
-<path d="M75,43 Q84,39 93,43 Q102,47 111,43 Q120,39 129,43" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-<text x="116" y="36" font-family="'Arial Black','Arial',sans-serif" font-size="38" font-weight="900" fill="currentColor">wind</text>
-</svg>
-<div class="header-divider"></div>
-<span class="app-label">ambientika local</span>
-<div class="header-right">
-<select class="lang-select" id="lang-select" onchange="setLang(this.value)" title="Language / Sprache">
-<option value="de">🇩🇪 DE</option>
-<option value="it">🇮🇹 IT</option>
-<option value="en">🇬🇧 EN</option>
-<option value="fr">🇫🇷 FR</option>
-<option value="es">🇪🇸 ES</option>
-<option value="sk">🇸🇰 SK</option>
-</select>
-<button class="settings-btn" title="Settings" onclick="openSettings()">&#9881;&#65039;</button>
-<button class="dark-toggle" id="dark-toggle" title="Dark Mode" onclick="toggleDark()">&#127769;</button>
-<span class="badge"><span id="mqtt-dot"></span>&nbsp;<span id="mqtt-label">...</span></span>
-</div>
-</header>
-<div class="all-bar" id="all-bar">
-<span class="all-bar-label" id="lbl-all"></span>
-<button class="all-btn" onclick="sendAll({mode:'SMART'})">&#129504; Smart</button>
-<button class="all-btn" onclick="sendAll({mode:'NIGHT'})">&#127769; <span class="t-night"></span></button>
-<button class="all-btn" onclick="sendAll({mode:'HRV'})">&#127788;&#65039; <span class="t-hrv"></span></button>
-<button class="all-btn" onclick="sendAll({mode:'AUTO'})">&#129302; <span class="t-auto"></span></button>
-<button class="all-btn" onclick="sendAll({mode:'AWAY'})">&#127968; <span class="t-away"></span></button>
-<button class="all-btn" onclick="sendAll({mode:'OFF'})">&#9210; <span class="t-off"></span></button>
-</div>
-<div id="weather-bar" class="weather-bar"></div>
-<nav>
-<div class="nav-tab active" id="tab-devices" onclick="showTab('devices')"></div>
-<div class="nav-tab" id="tab-schedule" onclick="showTab('schedule')"></div>
-<div class="nav-tab" id="tab-smart" onclick="showTab('smart')"></div>
-</nav>
-<main>
-<div id="view-devices">
-<p class="section-title" style="margin-top:.2rem" id="devices-title"></p>
-<div id="devices-grid"></div>
-<div id="empty-state" style="display:none"><h2 id="t-empty-h"></h2><p id="t-empty-p"></p></div>
-</div>
-<div id="view-schedule" style="display:none">
-<p class="section-title" style="margin-top:.2rem" id="t-sched-title"></p>
-<div id="schedule-container"></div>
-</div>
-<div id="view-smart" style="display:none">
-<p class="section-title" style="margin-top:.2rem" id="t-smart-title"></p>
-<div class="smart-dev-select" id="smart-dev-select"></div>
-<div id="smart-content"></div>
-</div>
-</main>
-<footer><strong>Südwind GmbH · Ambientika Local</strong> &nbsp;·&nbsp; <span id="t-footer"></span></footer>
-<div id="toast"></div>
-<div class="copy-modal" id="copy-modal">
-<div class="copy-modal-box">
-<h3 id="t-copy-title"></h3>
-<div class="copy-days-grid" id="copy-days-grid"></div>
-<div class="copy-modal-btns">
-<button class="btn-cancel" id="t-cancel1" onclick="closeCopyModal()"></button>
-<button class="btn-save" id="t-copy-btn" onclick="confirmCopy()"></button>
-</div>
-</div>
-</div>
-<div class="settings-modal" id="settings-modal">
-<div class="settings-box">
-<h3>&#9881;&#65039; <span id="t-settings-title"></span></h3>
-<div class="settings-section">
-<h4>&#127780;&#65039; <span id="t-owm-section"></span></h4>
-<div class="settings-row">
-<label id="t-owm-key-lbl"></label>
-<input type="text" id="set-owm-key" autocomplete="off"/>
-<small id="t-owm-key-hint"></small>
-</div>
-<div class="settings-row">
-<label id="t-owm-loc-lbl"></label>
-<input type="text" id="set-owm-loc" placeholder="Vienna,AT / 48.2,16.4"/>
-<small id="t-owm-loc-hint"></small>
-</div>
-<div class="settings-hint" id="t-owm-hint"></div>
-</div>
-<div class="settings-btns">
-<button class="btn-cancel" onclick="closeSettings()" id="t-cancel2"></button>
-<button class="btn-save" onclick="saveSettings()" id="t-save-btn"></button>
-</div>
-</div>
-</div>
-<div class="mode-popup" id="mode-popup">
-<button class="mode-popup-close" onclick="closeModePopup()">&#10005;</button>
-<h4 id="mp-title"></h4>
-<div id="mp-body"></div>
-</div>
-<div class="detail-modal" id="detail-modal" onclick="closeDetailIfBg(event)">
-<div class="detail-box" id="detail-box">
-<button class="detail-close" onclick="closeDetail()">&#10005;</button>
-<div id="detail-content"></div>
-</div>
-</div><script>
-/* ===== i18n ===== */
-const LANGS={
-de:{
-connecting:'Verbinde…',connected:'Verbunden',disconnected:'Getrennt',
-all:'Alle:',night:'Nacht',hrv:'Lüftung',auto:'Automatik',away:'Außer Haus',off:'Aus',
-tabDevices:'🏠 Geräte',tabSchedule:'📅 Wochenzeitplan',tabSmart:'🧠 Smart-Modus',
-devices:'Ihre Geräte',devicesCount:'Ihre Geräte — {n} online',
-noDevH:'Keine Geräte gefunden',noDevP:'Stelle sicher, dass MQTT-Broker und Ambientika Bridge laufen.',
-schedTitle:'Wochenzeitplan',smartTitle:'Smart-Modus — Echtzeit Automatik',
-footer:'Lokale Steuerung · Keine Cloud · DSGVO-konform',
-copyTitle:'📅 Tag kopieren nach…',cancel:'Abbrechen',copy:'Kopieren',save:'Speichern',
-settingsTitle:'Einstellungen',owmSection:'Außenwetter (OpenWeatherMap)',
-owmKeyLbl:'API-Key',owmKeyHint:'Kostenlos auf openweathermap.org — bis 1.000 Calls/Tag',
-owmLocLbl:'Standort (Stadt oder Koordinaten)',owmLocHint:'Stadtname z.B. Vienna,AT oder Koordinaten lat,lon',
-owmHint:'Außentemperatur, Luftfeuchtigkeit und Luftqualität werden alle 15 Min. aktualisiert.',
-cmdSent:'Befehl gesendet',cmdAll:'Befehl an alle gesendet',noDevices:'Keine Geräte',
-saved:'Gespeichert',deleted:'Gelöscht',copied:'Kopiert nach {d}',
-settingsSaved:'Einstellungen gespeichert',settingsSavedLoading:'Einstellungen gespeichert — Wetter wird geladen…',
-enterTimes:'Bitte Zeiten angeben',chooseDay:'Bitte Tag wählen',
-online:'Online',offline:'Offline',
-temp:'Temp',humidity:'Feuchte',filterAlarm:'⚠️ Filterwechsel erforderlich',filterDays:' — seit {d} Tagen',
-fanLabel:'Lüfter',modeLabel:'Betriebsmodus',modeInfoHint:'ⓘ = Modus-Info',
-noSlots:'Kein Zeitfenster',addSlot:'+ Zeitfenster hinzufügen',addSlotTop:'+ Zeitfenster',
-copyDay:'📅 Kopieren',detailsLink:'🔍 Details ansehen…',
-slotFrom:'Von',slotTo:'Bis',slotMode:'Modus',slotFan:'Lüfter%',slotFanPh:'Auto',
-filterOk:'✓ In Ordnung',filterSection:'Filter',lastChange:'Letzter Wechsel',
-currentMode:'Aktueller Modus',activeMode:'Aktiver Modus',sensorData:'Sensordaten',
-lastMeasure:'Letzter Messwert',time:'Uhrzeit',network:'Netzwerk',zone:'Zone',
-firmware:'Firmware',deviceId:'Geräte-ID',role:'Rolle',type:'Gerätetyp',status:'Status',
-sensors:'Ausgewertete Sensoren:',logic:'Logik:',
-weatherSetup:'Außenwetter einrichten',weatherHint:'API-Key eingeben für Temperatur, Feuchte & Luftqualität',
-weatherError:'Wetterfehler: ',weatherRetry:'↻ Wiederholen',weatherLoading:'Lade Wetterdaten…',
-weatherOutdoor:'Außen:',weatherHumidity:'Feuchte:',weatherAgo:'vor {m} Min.',
-hrv_active:'Mittel aktiv',hrv_min:'Minimal aktiv',hrv_off:'Inaktiv',
-nightActive:'Bei Dunkelheit aktiv',freeCoolCond:'T>24°C & Außen>20°C & Außen<Innen',
-inside:'Innen',outside:'Außen',coolPossible:'↓ Kühlen möglich',heatSugg:'↑ Heizen sinnvoll',balanced:'≈ Ausgeglichen',
-devSensor:'Gerätesensor',openWeather:'OpenWeather',weatherStation:'Wetterstation',
-aqi:['','Sehr gut','Gut','Mäßig','Schlecht','Sehr schlecht'],
-masterSlaveNet:'Master/Slave Netzwerk',devices1:'1 Gerät',devicesN:'{n} Geräte',
-mon:'Mo',tue:'Di',wed:'Mi',thu:'Do',fri:'Fr',sat:'Sa',sun:'So',
-Monday:'Montag',Tuesday:'Dienstag',Wednesday:'Mittwoch',Thursday:'Donnerstag',Friday:'Freitag',Saturday:'Samstag',Sunday:'Sonntag',
-light:'Licht',dark:'Dunkel 🌙',bright:'Hell ☀️',hrv_label:'Wärmrückgewinnung',nightMode:'Nachtmodus',freeCool:'Free-Cooling',active:'Aktiv',inactive:'Inaktiv',smartLogic:'Smart-Logik',measures:'Messwerte',automation:'Automatik',histTitle:'Verlauf (letzte Stunde)',noHistory:'Noch keine Verlaufsdaten — wird mit Echtzeit-Daten gefüllt',
-innerTemp:'Innentemp.',outerTemp:'Außentemp.',humIn:'Feuchte innen',humOut:'Feuchte außen',airQuality:'CO₂/VOC',airQualityOut:'Luftqualität außen',
-tempIn:'Temp innen',co2:'CO₂',hum:'Feuchte',filterOkFull:'✓ In Ordnung',
-overnight:'+1',overnightHint:'⏳ Über Mitternacht: endet am nächsten Tag ({e})',overnightFormHint:'Endzeit < Startzeit → Zeitfenster geht über Mitternacht (endet am nächsten Tag)'
-},it:{
-connecting:'Connessione…',connected:'Connesso',disconnected:'Disconnesso',
-all:'Tutti:',night:'Notte',hrv:'Ventilazione',auto:'Automatico',away:'Fuori casa',off:'Spento',
-tabDevices:'🏠 Dispositivi',tabSchedule:'📅 Programma settimanale',tabSmart:'🦠 Modalità Smart',
-devices:'I vostri dispositivi',devicesCount:'Dispositivi — {n} online',
-noDevH:'Nessun dispositivo trovato',noDevP:'Assicurarsi che MQTT broker e Ambientika Bridge siano attivi.',
-schedTitle:'Programma settimanale',smartTitle:'Modalità Smart — Automatismo in tempo reale',
-footer:'Controllo locale · Nessun cloud · Conforme GDPR',
-copyTitle:'📅 Copia giorno a…',cancel:'Annulla',copy:'Copia',save:'Salva',
-settingsTitle:'Impostazioni',owmSection:'Meteo esterno (OpenWeatherMap)',
-owmKeyLbl:'Chiave API',owmKeyHint:'Gratuito su openweathermap.org — fino a 1.000 richieste/giorno',
-owmLocLbl:'Posizione (città o coordinate)',owmLocHint:'Nome città es. Rome,IT o coordinate lat,lon',
-owmHint:'Temperatura, umidità e qualità dell’aria esterne vengono aggiornate ogni 15 min.',
-cmdSent:'Comando inviato',cmdAll:'Comando inviato a tutti',noDevices:'Nessun dispositivo',
-saved:'Salvato',deleted:'Eliminato',copied:'Copiato in {d}',
-settingsSaved:'Impostazioni salvate',settingsSavedLoading:'Impostazioni salvate — caricamento meteo…',
-enterTimes:'Inserire gli orari',chooseDay:'Scegliere un giorno',
-online:'Online',offline:'Offline',
-temp:'Temp',humidity:'Umidità',filterAlarm:'⚠️ Cambio filtro necessario',filterDays:' — da {d} giorni',
-fanLabel:'Ventilatore',modeLabel:'Modalità operativa',modeInfoHint:'ⓘ = Info modalità',
-noSlots:'Nessuna fascia oraria',addSlot:'+ Aggiungi fascia oraria',addSlotTop:'+ Fascia oraria',
-copyDay:'📅 Copia',detailsLink:'🔍 Visualizza dettagli…',
-slotFrom:'Da',slotTo:'A',slotMode:'Modalità',slotFan:'Ventil.%',slotFanPh:'Auto',
-filterOk:'✓ OK',filterSection:'Filtro',lastChange:'Ultimo cambio',
-currentMode:'Modalità attuale',activeMode:'Modalità attiva',sensorData:'Dati sensore',
-lastMeasure:'Ultima misurazione',time:'Orario',network:'Rete',zone:'Zona',
-firmware:'Firmware',deviceId:'ID dispositivo',role:'Ruolo',type:'Tipo dispositivo',status:'Stato',
-sensors:'Sensori elaborati:',logic:'Logica:',
-weatherSetup:'Configura meteo esterno',weatherHint:'Inserire API-Key per temp., umidità & qualità aria',
-weatherError:'Errore meteo: ',weatherRetry:'↻ Riprova',weatherLoading:'Caricamento dati meteo…',
-weatherOutdoor:'Esterno:',weatherHumidity:'Umidità:',weatherAgo:'{m} min. fa',
-hrv_active:'Media attiva',hrv_min:'Minima attiva',hrv_off:'Inattivo',
-nightActive:'Attivo al buio',freeCoolCond:'T>24°C & Est.>20°C & Est.<Int.',
-inside:'Interno',outside:'Esterno',coolPossible:'↓ Raffreddamento possibile',heatSugg:'↑ Riscaldamento consigliato',balanced:'≈ Equilibrato',
-devSensor:'Sensore dispositivo',openWeather:'OpenWeather',weatherStation:'Stazione meteo',
-aqi:['','Molto buono','Buono','Moderato','Scarso','Molto scarso'],
-masterSlaveNet:'Rete Master/Slave',devices1:'1 dispositivo',devicesN:'{n} dispositivi',
-mon:'Lun',tue:'Mar',wed:'Mer',thu:'Gio',fri:'Ven',sat:'Sab',sun:'Dom',
-Monday:'Lunedì',Tuesday:'Martedì',Wednesday:'Mercoledì',Thursday:'Giovedì',Friday:'Venerdì',Saturday:'Sabato',Sunday:'Domenica',
-light:'Luce',dark:'Buio 🌙',bright:'Luminoso ☀️',hrv_label:'Recupero di calore',nightMode:'Modalità notte',freeCool:'Free-Cooling',active:'Attivo',inactive:'Inattivo',smartLogic:'Logica Smart',measures:'Misurazioni',automation:'Automatismo',histTitle:'Andamento (ultima ora)',noHistory:'Ancora nessun dato — si riempirà con dati in tempo reale',
-innerTemp:'Temp. interna',outerTemp:'Temp. esterna',humIn:'Umidità interna',humOut:'Umidità esterna',airQuality:'CO₂/VOC',airQualityOut:'Qualità aria esterna',
-tempIn:'Temp interna',co2:'CO₂',hum:'Umidità',filterOkFull:'✓ OK',
-overnight:'+1',overnightHint:'⏳ Oltre mezzanotte: termina il giorno successivo ({e})',overnightFormHint:'Ora di fine < ora di inizio → la fascia oraria supera mezzanotte (termina il giorno dopo)'
-},
-en:{
-connecting:'Connecting…',connected:'Connected',disconnected:'Disconnected',
-all:'All:',night:'Night',hrv:'Ventilation',auto:'Automatic',away:'Away',off:'Off',
-tabDevices:'🏠 Devices',tabSchedule:'📅 Weekly Schedule',tabSmart:'🧠 Smart Mode',
-devices:'Your devices',devicesCount:'Your devices — {n} online',
-noDevH:'No devices found',noDevP:'Make sure MQTT broker and Ambientika Bridge are running.',
-schedTitle:'Weekly Schedule',smartTitle:'Smart Mode — Real-time Automation',
-footer:'Local control · No cloud · GDPR compliant',
-copyTitle:'📅 Copy day to…',cancel:'Cancel',copy:'Copy',save:'Save',
-settingsTitle:'Settings',owmSection:'Outdoor weather (OpenWeatherMap)',
-owmKeyLbl:'API Key',owmKeyHint:'Free on openweathermap.org — up to 1,000 calls/day',
-owmLocLbl:'Location (city or coordinates)',owmLocHint:'City name e.g. London,GB or coordinates lat,lon',
-owmHint:'Outdoor temperature, humidity and air quality are updated every 15 min.',
-cmdSent:'Command sent',cmdAll:'Command sent to all',noDevices:'No devices',
-saved:'Saved',deleted:'Deleted',copied:'Copied to {d}',
-settingsSaved:'Settings saved',settingsSavedLoading:'Settings saved — loading weather…',
-enterTimes:'Please enter times',chooseDay:'Please select a day',
-online:'Online',offline:'Offline',
-temp:'Temp',humidity:'Humidity',filterAlarm:'⚠️ Filter replacement required',filterDays:' — for {d} days',
-fanLabel:'Fan',modeLabel:'Operating mode',modeInfoHint:'ⓘ = Mode info',
-noSlots:'No time slot',addSlot:'+ Add time slot',addSlotTop:'+ Time slot',
-copyDay:'📅 Copy',detailsLink:'🔍 View details…',
-slotFrom:'From',slotTo:'To',slotMode:'Mode',slotFan:'Fan%',slotFanPh:'Auto',
-filterOk:'✓ OK',filterSection:'Filter',lastChange:'Last replacement',
-currentMode:'Current mode',activeMode:'Active mode',sensorData:'Sensor data',
-lastMeasure:'Last reading',time:'Time',network:'Network',zone:'Zone',
-firmware:'Firmware',deviceId:'Device ID',role:'Role',type:'Device type',status:'Status',
-sensors:'Evaluated sensors:',logic:'Logic:',
-weatherSetup:'Set up outdoor weather',weatherHint:'Enter API key for temperature, humidity & air quality',
-weatherError:'Weather error: ',weatherRetry:'↻ Retry',weatherLoading:'Loading weather data…',
-weatherOutdoor:'Outdoor:',weatherHumidity:'Humidity:',weatherAgo:'{m} min. ago',
-hrv_active:'Medium active',hrv_min:'Minimum active',hrv_off:'Inactive',
-nightActive:'Active at night',freeCoolCond:'T>24°C & Out>20°C & Out<In',
-inside:'Inside',outside:'Outside',coolPossible:'↓ Cooling possible',heatSugg:'↑ Heating advised',balanced:'≈ Balanced',
-devSensor:'Device sensor',openWeather:'OpenWeather',weatherStation:'Weather station',
-aqi:['','Very good','Good','Moderate','Poor','Very poor'],
-masterSlaveNet:'Master/Slave network',devices1:'1 device',devicesN:'{n} devices',
-mon:'Mon',tue:'Tue',wed:'Wed',thu:'Thu',fri:'Fri',sat:'Sat',sun:'Sun',
-Monday:'Monday',Tuesday:'Tuesday',Wednesday:'Wednesday',Thursday:'Thursday',Friday:'Friday',Saturday:'Saturday',Sunday:'Sunday',
-light:'Light',dark:'Dark 🌙',bright:'Bright ☀️',hrv_label:'Heat recovery',nightMode:'Night mode',freeCool:'Free-Cooling',active:'Active',inactive:'Inactive',smartLogic:'Smart Logic',measures:'Readings',automation:'Automation',histTitle:'History (last hour)',noHistory:'No history yet — will fill with live data',
-innerTemp:'Indoor temp.',outerTemp:'Outdoor temp.',humIn:'Indoor humidity',humOut:'Outdoor humidity',airQuality:'CO₂/VOC',airQualityOut:'Outdoor air quality',
-tempIn:'Temp indoor',co2:'CO₂',hum:'Humidity',filterOkFull:'✓ OK',
-overnight:'+1',overnightHint:'⏳ Overnight: ends next day ({e})',overnightFormHint:'End time < start time → time slot crosses midnight (ends next day)'
-},
-fr:{
-connecting:'Connexion…',connected:'Connecté',disconnected:'Déconnecté',
-all:'Tous:',night:'Nuit',hrv:'Ventilation',auto:'Automatique',away:'Absent',off:'Éteint',
-tabDevices:'🏠 Appareils',tabSchedule:'📅 Planning hebdomadaire',tabSmart:'🧠 Mode Smart',
-devices:'Vos appareils',devicesCount:'Vos appareils — {n} en ligne',
-noDevH:'Aucun appareil trouvé',noDevP:'Vérifiez que le broker MQTT et Ambientika Bridge sont actifs.',
-schedTitle:'Planning hebdomadaire',smartTitle:'Mode Smart — Automatisme en temps réel',
-footer:'Contrôle local · Sans cloud · Conforme RGPD',
-copyTitle:'📅 Copier le jour vers…',cancel:'Annuler',copy:'Copier',save:'Enregistrer',
-settingsTitle:'Paramètres',owmSection:'Météo extérieure (OpenWeatherMap)',
-owmKeyLbl:'Clé API',owmKeyHint:'Gratuit sur openweathermap.org — jusqu’à 1 000 appels/jour',
-owmLocLbl:'Lieu (ville ou coordonnées)',owmLocHint:'Nom de ville ex. Paris,FR ou coordonnées lat,lon',
-owmHint:'Température, humidité et qualité de l’air sont mises à jour toutes les 15 min.',
-cmdSent:'Commande envoyée',cmdAll:'Commande envoyée à tous',noDevices:'Aucun appareil',
-saved:'Enregistré',deleted:'Supprimé',copied:'Copié vers {d}',
-settingsSaved:'Paramètres enregistrés',settingsSavedLoading:'Paramètres enregistrés — chargement météo…',
-enterTimes:'Veuillez saisir les horaires',chooseDay:'Veuillez choisir un jour',
-online:'En ligne',offline:'Hors ligne',
-temp:'Temp.',humidity:'Humidité',filterAlarm:'⚠️ Remplacement du filtre requis',filterDays:' — depuis {d} jours',
-fanLabel:'Ventilateur',modeLabel:'Mode de fonctionnement',modeInfoHint:'ⓘ = Info mode',
-noSlots:'Aucune plage horaire',addSlot:'+ Ajouter une plage',addSlotTop:'+ Plage horaire',
-copyDay:'📅 Copier',detailsLink:'🔍 Voir les détails…',
-slotFrom:'De',slotTo:'À',slotMode:'Mode',slotFan:'Ventil.%',slotFanPh:'Auto',
-filterOk:'✓ OK',filterSection:'Filtre',lastChange:'Dernier remplacement',
-currentMode:'Mode actuel',activeMode:'Mode actif',sensorData:'Données capteur',
-lastMeasure:'Dernière mesure',time:'Heure',network:'Réseau',zone:'Zone',
-firmware:'Firmware',deviceId:'ID appareil',role:'Rôle',type:'Type d’appareil',status:'État',
-sensors:'Capteurs évalués :',logic:'Logique :',
-weatherSetup:'Configurer la météo extérieure',weatherHint:'Entrer la clé API pour temp., humidité & qualité air',
-weatherError:'Erreur météo : ',weatherRetry:'↻ Réessayer',weatherLoading:'Chargement météo…',
-weatherOutdoor:'Extérieur :',weatherHumidity:'Humidité :',weatherAgo:'il y a {m} min.',
-hrv_active:'Moyenne active',hrv_min:'Minimum actif',hrv_off:'Inactif',
-nightActive:'Actif la nuit',freeCoolCond:'T>24°C & Ext.>20°C & Ext.<Int.',
-inside:'Intérieur',outside:'Extérieur',coolPossible:'↓ Refroidissement possible',heatSugg:'↑ Chauffage conseillé',balanced:'≈ Équilibré',
-devSensor:'Capteur appareil',openWeather:'OpenWeather',weatherStation:'Station météo',
-aqi:['','Très bon','Bon','Modéré','Mauvais','Très mauvais'],
-masterSlaveNet:'Réseau Maître/Esclave',devices1:'1 appareil',devicesN:'{n} appareils',
-mon:'Lun',tue:'Mar',wed:'Mer',thu:'Jeu',fri:'Ven',sat:'Sam',sun:'Dim',
-Monday:'Lundi',Tuesday:'Mardi',Wednesday:'Mercredi',Thursday:'Jeudi',Friday:'Vendredi',Saturday:'Samedi',Sunday:'Dimanche',
-light:'Lumière',dark:'Sombre 🌙',bright:'Lumineux ☀️',hrv_label:'Récupération de chaleur',nightMode:'Mode nuit',freeCool:'Free-Cooling',active:'Actif',inactive:'Inactif',smartLogic:'Logique Smart',measures:'Mesures',automation:'Automatisme',histTitle:'Historique (dernière heure)',noHistory:'Pas encore de données — se remplira avec les données en direct',
-innerTemp:'Temp. intérieure',outerTemp:'Temp. extérieure',humIn:'Humidité intérieure',humOut:'Humidité extérieure',airQuality:'CO₂/COV',airQualityOut:'Qualité air extérieure',
-tempIn:'Temp int.',co2:'CO₂',hum:'Humidité',filterOkFull:'✓ OK',
-overnight:'+1',overnightHint:'⏳ Nuit: se termine le lendemain ({e})',overnightFormHint:'Heure de fin < heure de début → la plage dépasse minuit (se termine le jour suivant)'
-},
-es:{
-connecting:'Conectando…',connected:'Conectado',disconnected:'Desconectado',
-all:'Todos:',night:'Noche',hrv:'Ventilación',auto:'Automático',away:'Ausente',off:'Apagado',
-tabDevices:'🏠 Dispositivos',tabSchedule:'📅 Programa semanal',tabSmart:'🧠 Modo Smart',
-devices:'Sus dispositivos',devicesCount:'Sus dispositivos — {n} en línea',
-noDevH:'No se encontraron dispositivos',noDevP:'Asegúrese de que el broker MQTT y Ambientika Bridge estén activos.',
-schedTitle:'Programa semanal',smartTitle:'Modo Smart — Automatización en tiempo real',
-footer:'Control local · Sin nube · Conforme al RGPD',
-copyTitle:'📅 Copiar día a…',cancel:'Cancelar',copy:'Copiar',save:'Guardar',
-settingsTitle:'Ajustes',owmSection:'Tiempo exterior (OpenWeatherMap)',
-owmKeyLbl:'Clave API',owmKeyHint:'Gratuito en openweathermap.org — hasta 1.000 llamadas/día',
-owmLocLbl:'Ubicación (ciudad o coordenadas)',owmLocHint:'Nombre ciudad p.ej. Madrid,ES o coordenadas lat,lon',
-owmHint:'Temperatura, humedad y calidad del aire exteriores se actualizan cada 15 min.',
-cmdSent:'Comando enviado',cmdAll:'Comando enviado a todos',noDevices:'Sin dispositivos',
-saved:'Guardado',deleted:'Eliminado',copied:'Copiado a {d}',
-settingsSaved:'Ajustes guardados',settingsSavedLoading:'Ajustes guardados — cargando tiempo…',
-enterTimes:'Por favor introduzca los horarios',chooseDay:'Por favor seleccione un día',
-online:'En línea',offline:'Sin conexión',
-temp:'Temp.',humidity:'Humedad',filterAlarm:'⚠️ Cambio de filtro necesario',filterDays:' — desde hace {d} días',
-fanLabel:'Ventilador',modeLabel:'Modo de funcionamiento',modeInfoHint:'ⓘ = Info modo',
-noSlots:'Sin franja horaria',addSlot:'+ Añadir franja horaria',addSlotTop:'+ Franja horaria',
-copyDay:'📅 Copiar',detailsLink:'🔍 Ver detalles…',
-slotFrom:'De',slotTo:'A',slotMode:'Modo',slotFan:'Ventil.%',slotFanPh:'Auto',
-filterOk:'✓ OK',filterSection:'Filtro',lastChange:'Último cambio',
-currentMode:'Modo actual',activeMode:'Modo activo',sensorData:'Datos del sensor',
-lastMeasure:'Última medición',time:'Hora',network:'Red',zone:'Zona',
-firmware:'Firmware',deviceId:'ID dispositivo',role:'Rol',type:'Tipo de dispositivo',status:'Estado',
-sensors:'Sensores evaluados:',logic:'Lógica:',
-weatherSetup:'Configurar tiempo exterior',weatherHint:'Introduzca la clave API para temp., humedad & calidad del aire',
-weatherError:'Error del tiempo: ',weatherRetry:'↻ Reintentar',weatherLoading:'Cargando datos meteorológicos…',
-weatherOutdoor:'Exterior:',weatherHumidity:'Humedad:',weatherAgo:'hace {m} min.',
-hrv_active:'Media activa',hrv_min:'Mínima activa',hrv_off:'Inactivo',
-nightActive:'Activo de noche',freeCoolCond:'T>24°C & Ext.>20°C & Ext.<Int.',
-inside:'Interior',outside:'Exterior',coolPossible:'↓ Enfriamiento posible',heatSugg:'↑ Calefacción aconsejada',balanced:'≈ Equilibrado',
-devSensor:'Sensor del dispositivo',openWeather:'OpenWeather',weatherStation:'Estación meteorológica',
-aqi:['','Muy bueno','Bueno','Moderado','Malo','Muy malo'],
-masterSlaveNet:'Red Maestro/Esclavo',devices1:'1 dispositivo',devicesN:'{n} dispositivos',
-mon:'Lun',tue:'Mar',wed:'Mié',thu:'Jue',fri:'Vie',sat:'Sáb',sun:'Dom',
-Monday:'Lunes',Tuesday:'Martes',Wednesday:'Miércoles',Thursday:'Jueves',Friday:'Viernes',Saturday:'Sábado',Sunday:'Domingo',
-light:'Luz',dark:'Oscuro 🌙',bright:'Luminoso ☀️',hrv_label:'Recuperación de calor',nightMode:'Modo noche',freeCool:'Free-Cooling',active:'Activo',inactive:'Inactivo',smartLogic:'Lógica Smart',measures:'Mediciones',automation:'Automatización',histTitle:'Historial (última hora)',noHistory:'Aún sin datos — se llenará con datos en vivo',
-innerTemp:'Temp. interior',outerTemp:'Temp. exterior',humIn:'Humedad interior',humOut:'Humedad exterior',airQuality:'CO₂/VOC',airQualityOut:'Calidad del aire exterior',
-tempIn:'Temp. interior',co2:'CO₂',hum:'Humedad',filterOkFull:'✓ OK',
-overnight:'+1',overnightHint:'⏳ Medianoche: termina el día siguiente ({e})',overnightFormHint:'Hora de fin < hora de inicio → la franja cruza la medianoche (termina al día siguiente)',
-sk:{
-connecting:'Pripájanie…',connected:'Pripojené',disconnected:'Odpojené',
-all:'Všetky:',night:'Noc',hrv:'Vetranie',auto:'Automaticky',away:'Mimo domu',off:'Vypnuté',
-tabDevices:'🏠 Zariadenia',tabSchedule:'📅 Týždenný plán',tabSmart:'🧠 Smart režim',
-devices:'Vaše zariadenia',devicesCount:'Vaše zariadenia — {n} online',
-noDevH:'Žiadne zariadenia',noDevP:'Skontrolujte, či MQTT broker a Ambientika Bridge bežia.',
-schedTitle:'Týždenný plán',smartTitle:'Smart režim — Automatika v reálnom čase',
-footer:'Lokálna správa · Bez cloudu · GDPR kompatibilné',
-copyTitle:'📅 Kopírovať deň do…',cancel:'Zrušiť',copy:'Kopírovať',save:'Uložiť',
-settingsTitle:'Nastavenia',owmSection:'Vonkajšie počasie (OpenWeatherMap)',
-owmKeyLbl:'API kľúč',owmKeyHint:'Zdarma na openweathermap.org — až 1 000 volaní/deň',
-owmLocLbl:'Poloha (mesto alebo súradnice)',owmLocHint:'Napr. Bratislava,SK alebo súradnice zem. šírky, zem. dĺžky',
-owmHint:'Vonkajšia teplota, vlhkosť a kvalita vzduchu sa aktualizujú každých 15 min.',
-cmdSent:'Príkaz odoslaný',cmdAll:'Príkaz odoslaný všetkým',noDevices:'Žiadne zariadenia',
-saved:'Uložené',deleted:'Vymazané',copied:'Skopírované do {d}',
-settingsSaved:'Nastavenia uložené',settingsSavedLoading:'Nastavenia uložené — načítavajú sa údaje o počasí…',
-enterTimes:'Zadajte časy',chooseDay:'Vyberte deň',
-online:'Online',offline:'Offline',
-temp:'Teplota',humidity:'Vlhkosť',filterAlarm:'⚠️ Potrebná výmena filtra',filterDays:' — od {d} dní',
-fanLabel:'Ventilátor',modeLabel:'Prevádzkový režim',modeInfoHint:'ⓘ = Info o režime',
-noSlots:'Žiadne časové okno',addSlot:'+ Pridať časové okno',addSlotTop:'+ Časové okno',
-copyDay:'📅 Kopírovať',detailsLink:'🔍 Zobraziť detaily…',
-slotFrom:'Od',slotTo:'Do',slotMode:'Režim',slotFan:'Vent.%',slotFanPh:'Auto',
-filterOk:'✓ V poriadku',filterSection:'Filter',lastChange:'Posledná výmena',
-currentMode:'Aktuálny režim',activeMode:'Aktívny režim',sensorData:'Údaje senzorov',
-lastMeasure:'Posledné meranie',time:'Čas',network:'Sieť',zone:'Zóna',
-firmware:'Firmware',deviceId:'ID zariadenia',role:'Rola',type:'Typ zariadenia',status:'Stav',
-sensors:'Vyhodnotené senzory:',logic:'Logika:',
-weatherSetup:'Nastaviť vonkajšie počasie',weatherHint:'Zadajte API kľúč pre teplotu, vlhkosť a kvalitu vzduchu',
-weatherError:'Chyba počasia: ',weatherRetry:'↻ Skúsiť znova',weatherLoading:'Načítavajú sa údaje o počasí…',
-weatherOutdoor:'Vonku:',weatherHumidity:'Vlhkosť:',weatherAgo:'pred {m} min.',
-hrv_active:'Stredná aktívna',hrv_min:'Minimálna aktívna',hrv_off:'Neaktívne',
-nightActive:'Aktívne v noci',freeCoolCond:'T>24°C & Von.>20°C & Von.<Vn.',
-inside:'Vnútri',outside:'Vonku',coolPossible:'↓ Chladenie možné',heatSugg:'↑ Kúrenie vhodné',balanced:'≈ Vyvážené',
-devSensor:'Senzor zariadenia',openWeather:'OpenWeather',weatherStation:'Meteorologická stanica',
-aqi:['','Veľmi dobré','Dobré','Stredné','Zlé','Veľmi zlé'],
-masterSlaveNet:'Sieť Master/Slave',devices1:'1 zariadenie',devicesN:'{n} zariadení',
-mon:'Po',tue:'Ut',wed:'St',thu:'Št',fri:'Pi',sat:'So',sun:'Ne',
-Monday:'Pondelok',Tuesday:'Utorok',Wednesday:'Streda',Thursday:'Štvrtok',Friday:'Piatok',Saturday:'Sobota',Sunday:'Nedeľa',
-light:'Svetlo',dark:'Tmavo 🌙',bright:'Jasno ☀️',hrv_label:'Rekuperácia tepla',nightMode:'Nočný režim',freeCool:'Free-Cooling',active:'Aktívne',inactive:'Neaktívne',smartLogic:'Smart logika',measures:'Merania',automation:'Automatika',histTitle:'História (posledná hodina)',noHistory:'Zatiaľ žiadne dáta — vyplní sa živými údajmi',
-innerTemp:'Vnút. teplota',outerTemp:'Vnej. teplota',humIn:'Vlhkosť vnútri',humOut:'Vlhkosť vonku',airQuality:'CO₂/VOC',airQualityOut:'Kvalita vonkajšieho vzduchu',
-tempIn:'Teplota vnútri',co2:'CO₂',hum:'Vlhkosť',filterOkFull:'✓ V poriadku',
-overnight:'+1',overnightHint:'⏳ Cez polnoc: končí nasledujúci deň ({e})',overnightFormHint:'Čas konca < čas začiatku → časové okno prechádza cez polnoc (končí nasledujúci deň)'
-}
-}};
-let lang='de';
-function T(k){const t=LANGS[lang]||LANGS.de;return t[k]!==undefined?t[k]:((LANGS.de[k])||k);}
-function Tf(k,...args){let s=T(k);args.forEach((v,i)=>{s=s.replace('{'+['n','d','m','e'][i]+'}',v);});return s;}
-function setLang(l){lang=l;localStorage.setItem('lang',l);document.getElementById('lang-select').value=l;applyLang();renderAllCards();const cont=document.getElementById('schedule-container');if(cont)cont.innerHTML='';Object.keys(schedules).forEach(did=>renderScCard(did));if(activeSmartDevice&&document.getElementById('view-smart').style.display!=='none')loadSmart(activeSmartDevice);}
-function applyLang(){
-document.getElementById('mqtt-label').textContent=T('connecting');
-document.getElementById('lbl-all').textContent=T('all');
-document.querySelectorAll('.t-night').forEach(e=>e.textContent=T('night'));
-document.querySelectorAll('.t-hrv').forEach(e=>e.textContent=T('hrv'));
-document.querySelectorAll('.t-auto').forEach(e=>e.textContent=T('auto'));
-document.querySelectorAll('.t-away').forEach(e=>e.textContent=T('away'));
-document.querySelectorAll('.t-off').forEach(e=>e.textContent=T('off'));
-document.getElementById('tab-devices').textContent=T('tabDevices');
-document.getElementById('tab-schedule').textContent=T('tabSchedule');
-document.getElementById('tab-smart').textContent=T('tabSmart');
-const dt=document.getElementById('devices-title');if(dt&&!Object.keys(devices).length)dt.textContent=T('devices');
-document.getElementById('t-empty-h').textContent=T('noDevH');
-document.getElementById('t-empty-p').textContent=T('noDevP');
-document.getElementById('t-sched-title').textContent=T('schedTitle');
-document.getElementById('t-smart-title').textContent=T('smartTitle');
-document.getElementById('t-footer').textContent=T('footer');
-document.getElementById('t-copy-title').textContent=T('copyTitle');
-document.getElementById('t-cancel1').textContent=T('cancel');
-document.getElementById('t-copy-btn').textContent=T('copy');
-document.getElementById('t-settings-title').textContent=T('settingsTitle');
-document.getElementById('t-owm-section').textContent=T('owmSection');
-document.getElementById('t-owm-key-lbl').textContent=T('owmKeyLbl');
-document.getElementById('t-owm-key-hint').textContent=T('owmKeyHint');
-document.getElementById('t-owm-loc-lbl').textContent=T('owmLocLbl');
-document.getElementById('t-owm-loc-hint').textContent=T('owmLocHint');
-document.getElementById('t-owm-hint').textContent=T('owmHint');
-document.getElementById('t-cancel2').textContent=T('cancel');
-document.getElementById('t-save-btn').textContent=T('save');
-renderWeatherBar(owmData);
-}
-const MODES=['SMART','AUTO','HRV','MANUAL_HRV','NIGHT','AWAY','MONITORING','BOOST','EXHAUST','SUPPLY','MS_FLOW','SM_FLOW','TIMED_EXHAUST','OFF'];
-const ML_BASE={SMART:'Smart',AUTO:'Auto',HRV:'HRV',MANUAL_HRV:'HRV man.',NIGHT:'Night',AWAY:'Away',MONITORING:'Monitor',BOOST:'Boost',EXHAUST:'Exhaust',SUPPLY:'Supply',MS_FLOW:'MS-Flow',SM_FLOW:'SM-Flow',TIMED_EXHAUST:'Timed Exh.',OFF:'Off'};
-function ML(m){const map={SMART:'Smart',AUTO:T('auto'),HRV:T('hrv'),MANUAL_HRV:'HRV man.',NIGHT:T('night'),AWAY:T('away'),MONITORING:'Monitor',BOOST:'Boost',EXHAUST:'Exh.',SUPPLY:'Supply',MS_FLOW:'MS-Flow',SM_FLOW:'SM-Flow',TIMED_EXHAUST:'T-Exh.',OFF:T('off')};return map[m]||m;}
-const MI_DE={SMART:{icon:'⚡',title:'Smart-Modus',desc:'Vollautomatischer Betrieb. Das Master-Gerät wertet alle Sensoren aus und steuert auch die Slave-Geräte.',sensors:['Innentemperatur','Luftfeuchte innen','CO₂/VOC','Lichtstärke (Tag/Nacht)','Außentemperatur (Wetterstation)'],logic:'Wechselt automatisch zwischen Wärmerückgewinnung, Nachtmodus und Free-Cooling je nach Messwerten.'},AUTO:{icon:'🤖',title:'Automatik',desc:'Halbautomatischer Betrieb nach vordefinierten Schwellwerten.',sensors:['Innentemperatur','Luftfeuchte'],logic:'Lüftet bei CO₂-Anstieg oder Feuchteüberschreitung.'},HRV:{icon:'🌬️',title:'Wärmerückgewinnung (HRV)',desc:'Kontinuierliche Lüftung mit Wärmerückgewinnung. Frischluft wird über den Wärmetauscher vortemperiert.',sensors:['keine — Lüftung permanent auf eingestellter Stufe'],logic:'Spart bis zu 90 % der Lüftungswärmeverluste.'},MANUAL_HRV:{icon:'⚙️',title:'Manuell HRV',desc:'Wärmerückgewinnung mit manuell eingestellter Drehzahl.',sensors:['keine — manuelle Stufe fix'],logic:'Wie HRV, aber Drehzahl wird nicht automatisch angepasst.'},NIGHT:{icon:'🌙',title:'Nachtmodus',desc:'Stiller Betrieb mit minimaler Drehzahl für geräuscharmen Schlaf.',sensors:['Lichtstärke (optional)'],logic:'Lüfter auf Nachtgeschwindigkeit (∲20–30 %), kein Boost.'},AWAY:{icon:'🏠',title:'Außer Haus',desc:'Abwesenheitsmodus: Minimale Grundlüftung zum Schutz vor Schimmel.',sensors:['keine aktive Regelung'],logic:'Sehr langsame Lüftung für leere Wohnung.'},MONITORING:{icon:'📊',title:'Überwachungsmodus',desc:'Reine Sensorüberwachung ohne aktive Lüftung.',sensors:['Innentemperatur','Luftfeuchte','CO₂/VOC','Lichtstärke'],logic:'Lüfter ausgeschaltet — nur Datenerfassung.'},BOOST:{icon:'💨',title:'Boost-Modus',desc:'Kurzzeitige maximale Lüftung (z.B. nach Kochen, Sport).',sensors:['CO₂/VOC (optional)'],logic:'Lüfter auf 100 % für einstellbare Dauer, dann automatisch zurück.'},EXHAUST:{icon:'⬆️',title:'Abluft',desc:'Nur Abluft: Luft wird abgesaugt, kein Frischluft-Einzug.',sensors:['keine'],logic:'Typisch für Bad/Küche als Abluftelement.'},SUPPLY:{icon:'⬇️',title:'Zuluft',desc:'Nur Zuluft: Frischluft wird eingepresst.',sensors:['keine'],logic:'Gegenteil zu Abluft.'},MS_FLOW:{icon:'⇄',title:'Master-Slave Fluss',desc:'Master steuert den Luftstrom, Slave folgt der Vorgabe.',sensors:['Master: alle Sensoren aktiv','Slave: passiv'],logic:'Druckausgleich. Mind. 8 mm Türspalt nötig.'},SM_FLOW:{icon:'⇆',title:'Slave-Master Fluss',desc:'Umgekehrte Flussrichtung: Slave übernimmt Luftführungsrolle.',sensors:['wie MS_FLOW, umgekehrt'],logic:'Seltener Sonderfall.'},TIMED_EXHAUST:{icon:'⏱️',title:'Zeit-Abluft',desc:'Abluft für definierte Dauer, dann automatischer Rück in Grundmodus.',sensors:['keine'],logic:'Badlüfter-Funktion mit automatischem Abschalten.'},OFF:{icon:'⚪',title:'Gerät Aus',desc:'Gerät komplett deaktiviert. Keine Lüftung, keine Sensorauswertung.',sensors:['keine'],logic:'Nur für Wartung.'}};
-const MI_IT={SMART:{icon:'⚡',title:'Modalità Smart',desc:'Funzionamento completamente automatico. Il dispositivo master valuta tutti i sensori.',sensors:['Temp. interna','Umidità interna','CO₂/VOC','Luminosità (giorno/notte)','Temp. esterna (stazione)'],logic:'Passa automaticamente tra recupero di calore, modalità notte e free-cooling.'},AUTO:{icon:'🤖',title:'Automatico',desc:'Funzionamento semi-automatico con soglie predefinite.',sensors:['Temp. interna','Umidità'],logic:'Ventila se CO₂ o umidità superano i limiti.'},HRV:{icon:'🌬️',title:'Recupero di calore (HRV)',desc:'Ventilazione continua con recupero di calore.',sensors:['nessuno — ventilazione permanente'],logic:'Risparmia fino al 90 % del calore di ventilazione.'},MANUAL_HRV:{icon:'⚙️',title:'HRV manuale',desc:'Recupero di calore con velocità impostata manualmente.',sensors:['nessuno'],logic:'Come HRV, ma la velocità non viene regolata automaticamente.'},NIGHT:{icon:'🌙',title:'Modalità notte',desc:'Funzionamento silenzioso a velocità minima.',sensors:['Luminosità (opzionale)'],logic:'Ventilatore alla velocità notturna (∲20-30 %).'},AWAY:{icon:'🏠',title:'Fuori casa',desc:'Modalità assenza: ventilazione minima anti-muffa.',sensors:['nessuna regolazione attiva'],logic:'Ventilazione lenta per abitazione vuota.'},MONITORING:{icon:'📊',title:'Monitoraggio',desc:'Solo monitoraggio sensori, nessuna ventilazione.',sensors:['Temp.','Umidità','CO₂/VOC','Luce'],logic:'Ventilatore spento — solo acquisizione dati.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilazione massima temporanea (es. dopo cucina).',sensors:['CO₂/VOC (opz.)'],logic:'Ventilatore al 100 %, poi ritorno automatico.'},EXHAUST:{icon:'⬆️',title:'Estrazione',desc:'Solo estrazione: aria aspirata, nessuna immissione.',sensors:['nessuno'],logic:'Tipico per bagno/cucina.'},SUPPLY:{icon:'⬇️',title:'Immissione',desc:'Solo immissione: aria fresca insufflata.',sensors:['nessuno'],logic:'Opposto a Estrazione.'},MS_FLOW:{icon:'⇄',title:'Flusso Master-Slave',desc:'Master controlla il flusso, Slave segue.',sensors:['Master: tutti i sensori','Slave: passivo'],logic:'Equilibrio di pressione. Almeno 8 mm sotto la porta.'},SM_FLOW:{icon:'⇆',title:'Flusso Slave-Master',desc:'Direzione invertita: Slave guida il flusso.',sensors:['come MS_FLOW, invertito'],logic:'Caso speciale raro.'},TIMED_EXHAUST:{icon:'⏱️',title:'Estrazione temporizzata',desc:'Estrazione per durata definita, poi ritorno automatico.',sensors:['nessuno'],logic:'Funzione bagno con spegnimento automatico.'},OFF:{icon:'⚪',title:'Spento',desc:'Dispositivo completamente disattivato.',sensors:['nessuno'],logic:'Solo per manutenzione.'}};
-const MI_EN={SMART:{icon:'⚡',title:'Smart Mode',desc:'Fully automatic operation. Master device evaluates all sensors.',sensors:['Indoor temperature','Indoor humidity','CO₂/VOC','Light intensity (day/night)','Outdoor temp. (weather station)'],logic:'Switches automatically between heat recovery, night mode and free-cooling.'},AUTO:{icon:'🤖',title:'Automatic',desc:'Semi-automatic with predefined thresholds.',sensors:['Indoor temperature','Humidity'],logic:'Ventilates when CO₂ or humidity exceed limits.'},HRV:{icon:'🌬️',title:'Heat Recovery (HRV)',desc:'Continuous ventilation with heat recovery.',sensors:['none — ventilation always on'],logic:'Saves up to 90 % of ventilation heat losses.'},MANUAL_HRV:{icon:'⚙️',title:'Manual HRV',desc:'Heat recovery with manually set fan speed.',sensors:['none'],logic:'Like HRV, but speed not auto-adjusted.'},NIGHT:{icon:'🌙',title:'Night Mode',desc:'Quiet operation at minimum fan speed.',sensors:['Light intensity (optional)'],logic:'Fan at night speed (∲20-30 %), no boost.'},AWAY:{icon:'🏠',title:'Away',desc:'Absence mode: minimal ventilation to prevent mould.',sensors:['no active control'],logic:'Very slow ventilation for empty home.'},MONITORING:{icon:'📊',title:'Monitoring',desc:'Sensor monitoring only, no active ventilation.',sensors:['Temp.','Humidity','CO₂/VOC','Light'],logic:'Fan off — data collection only.'},BOOST:{icon:'💨',title:'Boost',desc:'Temporary maximum ventilation (e.g. after cooking).',sensors:['CO₂/VOC (optional)'],logic:'Fan at 100 %, then automatic return.'},EXHAUST:{icon:'⬆️',title:'Exhaust',desc:'Exhaust only: air extracted, no fresh air supply.',sensors:['none'],logic:'Typical for bathroom/kitchen.'},SUPPLY:{icon:'⬇️',title:'Supply',desc:'Supply only: fresh air blown in.',sensors:['none'],logic:'Opposite of exhaust.'},MS_FLOW:{icon:'⇄',title:'Master-Slave Flow',desc:'Master controls airflow, Slave follows.',sensors:['Master: all sensors','Slave: passive'],logic:'Pressure balance. Min. 8 mm door gap needed.'},SM_FLOW:{icon:'⇆',title:'Slave-Master Flow',desc:'Reversed flow: Slave takes airflow role.',sensors:['like MS_FLOW, reversed'],logic:'Rare special case.'},TIMED_EXHAUST:{icon:'⏱️',title:'Timed Exhaust',desc:'Exhaust for set duration, then automatic return.',sensors:['none'],logic:'Bathroom fan function with auto off.'},OFF:{icon:'⚪',title:'Device Off',desc:'Device fully disabled. No ventilation, no sensors.',sensors:['none'],logic:'Only for maintenance.'}};
-const MI_FR={SMART:{icon:'⚡',title:'Mode Smart',desc:'Fonctionnement entièrement automatique. Le maître évalue tous les capteurs.',sensors:['Temp. intérieure','Humidité intérieure','CO₂/COV','Luminosité (jour/nuit)','Temp. extérieure (station)'],logic:'Bascule automatiquement entre récupération de chaleur, mode nuit et free-cooling.'},AUTO:{icon:'🤖',title:'Automatique',desc:'Semi-automatique avec seuils prédéfinis.',sensors:['Temp. intérieure','Humidité'],logic:'Ventile si CO₂ ou humidité dépassent les limites.'},HRV:{icon:'🌬️',title:'Récupération de chaleur (VMC)',desc:'Ventilation continue avec récupération de chaleur.',sensors:['aucun — ventilation permanente'],logic:'Economise jusqu’à 90 % des pertes thermiques.'},MANUAL_HRV:{icon:'⚙️',title:'VMC manuelle',desc:'Récupération de chaleur à vitesse manuelle.',sensors:['aucun'],logic:'Comme VMC, mais vitesse non ajustée automatiquement.'},NIGHT:{icon:'🌙',title:'Mode nuit',desc:'Fonctionnement silencieux à vitesse minimale.',sensors:['Luminosité (optionnel)'],logic:'Ventilateur à vitesse nocturne (∲20-30 %).'},AWAY:{icon:'🏠',title:'Absent',desc:'Mode absence: ventilation minimale anti-moisissures.',sensors:['aucun contrôle actif'],logic:'Très lente ventilation pour logement vide.'},MONITORING:{icon:'📊',title:'Surveillance',desc:'Surveillance capteurs uniquement, sans ventilation.',sensors:['Temp.','Humidité','CO₂/COV','Lumière'],logic:'Ventilateur arrêté — collecte de données uniquement.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilation maximale temporaire (ex. après cuisine).',sensors:['CO₂/COV (optionnel)'],logic:'Ventilateur à 100 %, puis retour automatique.'},EXHAUST:{icon:'⬆️',title:'Extraction',desc:'Extraction seule: air aspiré, pas d’insufflation.',sensors:['aucun'],logic:'Typique salle de bain/cuisine.'},SUPPLY:{icon:'⬇️',title:'Insufflation',desc:'Insufflation seule: air frais soufflé.',sensors:['aucun'],logic:'Opposé à Extraction.'},MS_FLOW:{icon:'⇄',title:'Flux Maître-Esclave',desc:'Le maître contrôle le flux, l’esclave suit.',sensors:['Maître: tous capteurs','Esclave: passif'],logic:'Équilibre de pression. Min. 8 mm sous la porte.'},SM_FLOW:{icon:'⇆',title:'Flux Esclave-Maître',desc:'Direction inversée: l’esclave guide le flux.',sensors:['comme MS_FLOW, inversé'],logic:'Cas spécial rare.'},TIMED_EXHAUST:{icon:'⏱️',title:'Extraction temporisée',desc:'Extraction pour durée définie, puis retour automatique.',sensors:['aucun'],logic:'Ventilateur de salle de bain avec arrêt auto.'},OFF:{icon:'⚪',title:'Appareil éteint',desc:'Appareil complètement désactivé.',sensors:['aucun'],logic:'Uniquement pour maintenance.'}};
-const MI_ES={SMART:{icon:'⚡',title:'Modo Smart',desc:'Funcionamiento totalmente automático. El dispositivo maestro evalúa todos los sensores.',sensors:['Temp. interior','Humedad interior','CO₂/VOC','Luminosidad (día/noche)','Temp. exterior (estación)'],logic:'Cambia automáticamente entre recuperación de calor, modo noche y free-cooling.'},AUTO:{icon:'🤖',title:'Automático',desc:'Semi-automático con umbrales predefinidos.',sensors:['Temp. interior','Humedad'],logic:'Ventila si CO₂ o humedad superan los límites.'},HRV:{icon:'🌬️',title:'Recuperación de calor (VMC)',desc:'Ventilación continua con recuperación de calor.',sensors:['ninguno — ventilación permanente'],logic:'Ahorra hasta el 90 % de las pérdidas de calor.'},MANUAL_HRV:{icon:'⚙️',title:'VMC manual',desc:'Recuperación de calor con velocidad manual.',sensors:['ninguno'],logic:'Como VMC, pero velocidad no ajustada automáticamente.'},NIGHT:{icon:'🌙',title:'Modo noche',desc:'Funcionamiento silencioso a velocidad mínima.',sensors:['Luminosidad (opcional)'],logic:'Ventilador a velocidad nocturna (∲20-30 %).'},AWAY:{icon:'🏠',title:'Ausente',desc:'Modo ausencia: ventilación mínima antimoho.',sensors:['sin control activo'],logic:'Ventilación muy lenta para hogar vacío.'},MONITORING:{icon:'📊',title:'Monitorización',desc:'Solo monitorización de sensores, sin ventilación.',sensors:['Temp.','Humedad','CO₂/VOC','Luz'],logic:'Ventilador apagado — solo recogida de datos.'},BOOST:{icon:'💨',title:'Boost',desc:'Ventilación máxima temporal (ej. después de cocinar).',sensors:['CO₂/VOC (opcional)'],logic:'Ventilador al 100 %, luego retorno automático.'},EXHAUST:{icon:'⬆️',title:'Extracción',desc:'Solo extracción: aire aspirado, sin entrada de aire.',sensors:['ninguno'],logic:'Típico para baño/cocina.'},SUPPLY:{icon:'⬇️',title:'Impulsión',desc:'Solo impulsión: aire fresco insuflado.',sensors:['ninguno'],logic:'Opuesto a Extracción.'},MS_FLOW:{icon:'⇄',title:'Flujo Maestro-Esclavo',desc:'El maestro controla el flujo, el esclavo sigue.',sensors:['Maestro: todos los sensores','Esclavo: pasivo'],logic:'Equilibrio de presión. Mín. 8 mm bajo la puerta.'},SM_FLOW:{icon:'⇆',title:'Flujo Esclavo-Maestro',desc:'Dirección invertida: el esclavo guía el flujo.',sensors:['como MS_FLOW, invertido'],logic:'Caso especial raro.'},TIMED_EXHAUST:{icon:'⏱️',title:'Extracción temporizada',desc:'Extracción por duración definida, luego retorno automático.',sensors:['ninguno'],logic:'Extractor de baño con apagado automático.'},OFF:{icon:'⚪',title:'Dispositivo apagado',desc:'Dispositivo completamente desactivado.',sensors:['ninguno'],logic:'Solo para mantenimiento.'}};
-const MI_SK={SMART:{icon:'⚡',title:'Smart režim',desc:'Plne automatická prevádzka.',sensors:['Vnút. teplota','Vlhkosť','CO₂/VOC','Svetlo','Vnej. teplota'],logic:'Prepína medzi rekuperáciou, nočným a free-cooling.'}, AUTO:{icon:'🤖',title:'Automatický',desc:'Poloautomatická prevádzka.',sensors:['Teplota','Vlhkosť'],logic:'Vetrá pri prekročení limitov.'},HRV:{icon:'🌬️',title:'Rekuperácia tepla (HRV)',desc:'Nepretržité vetranie s rekuperáciou.',sensors:['žiadny'],logic:'Ušetrí až 90 % tepelných strát.'},MANUAL_HRV:{icon:'⚙️',title:'Manuálny HRV',desc:'Rekuperácia s manuálnou rýchlosťou.',sensors:['žiadny'],logic:'Ako HRV, bez automat. nastavenia.'},NIGHT:{icon:'🌙',title:'Nočný režim',desc:'Tichá prevádzka pri min. otáčkach.',sensors:['Svetlo (voliteľné)'],logic:'Ventilátor na nočnú rýchlosť.'},AWAY:{icon:'🏠',title:'Mimo domu',desc:'Min. vetranie pred plesňou.',sensors:['žiadna regulácia'],logic:'Veľmi pomalé vetranie.'},MONITORING:{icon:'📊',title:'Monitorovací režim',desc:'Iba monitorovanie, bez vetrania.',sensors:['Teplota','Vlhkosť','CO₂/VOC','Svetlo'],logic:'Ventilátor vypnutý.'},BOOST:{icon:'💨',title:'Boost',desc:'Krátkodobé max. vetranie.',sensors:['CO₂/VOC (voliteľné)'],logic:'100 %, potom späť.'},EXHAUST:{icon:'⬆️',title:'Odsávanie',desc:'Iba odsávanie vzduchu.',sensors:['žiadny'],logic:'Pre kúpeľňu/kuchyňu.'},SUPPLY:{icon:'⬇️',title:'Prívod',desc:'Iba prívod čerstvého vzduchu.',sensors:['žiadny'],logic:'Opak odsávania.'},MS_FLOW:{icon:'⇄',title:'Prúdenie Master-Slave',desc:'Master riadi, Slave sleduje.',sensors:['Master: všetky','Slave: pasívny'],logic:'Min. 8 mm pod dverami.'},SM_FLOW:{icon:'⇆',title:'Prúdenie Slave-Master',desc:'Obrátený smer.',sensors:['ako MS_FLOW'],logic:'Zriedkavý prípad.'},TIMED_EXHAUST:{icon:'⏱️',title:'Časové odsávanie',desc:'Odsávanie na definovanú dobu.',sensors:['žiadny'],logic:'S automat. vypnutím.'},OFF:{icon:'⚪',title:'Zariadenie vypnuté',desc:'Úplne deaktivované.',sensors:['žiadny'],logic:'Iba pre údržbu.'}};
-function getMI(mode){const maps={de:MI_DE,it:MI_IT,en:MI_EN,fr:MI_FR,es:MI_ES,sk:MI_SK};return (maps[lang]||MI_DE)[mode];}
-const WD=['mon','tue','wed','thu','fri','sat','sun'];
-const savedTheme=localStorage.getItem('theme')||'light';
-document.documentElement.setAttribute('data-theme',savedTheme);
-if(savedTheme==='dark')document.getElementById('dark-toggle').textContent='☀️';
-function toggleDark(){const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('dark-toggle').textContent=t==='dark'?'☀️':'🌙';}
-function toast(m,d=2500){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
-function setMqtt(ok){document.getElementById('mqtt-dot').className=ok?'connected':'';document.getElementById('mqtt-label').textContent=ok?T('connected'):T('disconnected');}
-function connectWS(){ws=new WebSocket(WS);ws.onopen=()=>setMqtt(true);ws.onclose=()=>{setMqtt(false);setTimeout(connectWS,3000)};ws.onerror=()=>setMqtt(false);ws.onmessage=e=>{const{event,deviceId,data}=JSON.parse(e.data);if(event==='status'||event==='availability'){devices[deviceId]={...devices[deviceId],...data,deviceId};if(!history_data[deviceId])history_data[deviceId]=[];if(data.temperature!=null||data.airQuality!=null){history_data[deviceId].push({ts:Date.now(),temp:data.temperature,co2:data.airQuality,hum:data.humidity});if(history_data[deviceId].length>60)history_data[deviceId].shift();}renderCard(deviceId);refreshSmartSel();}};}
-async function apiFetch(path,method='GET',body=null){const opts={method,headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);const r=await fetch(API+path,opts);if(!r.ok)throw new Error(await r.text());return r.json();}
-async function sendAll(cmd){const ids=Object.keys(devices);if(!ids.length){toast(T('noDevices'));return;}await Promise.all(ids.map(id=>apiFetch('/devices/'+id+'/command','POST',cmd).catch(()=>{})));toast(T('cmdAll'));}
-async function loadDevices(){try{const list=await apiFetch('/devices');list.forEach(d=>{devices[d.deviceId]=d;});renderAllCards();document.getElementById('devices-title').textContent=Tf('devicesCount',list.length);if(!list.length)document.getElementById('empty-state').style.display='block';list.forEach(d=>loadSchedule(d.deviceId));refreshSmartSel();}catch(e){document.getElementById('empty-state').style.display='block';}}
-function renderAllCards(){
-const grid=document.getElementById('devices-grid');grid.innerHTML='';
-const ids=Object.keys(devices);
-if(!ids.length){document.getElementById('empty-state').style.display='block';return;}
-document.getElementById('empty-state').style.display='none';
-const zones={};
-ids.forEach(id=>{const d=devices[id];const z=d.zone||d.networkId||T('devices');if(!zones[z])zones[z]=[];zones[z].push(id);});
-Object.keys(zones).sort().forEach(zone=>{
-const zids=zones[zone];
-const hasMaster=zids.some(id=>(devices[id].role||'MASTER')==='MASTER');
-const zg=document.createElement('div');zg.className='zone-group';
-const cnt=zids.length===1?T('devices1'):Tf('devicesN',zids.length);
-zg.innerHTML='<div class="zone-group-header"><span class="zone-group-title">🏠 '+zone+'</span>'+(hasMaster?'<span class="zone-group-badge zone-master-badge">'+T('masterSlaveNet')+'</span>':'<span class="zone-group-badge">'+cnt+'</span>')+'</div><div class="zone-grid" id="zg-'+zone.replace(/[^a-z0-9]/gi,'_')+'"></div>';
-grid.appendChild(zg);
-const zGrid=zg.querySelector('.zone-grid');
-zids.forEach(id=>zGrid.appendChild(makeCard(id)));
-});
-}
-function makeCard(did){const d=devices[did];const c=document.createElement('div');c.className='device-card';c.id='card-'+did;c.onclick=(e)=>{if(!e.target.closest('.mode-btn')&&!e.target.closest('.mode-info-btn')&&!e.target.closest('input'))openDetail(did);};updateCardInner(c,d,did);return c;}
-function renderCard(did){const d=devices[did];let c=document.getElementById('card-'+did);if(!c){renderAllCards();return;}updateCardInner(c,d,did);}
-function updateCardInner(c,d,did){
-const isSm=d.mode==='SMART';const dt=d.deviceType||'Smart';const role=d.role||'MASTER';
-const rCls=role==='MASTER'?'role-master':'role-slave';
-const fa=d.filterChangedAt?Math.floor((Date.now()-new Date(d.filterChangedAt).getTime())/(86400000)):null;
-const modeButtons=MODES.map(m=>{const isCur=d.mode===m;const cls='mode-btn'+(isCur?(m==='SMART'?' smart-active':' active'):'');return '<div class="mode-btn-wrap"><button class="'+cls+'" onclick="event.stopPropagation();sendCmd(''+did+'',{mode:''+m+''})" title="'+ML(m)+'">'+ML(m)+'</button><button class="mode-info-btn" onclick="event.stopPropagation();showModeInfo(''+m+'',this)" title="Info">ⓘ</button></div>';}).join('');
-c.innerHTML='<div class="card-header"><div class="card-title"><h2>'+(d.name||did)+(isSm?' <span class="smart-badge">⚡ Smart</span>':'')+'</h2><div class="card-meta"><span class="device-type-badge">'+dt+'</span><span class="role-badge '+rCls+'">'+role+'</span></div></div><span class="status-dot '+(d.online?'online':'')+'" title="'+(d.online?T('online'):T('offline'))+'"></span></div>'
-+'<div class="metrics"><div class="metric"><div class="val">'+(d.temperature!=null?d.temperature.toFixed(1)+'°C':'—')+'</div><div class="lbl">'+T('temp')+'</div></div><div class="metric"><div class="val">'+(d.humidity!=null?d.humidity+'%':'—')+'</div><div class="lbl">'+T('humidity')+'</div></div><div class="metric"><div class="val">'+(d.airQuality!=null?d.airQuality+'ppm':'—')+'</div><div class="lbl">CO₂</div></div></div>'
-+'<div class="modes-label"><span>'+T('modeLabel')+'</span><span style="font-size:.6rem;color:var(--muted);font-weight:400">'+T('modeInfoHint')+'</span></div>'
-+'<div class="modes">'+modeButtons+'</div>'
-+'<div class="fan-row"><label>'+T('fanLabel')+'</label><input type="range" min="0" max="100" value="'+(d.fanSpeed??50)+'" oninput="this.nextElementSibling.textContent=this.value+'%'" onchange="event.stopPropagation();sendCmd(''+did+'',{fanSpeed:+this.value})"/><span class="fan-val">'+(d.fanSpeed??50)+'%</span></div>'
-+(d.filterAlarm?'<div class="filter-alarm">'+T('filterAlarm')+(fa!=null?Tf('filterDays',fa):'')+'</div>':'')
-+'<div style="margin-top:.65rem;font-size:.62rem;color:var(--muted);text-align:right">'+T('detailsLink')+'</div>';
-}
-async function sendCmd(did,cmd){try{await apiFetch('/devices/'+did+'/command','POST',cmd);toast(T('cmdSent'));}catch(e){toast('Fehler: '+e.message);}}
-function showModeInfo(mode,btn){const info=getMI(mode);if(!info)return;const popup=document.getElementById('mode-popup');document.getElementById('mp-title').innerHTML=info.icon+' '+info.title;let body='<p>'+info.desc+'</p>';if(info.sensors&&info.sensors.length){body+='<p style="font-size:.64rem;font-weight:700;color:var(--text);margin-top:.3rem">'+T('sensors')+'</p><ul>'+info.sensors.map(s=>'<li>'+s+'</li>').join('')+'</ul>';}if(info.logic){body+='<p style="font-size:.64rem;font-weight:700;color:var(--text);margin-top:.3rem">'+T('logic')+'</p><p>'+info.logic+'</p>';}document.getElementById('mp-body').innerHTML=body;const rect=btn.getBoundingClientRect();const pw=260,ph=200;let left=rect.left,top=rect.bottom+6;if(left+pw>window.innerWidth-10)left=window.innerWidth-pw-10;if(top+ph>window.innerHeight-10)top=rect.top-ph-6;popup.style.left=Math.max(6,left)+'px';popup.style.top=Math.max(6,top)+'px';popup.classList.add('open');}
-function closeModePopup(){document.getElementById('mode-popup').classList.remove('open');}
-document.addEventListener('click',e=>{const p=document.getElementById('mode-popup');if(p.classList.contains('open')&&!p.contains(e.target)&&!e.target.classList.contains('mode-info-btn'))closeModePopup();});
-async function openDetail(did){const d=devices[did]||{};const modal=document.getElementById('detail-modal');const content=document.getElementById('detail-content');const role=d.role||'MASTER';const rCls=role==='MASTER'?'role-master':'role-slave';const dt=d.deviceType||'Smart';const curMode=d.mode||'—';const mi=getMI(curMode)||{icon:'○',title:curMode};const fa=d.filterChangedAt?Math.floor((Date.now()-new Date(d.filterChangedAt).getTime())/(86400000)):null;let html='<h2>'+(d.name||did)+' <span class="status-dot '+(d.online?'online':'')+'" style="display:inline-block;margin-left:.3rem"></span></h2>';html+='<div class="card-meta" style="margin-bottom:1rem"><span class="device-type-badge">'+dt+'</span><span class="role-badge '+rCls+'">'+role+'</span>'+(d.zone?'<span class="device-type-badge" style="background:#f0fff4;color:#276749;border-color:#c6f6d5">'+T('zone')+': '+d.zone+'</span>':'')+(d.networkId?'<span class="device-type-badge">'+T('network')+': '+d.networkId+'</span>':'')+'</div>';html+='<div class="detail-section"><h3>'+T('currentMode')+'</h3><div class="detail-mode-current"><span class="dmc-icon">'+mi.icon+'</span><div class="dmc-info"><div class="dmc-label">'+T('activeMode')+'</div><div class="dmc-val">'+mi.title+'</div></div></div>';if(getMI(curMode)){html+='<p style="font-size:.7rem;color:var(--muted);line-height:1.5">'+getMI(curMode).desc+'</p>';}html+='</div>';html+='<div class="detail-section"><h3>'+T('sensorData')+'</h3><div class="detail-grid">';function dRow(l,v,cls=''){return '<div class="detail-row"><span class="dl">'+l+'</span><span class="dv '+cls+'">'+v+'</span></div>';}html+=dRow(T('temp'),d.temperature!=null?d.temperature.toFixed(1)+' °C':'—',d.temperature!=null?(d.temperature>27||d.temperature<16?'warn':'ok'):'');html+=dRow(T('humidity'),d.humidity!=null?d.humidity+' %':'—',d.humidity!=null?(d.humidity>65||d.humidity<30?'warn':'ok'):'');html+=dRow('CO₂/VOC',d.airQuality!=null?d.airQuality+' ppm':'—',d.airQuality!=null?(d.airQuality>1000?'bad':d.airQuality>600?'warn':'ok'):'');html+=dRow(T('fanLabel'),d.fanSpeed!=null?d.fanSpeed+' %':'—');html+=dRow(T('status'),d.online?T('online'):T('offline'),d.online?'ok':'bad');html+=dRow(T('type'),dt);html+=dRow(T('role'),role);if(d.firmwareVersion)html+=dRow(T('firmware'),d.firmwareVersion);if(d.deviceId)html+=dRow(T('deviceId'),d.deviceId);html+='</div></div>';html+='<div class="detail-section"><h3>'+T('filterSection')+'</h3>';if(d.filterAlarm){html+='<div class="filter-alarm" style="margin-bottom:.5rem">'+T('filterAlarm')+(fa!=null?Tf('filterDays',fa):'')+'</div>';}else{html+='<div class="detail-row"><span class="dl">'+T('filterSection')+'</span><span class="dv ok">'+T('filterOkFull')+'</span></div>';}if(d.filterChangedAt){html+='<div class="detail-row" style="margin-top:.3rem"><span class="dl">'+T('lastChange')+'</span><span class="dv">'+new Date(d.filterChangedAt).toLocaleDateString()+'</span></div>';}html+='</div>';if(history_data[did]&&history_data[did].length>1){const last=history_data[did][history_data[did].length-1];html+='<div class="detail-section"><h3>'+T('lastMeasure')+'</h3><div class="detail-grid">';html+=dRow(T('temp'),last.temp!=null?last.temp.toFixed(1)+' °C':'—');html+=dRow('CO₂',last.co2!=null?last.co2+' ppm':'—',last.co2>1000?'bad':last.co2>600?'warn':'ok');html+=dRow(T('humidity'),last.hum!=null?last.hum+' %':'—');html+=dRow(T('time'),new Date(last.ts).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}));html+='</div></div>';}content.innerHTML=html;modal.classList.add('open');}
-function closeDetail(){document.getElementById('detail-modal').classList.remove('open');}
-function closeDetailIfBg(e){if(e.target===document.getElementById('detail-modal'))closeDetail();}
-const scSt={};
-async function loadSchedule(did){try{const w=await apiFetch('/devices/'+did+'/schedule');schedules[did]=w;renderScCard(did);}catch(e){}}
-function getWDL(){return {mon:T('mon'),tue:T('tue'),wed:T('wed'),thu:T('thu'),fri:T('fri'),sat:T('sat'),sun:T('sun')};}
-function getWDN(){return {mon:T('Monday'),tue:T('Tuesday'),wed:T('Wednesday'),thu:T('Thursday'),fri:T('Friday'),sat:T('Saturday'),sun:T('Sunday')};}
-
-/* Helper: check if a slot crosses midnight */
-function isOvernight(slot){
-  if(slot.isOvernight)return true;
-  if(!slot.start||!slot.end)return false;
-  return slot.end<=slot.start;
-}
-
-/* Render a single time slot row */
-function renderSlotRow(x,i,did){
-  const ov=isOvernight(x);
-  const timeStr=ov?x.start+' ▸ '+x.end+' ('+T('overnight')+')':x.start+' – '+x.end;
-  const ovBadge=ov?'<span class="ts-overnight" title="'+Tf('overnightHint',x.end)+'">'+T('overnight')+'</span>':'';
-  return '<div class="time-slot'+(ov?' style="border-color:rgba(128,90,213,.35)"':'')+'">'+
-    '<span class="ts-time">'+timeStr+'</span>'+ovBadge+
-    '<span class="ts-mode m-'+x.mode+'">'+(ML(x.mode)||x.mode)+'</span>'+
-    '<span class="ts-fan">'+(x.fanSpeed!=null?x.fanSpeed+'%':T('slotFanPh'))+'</span>'+
-    '<button class="ts-del" onclick="delSlot(''+did+'','+i+')">&#10005;</button>'+
-    '</div>';
-}
-
-function renderScCard(did){
-  const cont=document.getElementById('schedule-container');
-  const d=devices[did]||{};
-  if(!scSt[did])scSt[did]={day:'mon',showForm:false};
-  const s=scSt[did];
-  let c=document.getElementById('scard-'+did);
-  if(!c){c=document.createElement('div');c.className='schedule-card';c.id='scard-'+did;cont.appendChild(c);}
-  const w=schedules[did]||{};
-  const sl=(w[s.day]||[]);
-  const WDL=getWDL();const WDN=getWDN();
-  c.innerHTML='<div class="sc-header"><h2>'+(d.name||did)+'</h2>'+
-    '<div class="sc-header-btns">'+
-    '<button class="copy-day-btn" onclick="openCopy(''+did+'',''+s.day+'')">&#128197; '+T('copy')+'</button>'+
-    '<button class="add-slot-btn-top" onclick="toggleForm(''+did+'')">'+T('addSlotTop')+'</button>'+
-    '</div></div>'+
-    '<div class="weekdays">'+WD.map(wd=>'<div class="wd '+(s.day===wd?'active':'')+'" onclick="setDay(''+did+'',''+wd+'')">'+WDL[wd]+'</div>').join('')+'</div>'+
-    '<div class="sc-body">'+
-    '<p style="font-size:.66rem;color:var(--muted);margin-bottom:.6rem;font-weight:600;">'+WDN[s.day]+'</p>'+
-    (!sl.length?'<p style="text-align:center;color:var(--muted);font-size:.75rem;padding:.65rem">'+T('noSlots')+'</p>':'')+
-    sl.map((x,i)=>renderSlotRow(x,i,did)).join('')+
-    (s.showForm?renderSlotForm(did):'<button class="add-slot-btn" onclick="toggleForm(''+did+'')">+ '+T('addSlot')+'</button>')+
-    '</div>';
-}
-
-function renderSlotForm(did){
-  return '<div class="slot-form">'+
-    '<div><label>'+T('slotFrom')+'</label><input type="time" id="sf-s-'+did+'" value="22:00" oninput="checkOvernight(''+did+'')"/></div>'+
-    '<div><label>'+T('slotTo')+'</label><input type="time" id="sf-e-'+did+'" value="06:00" oninput="checkOvernight(''+did+'')"/></div>'+
-    '<div><label>'+T('slotMode')+'</label><select id="sf-m-'+did+'">'+MODES.map(m=>'<option value="'+m+'">'+ML(m)+'</option>').join('')+'</select></div>'+
-    '<div><label>'+T('slotFan')+'</label><input type="number" id="sf-f-'+did+'" min="0" max="100" placeholder="'+T('slotFanPh')+'"/></div>'+
-    '<div class="slot-form-hint" id="sf-hint-'+did+'">&#8987; '+T('overnightFormHint')+'</div>'+
-    '<div class="slot-form-actions">'+
-    '<button class="btn-cancel" onclick="toggleForm(''+did+'')">'+T('cancel')+'</button>'+
-    '<button class="btn-save" onclick="saveSlot(''+did+'')">'+T('save')+'</button>'+
-    '</div></div>';
-}
-
-function checkOvernight(did){
-  const sv=document.getElementById('sf-s-'+did);
-  const ev=document.getElementById('sf-e-'+did);
-  const hint=document.getElementById('sf-hint-'+did);
-  if(!sv||!ev||!hint)return;
-  const ov=ev.value&&sv.value&&ev.value<=sv.value;
-  hint.classList.toggle('visible',!!ov);
-}
-
-function setDay(did,day){scSt[did].day=day;scSt[did].showForm=false;renderScCard(did);}
-function toggleForm(did){scSt[did].showForm=!scSt[did].showForm;renderScCard(did);if(scSt[did].showForm)setTimeout(()=>checkOvernight(did),50);}
-
-async function saveSlot(did){
-  const sst=scSt[did];
-  const sv=document.getElementById('sf-s-'+did).value;
-  const en=document.getElementById('sf-e-'+did).value;
-  const mo=document.getElementById('sf-m-'+did).value;
-  const fv=document.getElementById('sf-f-'+did).value;
-  if(!sv||!en){toast(T('enterTimes'));return;}
-  const ov=en<=sv; /* overnight if end <= start */
-  const w=schedules[did]||{};
-  const day=sst.day;
-  const newSlot={start:sv,end:en,mode:mo,fanSpeed:fv!==''?parseInt(fv):null};
-  if(ov)newSlot.isOvernight=true;
-  const sl=[...(w[day]||[]),newSlot];
-  /* Sort: overnight slots go last (after all same-day slots) */
-  sl.sort((a,b)=>{
-    const aOv=isOvernight(a),bOv=isOvernight(b);
-    if(aOv&&!bOv)return 1;
-    if(!aOv&&bOv)return -1;
-    return a.start.localeCompare(b.start);
-  });
-  try{
-    await apiFetch('/devices/'+did+'/schedule/'+day,'PUT',sl);
-    schedules[did]={...w,[day]:sl};
-    sst.showForm=false;
-    renderScCard(did);
-    toast(ov?'⏳ '+T('saved')+' (+1)':T('saved'));
-  }catch(e){toast('Err: '+e.message);}
-}
-
-async function delSlot(did,idx){const sst=scSt[did];const day=sst.day;const sl=[...((schedules[did]||{})[day]||[])];sl.splice(idx,1);try{await apiFetch('/devices/'+did+'/schedule/'+day,'PUT',sl);schedules[did][day]=sl;renderScCard(did);toast(T('deleted'));}catch(e){toast('Err: '+e.message);}}
-function openCopy(did,day){copySource={did,day};const WDL=getWDL();const g=document.getElementById('copy-days-grid');g.innerHTML=WD.filter(d=>d!==day).map(d=>'<label class="copy-day-check"><input type="checkbox" value="'+d+'"/>'+WDL[d]+'</label>').join('');document.getElementById('copy-modal').classList.add('open');}
-function closeCopyModal(){document.getElementById('copy-modal').classList.remove('open');copySource=null;}
-async function confirmCopy(){if(!copySource)return;const did=copySource.did,day=copySource.day;const WDL=getWDL();const ch=[...document.querySelectorAll('#copy-days-grid input:checked')].map(i=>i.value);if(!ch.length){toast(T('chooseDay'));return;}const sl=(schedules[did]||{})[day]||[];try{await Promise.all(ch.map(d=>apiFetch('/devices/'+did+'/schedule/'+d,'PUT',sl)));const w=schedules[did]||{};ch.forEach(d=>{w[d]=[...sl];});schedules[did]=w;closeCopyModal();renderScCard(did);toast(Tf('copied',ch.map(d=>WDL[d]).join(', ')));}catch(e){toast('Err: '+e.message);}}
-function refreshSmartSel(){const sel=document.getElementById('smart-dev-select');const ids=Object.keys(devices);if(!activeSmartDevice&&ids.length)activeSmartDevice=ids[0];sel.innerHTML=ids.map(id=>'<div class="dev-chip '+(id===activeSmartDevice?'active':'')+'" onclick="selSmartDev(''+id+'')">'+(devices[id].name||id)+'</div>').join('');}
-function selSmartDev(id){activeSmartDevice=id;refreshSmartSel();loadSmart(id);}
-let owmData=null,owmTimer=null;
-function getOwmKey(){return localStorage.getItem('owm_key')||'';}
-function getOwmLoc(){return localStorage.getItem('owm_loc')||'';}
-function openSettings(){document.getElementById('set-owm-key').value=getOwmKey();document.getElementById('set-owm-loc').value=getOwmLoc();document.getElementById('settings-modal').classList.add('open');}
-function closeSettings(){document.getElementById('settings-modal').classList.remove('open');}
-function saveSettings(){const k=document.getElementById('set-owm-key').value.trim();const l=document.getElementById('set-owm-loc').value.trim();localStorage.setItem('owm_key',k);localStorage.setItem('owm_loc',l);closeSettings();if(k&&l){fetchWeather();toast(T('settingsSavedLoading'));}else toast(T('settingsSaved'));}
-function aqiLabel(aqi){const arr=T('aqi');return arr[aqi]||'—';}
-function aqiClass(aqi){return 'aqi-'+(aqi||1);}
-async function fetchWeather(){const key=getOwmKey(),loc=getOwmLoc();if(!key||!loc){renderWeatherBar(null);return;}try{let lat,lon;if(/^-?[\d.]+\s*,\s*-?[\d.]+$/.test(loc)){[lat,lon]=loc.split(',').map(s=>parseFloat(s.trim()));}else{const geo=await fetch('https://api.openweathermap.org/geo/1.0/direct?q='+encodeURIComponent(loc)+'&limit=1&appid='+key);const gd=await geo.json();if(!gd.length)throw new Error('Location not found: '+loc);lat=gd[0].lat;lon=gd[0].lon;}const[wRes,aRes]=await Promise.all([fetch('https://api.openweathermap.org/data/2.5/weather?lat='+lat+'&lon='+lon+'&units=metric&lang=de&appid='+key),fetch('https://api.openweathermap.org/data/2.5/air_pollution?lat='+lat+'&lon='+lon+'&appid='+key)]);const w=await wRes.json();const a=await aRes.json();owmData={temp:w.main.temp,humidity:w.main.humidity,city:w.name,country:w.sys.country,aqi:a.list[0].main.aqi,updated:Date.now()};renderWeatherBar(owmData);if(activeSmartDevice&&document.getElementById('view-smart').style.display!=='none')loadSmart(activeSmartDevice);}catch(err){renderWeatherBar(null,err.message);}}
-function renderWeatherBar(d,err){const bar=document.getElementById('weather-bar');if(!getOwmKey()||!getOwmLoc()){bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; <a href="#" onclick="openSettings();return false;" style="color:var(--primary);font-weight:700">'+T('weatherSetup')+'</a> — '+T('weatherHint')+'</span>';return;}if(err){bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; '+T('weatherError')+err+' <button class="weather-refresh" onclick="fetchWeather()">'+T('weatherRetry')+'</button></span>';return;}if(!d){bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; '+T('weatherLoading')+'</span>';return;}const age=Math.round((Date.now()-d.updated)/60000);bar.innerHTML='<span class="weather-loc">&#127780;&#65039; '+d.city+', '+d.country+'</span><span class="weather-item">&#127777;&#65039; '+T('weatherOutdoor')+' <strong>'+d.temp.toFixed(1)+'°C</strong></span><span class="weather-item">&#128167; '+T('weatherHumidity')+' <strong>'+d.humidity+'%</strong></span><span class="weather-item"><span class="weather-aqi '+aqiClass(d.aqi)+'">'+aqiLabel(d.aqi)+'</span></span><span class="weather-item" style="color:var(--muted);font-size:.65rem">'+Tf('weatherAgo',age)+' <button class="weather-refresh" onclick="fetchWeather()">&#8635;</button></span>';}
-function startWeatherTimer(){if(owmTimer)clearInterval(owmTimer);fetchWeather();owmTimer=setInterval(fetchWeather,15*60*1000);}
-async function loadSmart(did){const el=document.getElementById('smart-content');try{const s=await apiFetch('/devices/'+did+'/smart');const sensors=s.sensors||{};const tin=sensors.temperature_in;const hin=sensors.humidity_in;const tout=owmData?owmData.temp:sensors.temperature_out;const hout=owmData?owmData.humidity:sensors.humidity_out;let compareHtml='';if(tin!=null&&tout!=null){const diff=tin-tout;const arrow=diff>0?T('coolPossible'):diff<-1?T('heatSugg'):T('balanced');const tempOcBadge=Math.abs(diff)>2?'oc-warn':'oc-out';compareHtml='<div class="outdoor-compare"><div class="oc-side"><h4>&#127968; '+T('inside')+'</h4><div class="oc-val">'+tin.toFixed(1)+'°C</div>'+(hin!=null?'<div class="oc-sub">'+hin+'% rF</div>':'')+'<span class="oc-badge oc-in">'+T('devSensor')+'</span></div><div class="oc-arrow">&#8652;<br/><span style="font-size:.6rem;color:var(--muted)">'+arrow+'</span></div><div class="oc-side" style="text-align:right"><h4>&#127780;&#65039; '+T('outside')+'</h4><div class="oc-val">'+tout.toFixed(1)+'°C</div>'+(hout!=null?'<div class="oc-sub">'+hout+'% rF</div>':'')+'<span class="oc-badge '+tempOcBadge+'">'+(owmData?T('openWeather'):T('weatherStation'))+'</span></div></div>';}
-el.innerHTML=compareHtml+'<div class="chart-wrap"><h3>&#128200; '+T('histTitle')+'</h3><canvas id="hist-chart"></canvas></div><div class="smart-grid"><div class="smart-card"><h3>&#128225; '+T('measures')+'</h3>'+row(T('innerTemp'),tin!=null?tin.toFixed(1)+' °C':'—')+row(T('outerTemp'),tout!=null?tout.toFixed(1)+' °C':'—')+row(T('humIn'),hin!=null?hin+' %':'—')+row(T('humOut'),hout!=null?hout+' %':'—')+row(T('airQuality'),sensors.airQuality_voc!=null?sensors.airQuality_voc+' ppm':'—',(sensors.airQuality_voc||0)>600?'warn':'ok')+row(T('light'),sensors.isDark?T('dark'):T('bright'),sensors.isDark?'warn':'ok')+(owmData?row(T('airQualityOut'),'<span class="weather-aqi '+aqiClass(owmData.aqi)+'">'+aqiLabel(owmData.aqi)+'</span>',''):'')+' </div><div class="smart-card"><h3>&#129504; '+T('automation')+'</h3>'+modeInd('🌬️',T('hrv_label'),s.activeMode==='HRV_MEDIUM'?T('hrv_active'):s.activeMode==='HRV_MIN'?T('hrv_min'):T('hrv_off'),s.activeMode==='HRV_MEDIUM'||s.activeMode==='HRV_MIN')+modeInd('🌙',T('nightMode'),T('nightActive'),s.conditions&&s.conditions.nightModeActive)+modeInd('☀️',T('freeCool'),T('freeCoolCond'),false,s.conditions&&s.conditions.freeCoolingActive)+'</div></div><div class="smart-card" style="margin-bottom:1.1rem"><h3>⚙️ '+T('smartLogic')+'</h3>'+((s.logic||[]).map(l=>'<div class="cond-row"><span class="cond-label">'+l.condition+'</span><span class="cond-val">→ '+l.result+'</span></div>').join(''))+'</div>';drawChart(did);}catch(e){el.innerHTML='<p style="color:var(--red);padding:1rem">Error: '+e.message+'</p>';}}
-function drawChart(did){const hist=history_data[did]||[];const canvas=document.getElementById('hist-chart');if(!canvas)return;const W=canvas.offsetWidth||800,H=155;canvas.width=W;canvas.height=H;const isDark=document.documentElement.getAttribute('data-theme')==='dark';const bg=isDark?'#1a1f2e':'#fff',gridC=isDark?'#2d3748':'#e2e8f0',textC=isDark?'#a0aec0':'#718096';const ctx=canvas.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);if(hist.length<2){ctx.fillStyle=textC;ctx.font='11px sans-serif';ctx.fillText(T('noHistory'),16,H/2);return;}const pad={l:46,r:10,t:8,b:22};const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;ctx.strokeStyle=gridC;ctx.lineWidth=1;[0,.5,1].forEach(f=>{const y=pad.t+cH*(1-f);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();});function dl(data,color,minV,maxV,dashed=false){const range=maxV-minV||1;let started=false;ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;if(dashed)ctx.setLineDash([5,4]);else ctx.setLineDash([]);for(let i=0;i<data.length;i++){const v=data[i];if(v==null)continue;const x=pad.l+i/(data.length-1)*cW;const y=pad.t+cH*(1-(v-minV)/range);if(!started){ctx.moveTo(x,y);started=true;}else{ctx.lineTo(x,y);}}if(started)ctx.stroke();ctx.setLineDash([]);}const temps=hist.map(h=>h.temp).filter(v=>v!=null);const co2s=hist.map(h=>h.co2).filter(v=>v!=null);const tMin=temps.length?Math.min(...temps)-1:0,tMax=temps.length?Math.max(...temps)+1:1;if(temps.length>1)dl(hist.map(h=>h.temp),'#0066cc',tMin,tMax);if(owmData&&temps.length>1)dl(hist.map(()=>owmData.temp),'#38a169',tMin,tMax,true);if(co2s.length>1)dl(hist.map(h=>h.co2),'#dd6b20',Math.min(...co2s)-50,Math.max(...co2s)+50);ctx.fillStyle=textC;ctx.font='10px sans-serif';ctx.textAlign='right';if(temps.length)ctx.fillText(temps[temps.length-1].toFixed(1)+'°',pad.l-3,pad.t+12);if(co2s.length)ctx.fillText(co2s[co2s.length-1]+'ppm',pad.l-3,H-pad.b+2);ctx.textAlign='center';[0,.5,1].forEach(f=>{const idx=Math.floor(f*(hist.length-1));if(!hist[idx])return;const d=new Date(hist[idx].ts);ctx.fillStyle=textC;ctx.fillText(d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'),pad.l+f*cW,H-4);});ctx.textAlign='left';ctx.font='bold 10px sans-serif';ctx.fillStyle='#0066cc';ctx.fillText('— '+T('tempIn'),pad.l,pad.t+12);if(owmData){ctx.setLineDash([5,4]);ctx.beginPath();ctx.strokeStyle='#38a169';ctx.lineWidth=2;ctx.moveTo(pad.l+90,pad.t+8);ctx.lineTo(pad.l+105,pad.t+8);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#38a169';ctx.fillText(' '+T('outside'),pad.l+105,pad.t+12);}ctx.setLineDash([]);ctx.fillStyle='#dd6b20';ctx.fillText('— '+T('co2'),pad.l+(owmData?175:60),pad.t+12);}
-function row(l,v,c=''){return '<div class="cond-row"><span class="cond-label">'+l+'</span><span class="cond-val '+(c||'')+'">'+v+'</span></div>';}
-function modeInd(icon,name,desc,active,isSummer){const cl=isSummer?'summer':active?'active':'';const bc=isSummer?'sun':active?'on':'';const bt=(isSummer||active)?T('active'):T('inactive');return '<div class="mode-ind '+cl+'"><div class="mi-icon">'+icon+'</div><div class="mi-info"><div class="mi-name">'+name+'</div><div class="mi-desc">'+desc+'</div></div><span class="mi-badge '+bc+'">'+bt+'</span></div>';}
-function showTab(tab){['devices','schedule','smart'].forEach(t=>{document.getElementById('view-'+t).style.display=t===tab?'block':'none';document.getElementById('tab-'+t).classList.toggle('active',t===tab);});if(tab==='smart'&&activeSmartDevice)loadSmart(activeSmartDevice);}
-const API=(window.location.origin+'/api'),WS=((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws');
-const devices={},schedules={},history_data={};
-let activeSmartDevice=null,ws=null,copySource=null;
-lang=localStorage.getItem('lang')||'de';
-document.getElementById('lang-select').value=lang;
-applyLang();
-loadDevices();connectWS();startWeatherTimer();
+loadDevices();connectWS();startWeatherTimer();loadNeuracell();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
