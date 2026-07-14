@@ -53,6 +53,10 @@ schedules: Dict[str, Dict[str, List[Dict]]] = {}
 
 ws_clients: List[WebSocket] = []
 
+# NeuraCell-X (patented) – radon protection + dew-point control status
+# Populated from the retained "ambientika/neuracell/state" topic published by the bridge.
+neuracell_state: Dict[str, Any] = {}
+
 # ---------------------------------------------------------------------------
 # MQTT
 # ---------------------------------------------------------------------------
@@ -63,6 +67,7 @@ def on_connect(client, userdata, flags, rc):
         logger.info("MQTT connected – subscribing to %s/+/status", MQTT_PREFIX)
         client.subscribe(f"{MQTT_PREFIX}/+/status")
         client.subscribe(f"{MQTT_PREFIX}/+/availability")
+        client.subscribe(f"{MQTT_PREFIX}/neuracell/state")  # NeuraCell-X status
     else:
         logger.warning("MQTT connection failed rc=%s", rc)
 
@@ -70,6 +75,16 @@ def on_message(client, userdata, msg):
     try:
         parts = msg.topic.split("/")
         if len(parts) < 3:
+            return
+        # --- NeuraCell-X status (patented radon + dew-point control) ---
+        if parts[1] == "neuracell":
+            global neuracell_state
+            try:
+                neuracell_state = json.loads(msg.payload.decode())
+            except Exception:
+                return
+            asyncio.run_coroutine_threadsafe(
+                broadcast({"event": "neuracell", "data": neuracell_state}), loop)
             return
         device_id, kind = parts[1], parts[2]
         payload = json.loads(msg.payload.decode())
@@ -353,6 +368,53 @@ async def get_smart_status(device_id: str):
     }
 
 # ---------------------------------------------------------------------------
+# REST – NeuraCell-X (patented radon protection + dew-point control)
+# ---------------------------------------------------------------------------
+# The heavy lifting runs in the MQTT bridge (radon meter -> all devices to
+# Intake/Low on alarm; dew-point control with radon priority). Here we only
+# surface the live status and expose a manual override / self-test, so the PWA
+# can show and drive NeuraCell-X directly.
+#
+# Bridge input topics (retained):
+#   ambientika/radon/alarm   ON|OFF  -> force / clear radon protection
+#   ambientika/dewpoint/block ON|OFF -> force / release dew-point ventilation block
+RADON_ALARM_TOPIC    = "ambientika/radon/alarm"
+DEWPOINT_BLOCK_TOPIC = "ambientika/dewpoint/block"
+
+
+class NeuraRadonCommand(BaseModel):
+    active: bool   # True = force radon protection, False = clear
+
+
+class NeuraDewpointCommand(BaseModel):
+    block: bool    # True = block ventilation, False = release
+
+
+@app.get("/api/neuracell", tags=["NeuraCell-X"])
+async def get_neuracell():
+    """Return the live NeuraCell-X status (radon protection + dew-point control)."""
+    return neuracell_state
+
+
+@app.post("/api/neuracell/radon", tags=["NeuraCell-X"])
+async def set_neuracell_radon(cmd: NeuraRadonCommand):
+    """Manually force or clear NeuraCell-X radon protection (self-test / override)."""
+    val = "ON" if cmd.active else "OFF"
+    mqtt_client.publish(RADON_ALARM_TOPIC, val, qos=1, retain=True)
+    logger.info("NeuraCell-X radon override -> %s", val)
+    return {"status": "ok", "topic": RADON_ALARM_TOPIC, "value": val}
+
+
+@app.post("/api/neuracell/dewpoint", tags=["NeuraCell-X"])
+async def set_neuracell_dewpoint(cmd: NeuraDewpointCommand):
+    """Manually block or release ventilation via NeuraCell-X dew-point control."""
+    val = "ON" if cmd.block else "OFF"
+    mqtt_client.publish(DEWPOINT_BLOCK_TOPIC, val, qos=1, retain=True)
+    logger.info("NeuraCell-X dew-point override -> %s", val)
+    return {"status": "ok", "topic": DEWPOINT_BLOCK_TOPIC, "value": val}
+
+
+# ---------------------------------------------------------------------------
 # Health
 # ---------------------------------------------------------------------------
 @app.get("/api/health", tags=["System"])
@@ -373,6 +435,8 @@ async def websocket_endpoint(ws: WebSocket):
     ws_clients.append(ws)
     for did, state in devices.items():
         await ws.send_json({"event": "status", "deviceId": did, "data": state})
+    if neuracell_state:
+        await ws.send_json({"event": "neuracell", "data": neuracell_state})
     try:
         while True:
             await ws.receive_text()
