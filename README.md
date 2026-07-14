@@ -82,11 +82,38 @@ Browser: **http://DEINE-IP:8080**
 | Lüftergeschwindigkeit steuern | ✅ |
 | Temperatur / Feuchte / CO₂ Echtzeit | ✅ |
 | Filter-Alarm Anzeige | ✅ |
+| **Patented NeuraCell-X® – Radon-Schutz** | ✅ |
+| **NeuraCell-X® – Taupunktsteuerung** | ✅ |
 | PWA – installierbar auf Handy & PC | ✅ |
 | Offline-Modus (Service Worker) | ✅ |
 | WebSocket Live-Updates | ✅ |
 | 100% lokal – kein Cloud-Server | ✅ |
 | DSGVO-konform | ✅ |
+
+---
+
+## 🛡️ Patented NeuraCell-X®
+
+Die App bringt **NeuraCell-X®** – die patentierte Schutztechnologie von Ambientika –
+direkt auf einen eigenen Tab, vollständig lokal:
+
+- ☢️ **Radon-Schutz (höchste Priorität).** Bei Radon-Alarm schaltet NeuraCell-X *alle*
+  Geräte in den **Zuluftmodus (Stufe 1)** und erzeugt einen leichten Überdruck gegen
+  eindringendes Radon. Live-Anzeige von Radonwert (Bq/m³) und Schwelle.
+- 💧 **Taupunktsteuerung.** Würde Lüften die Raumfeuchte erhöhen, schaltet NeuraCell-X
+  die Geräte **aus**; bei guten Bedingungen wird wieder freigegeben. Anzeige von
+  Taupunkt innen/außen. **Radon-Schutz hat immer Vorrang.**
+- 🔄 **Exakte Wiederherstellung.** Sind alle Schutzfunktionen inaktiv, wird der zuvor
+  aktive Modus je Gerät exakt wiederhergestellt.
+- 🧪 **Selbsttest / manuelle Übersteuerung** direkt aus der App per Knopfdruck.
+
+> Die eigentliche Logik läuft in der [MQTT Bridge](https://github.com/ambientika-eu/ambientika-mqtt-bridge)
+> (Statusthema `ambientika/neuracell/state`). Die App zeigt den Live-Status und kann
+> Radon-Schutz bzw. Taupunkt-Sperre über `ambientika/radon/alarm` und
+> `ambientika/dewpoint/block` auslösen.
+
+**Neue API-Endpunkte:** `GET /api/neuracell`, `POST /api/neuracell/radon` `{active}`,
+`POST /api/neuracell/dewpoint` `{block}`.
 
 ---
 
