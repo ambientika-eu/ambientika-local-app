@@ -53,7 +53,7 @@ schedules: Dict[str, Dict[str, List[Dict]]] = {}
 
 ws_clients: List[WebSocket] = []
 
-# NeuraCell-X (patented) – radon protection + dew-point control status
+# NeuraCell-X (patent pending) – radon protection + dew-point control status
 # Populated from the retained "ambientika/neuracell/state" topic published by the bridge.
 neuracell_state: Dict[str, Any] = {}
 
@@ -76,7 +76,7 @@ def on_message(client, userdata, msg):
         parts = msg.topic.split("/")
         if len(parts) < 3:
             return
-        # --- NeuraCell-X status (patented radon + dew-point control) ---
+        # --- NeuraCell-X status (patent-pending radon + dew-point control) ---
         if parts[1] == "neuracell":
             global neuracell_state
             try:
@@ -368,7 +368,7 @@ async def get_smart_status(device_id: str):
     }
 
 # ---------------------------------------------------------------------------
-# REST – NeuraCell-X (patented radon protection + dew-point control)
+# REST – NeuraCell-X (patent-pending radon protection + dew-point control)
 # ---------------------------------------------------------------------------
 # The heavy lifting runs in the MQTT bridge (radon meter -> all devices to
 # Intake/Low on alarm; dew-point control with radon priority). Here we only
