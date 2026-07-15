@@ -200,7 +200,7 @@ footer{text-align:center;padding:2rem;font-size:.65rem;color:var(--muted)}
 footer strong{color:var(--text)}
 @media(max-width:520px){header{padding:.5rem .75rem}.logo-svg{height:32px}main{padding:.85rem}.modes{grid-template-columns:repeat(3,1fr)}}
 
-/* ===== NeuraCell-X (patented) ===== */
+/* ===== NeuraCell-X (patent pending) ===== */
 .nc-hero{display:flex;align-items:center;gap:1rem;background:linear-gradient(135deg,#0b3d2e 0%,#0f766e 55%,#0891b2 100%);border-radius:16px;padding:1.15rem 1.3rem;margin-bottom:1.15rem;color:#fff;box-shadow:0 6px 24px rgba(8,145,178,.28);position:relative;overflow:hidden}
 .nc-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:180px;height:180px;background:radial-gradient(circle,rgba(255,255,255,.14),transparent 70%);pointer-events:none}
 .nc-logo{flex-shrink:0}
@@ -853,7 +853,7 @@ function row(l,v,c=''){return '<div class="cond-row"><span class="cond-label">'+
 function modeInd(icon,name,desc,active,isSummer){const cl=isSummer?'summer':active?'active':'';const bc=isSummer?'sun':active?'on':'';const bt=(isSummer||active)?T('active'):T('inactive');return '<div class="mode-ind '+cl+'"><div class="mi-icon">'+icon+'</div><div class="mi-info"><div class="mi-name">'+name+'</div><div class="mi-desc">'+desc+'</div></div><span class="mi-badge '+bc+'">'+bt+'</span></div>';}
 function showTab(tab){['devices','schedule','smart','neuracell'].forEach(t=>{document.getElementById('view-'+t).style.display=t===tab?'block':'none';document.getElementById('tab-'+t).classList.toggle('active',t===tab);});if(tab==='smart'&&activeSmartDevice)loadSmart(activeSmartDevice);if(tab==='neuracell')loadNeuracell();}
 
-/* ===== NeuraCell-X (patented) – radon protection + dew-point control ===== */
+/* ===== NeuraCell-X (patent pending) – radon protection + dew-point control ===== */
 let neuracell=null;
 const NCL={
 de:{tagline:'Radon-Schutz + Taupunktsteuerung – zum Patent angemeldet',
