@@ -105,16 +105,30 @@ protections clear it performs an **exact restore**.
 
 ## Verification status
 
-- ✅ Wire codec byte-for-byte against `PROTOCOL.md`.
+- ✅ Wire codec byte-for-byte against `PROTOCOL.md` (temperature & RSSI decoded
+  **signed**).
 - ✅ App-vocabulary round-trip (mode names, fanSpeed %, dew point).
-- ✅ Weekly schedule: edge-trigger applies slots once; no-op otherwise.
-- ✅ NeuraCell-X: radon priority, command suppression, auto + manual dew-point,
-  and **exact restore** of the pre-protection mode.
-- ✅ Full end-to-end through a **real MQTT broker** (status + command + schedule
-  + radon protection + restore).
+- ✅ Weekly schedule: edge-trigger applies slots once; no-op otherwise; times
+  normalised to `HH:MM`.
+- ✅ NeuraCell-X: radon priority, command suppression, auto + manual dew-point
+  with **±margin hysteresis**, and **exact restore** of the pre-protection mode
+  (baseline taken from the last normal target, not the device echo).
+- ✅ Concurrency hardened: a single lock serialises command/schedule/NeuraCell,
+  protection state is committed **before** any protective write, device loops
+  iterate snapshots, writes are per-device serialised.
+- ✅ Robustness: TCP framing resyncs after a stray byte; malformed `weather`
+  payloads rejected; reconnect preserves device state; radon/weather inputs
+  older than `NC_INPUT_TTL` treated as unknown; MQTT last-will + clean shutdown.
+- ✅ Regression suite: **40 unit/integration tests** (`test_bridge.py`,
+  `test_integration.py`, `test_newfindings.py`).
+- ✅ Full end-to-end through a **real MQTT broker** with a simulated unit
+  (`smoke_test.py`, 13/13): status + command + schedule + radon protect/suppress/
+  restore + dew-point + framing resync + shutdown.
 - ✅ `docker compose config` valid; no cloud credentials anywhere in the stack.
+- ✅ paho-mqtt 2.x callback API (VERSION2), 1.x fallback retained.
 - ⛔️ **Not yet tested on real hardware** — reverse-engineered binary + safety-
-  relevant control. Validate on one physical unit before production.
+  relevant control. Validate on one physical unit before production (in
+  particular the signed temperature/RSSI decoding).
 
 ## Sign-off before production `>>> CONTROL <<<` / `>>> MAPPING <<<`
 

@@ -2,7 +2,9 @@
 FROM python:3.12-slim
 
 WORKDIR /app
-RUN pip install --no-cache-dir "paho-mqtt>=1.6,<3"
+# paho-mqtt 2.x is the tested target (VERSION2 callback API); the bridge keeps a
+# 1.x fallback but the image pins the modern line.
+RUN pip install --no-cache-dir "paho-mqtt>=2.0,<3"
 COPY ambientika_local_bridge.py /app/
 
 # Raw-TCP port the ventilation units connect to.
