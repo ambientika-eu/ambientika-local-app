@@ -1,0 +1,80 @@
+# 100% cloud-free Ambientika stack.
+#
+# Same as the upstream docker-compose.yml, EXCEPT the cloud-polling `bridge`
+# service (ghcr.io/ambientika-eu/ambientika-mqtt-bridge, which needs your
+# Ambientika account + internet) is replaced by `local-bridge`, which talks to
+# the units directly over TCP:11000. No AMBIENTIKA_EMAIL / PASSWORD, no cloud.
+#
+# Drop these files into the ambientika-local-app repo root:
+#   docker-compose.local.yml   (this file)
+#   Dockerfile.bridge
+#   ambientika_local_bridge.py
+#   mosquitto/config/mosquitto.conf
+#
+# Run with:  docker compose -f docker-compose.local.yml up -d --build
+# The PWA is then on http://<host>:8080 — fully offline once devices are
+# redirected to this host (see README_LOCAL_CLOUDLESS.md).
+
+services:
+  # -----------------------------------------------------------------------
+  # MQTT Broker (Mosquitto) – local message bus
+  # -----------------------------------------------------------------------
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: ambientika-mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"          # WebSocket (optional)
+    volumes:
+      - ./mosquitto/config:/mosquitto/config
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+
+  # -----------------------------------------------------------------------
+  # LOCAL bridge – replaces the cloud poller.
+  # Units open a TCP connection to :11000 and are controlled entirely on LAN.
+  # -----------------------------------------------------------------------
+  local-bridge:
+    build:
+      context: .
+      dockerfile: Dockerfile.bridge
+    container_name: ambientika-local-bridge
+    restart: unless-stopped
+    depends_on:
+      - mqtt
+    ports:
+      - "11000:11000"        # devices connect here (after redirection)
+    environment:
+      MQTT_BROKER: mqtt
+      MQTT_PORT: 1883
+      MQTT_PREFIX: ambientika
+      LOCAL_TCP_PORT: 11000
+      HA_DISCOVERY: "false"  # the local-app does not need HA discovery
+      HOUSE_ID: "1"
+      DEVICE_ROLE: "0"       # 0 = MASTER (single-master default)
+      DEVICE_ZONE: "0"
+      LOG_LEVEL: INFO
+
+  # -----------------------------------------------------------------------
+  # Ambientika Local App Backend (FastAPI) + PWA – unchanged, MQTT-only.
+  # -----------------------------------------------------------------------
+  backend:
+    build: ./backend
+    container_name: ambientika-backend
+    restart: unless-stopped
+    depends_on:
+      - mqtt
+    ports:
+      - "8080:8080"
+    environment:
+      MQTT_BROKER: mqtt
+      MQTT_PORT: 1883
+      MQTT_PREFIX: ambientika
+      LOG_LEVEL: INFO
+    volumes:
+      - ./frontend/dist:/app/frontend/dist:ro
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
