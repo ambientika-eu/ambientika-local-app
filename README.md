@@ -1,3 +1,5 @@
+🌐 **DE** · [EN](docs/README.en.md) · [IT](docs/README.it.md) · [FR](docs/README.fr.md) · [ES](docs/README.es.md) · [NL](docs/README.nl.md) · [PL](docs/README.pl.md) · [PT](docs/README.pt.md) · [SV](docs/README.sv.md) · [DA](docs/README.da.md) · [CS](docs/README.cs.md)
+
 # Ambientika Local App 🏠
 
 > **Lokale App für Ambientika Lüftungsgeräte – Steuerung im Heimnetz, wahlweise 100% cloudfrei.**
@@ -22,7 +24,7 @@ und ist per Browser (Handy & PC) erreichbar – auch als installierbare App.
 Die App und die Steuerung laufen immer lokal im Heimnetz. Für die **Geräteanbindung** gibt es zwei Modi:
 
 - **Standard – Cloud-Bridge:** `docker-compose.yml` startet die `ambientika-mqtt-bridge`, die die Ambientika-Cloud abfragt und die Daten lokal per MQTT bereitstellt. Benötigt eine einmalige Cloud-Anmeldung (`AMBIENTIKA_EMAIL` / `AMBIENTIKA_PASSWORD`) und Internet.
-- **100% cloudfrei – lokale Bridge:** `docker-compose.local.yml` spricht die Geräte über die lokale TCP-Bridge (`ambientika_local_bridge.py`, Port 11000) direkt im LAN an — **ohne Cloud-Server und ohne dauerhafte Internetverbindung**. Einrichtung: [`README_LOCAL_CLOUDLESS.md`](README_LOCAL_CLOUDLESS.md) und [`CLOUD-INTEGRATION.md`](CLOUD-INTEGRATION.md).
+- **100% cloudfrei – lokale Bridge:** `docker-compose.local.yml` spricht die Geräte über die lokale TCP-Bridge (`ambientika_local_bridge.py`, Port 11000) direkt im LAN an — **ohne Cloud-Server und ohne dauerhafte Internetverbindung**. Einrichtung: [`README_LOCAL_CLOUDLESS.md`](docs/README_LOCAL_CLOUDLESS.de.md) und [`CLOUD-INTEGRATION.md`](docs/CLOUD-INTEGRATION.de.md).
 
 Die Taupunkt-/Feuchteschutz-Funktion läuft ohnehin autonom im Gerät und ist von beidem unabhängig.
 

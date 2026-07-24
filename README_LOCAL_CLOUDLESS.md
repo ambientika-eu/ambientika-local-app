@@ -1,3 +1,5 @@
+🌐 [DE](docs/README_LOCAL_CLOUDLESS.de.md) · **EN** · [IT](docs/README_LOCAL_CLOUDLESS.it.md) · [FR](docs/README_LOCAL_CLOUDLESS.fr.md) · [ES](docs/README_LOCAL_CLOUDLESS.es.md) · [NL](docs/README_LOCAL_CLOUDLESS.nl.md) · [PL](docs/README_LOCAL_CLOUDLESS.pl.md) · [PT](docs/README_LOCAL_CLOUDLESS.pt.md) · [SV](docs/README_LOCAL_CLOUDLESS.sv.md) · [DA](docs/README_LOCAL_CLOUDLESS.da.md) · [CS](docs/README_LOCAL_CLOUDLESS.cs.md)
+
 # Ambientika – 100% cloud-free app stack
 
 Runs the Ambientika Local App (FastAPI + PWA) with **no SUEDWIND cloud and no

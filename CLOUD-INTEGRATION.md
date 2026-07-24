@@ -1,3 +1,5 @@
+🌐 [DE](docs/CLOUD-INTEGRATION.de.md) · **EN** · [IT](docs/CLOUD-INTEGRATION.it.md) · [FR](docs/CLOUD-INTEGRATION.fr.md) · [ES](docs/CLOUD-INTEGRATION.es.md) · [NL](docs/CLOUD-INTEGRATION.nl.md) · [PL](docs/CLOUD-INTEGRATION.pl.md) · [PT](docs/CLOUD-INTEGRATION.pt.md) · [SV](docs/CLOUD-INTEGRATION.sv.md) · [DA](docs/CLOUD-INTEGRATION.da.md) · [CS](docs/CLOUD-INTEGRATION.cs.md)
+
 # CLOUD-INTEGRATION.md — Pointing Ambientika units at the local bridge
 
 This document explains how to make an Ambientika **Smart / Office** unit talk to
