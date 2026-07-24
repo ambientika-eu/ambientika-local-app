@@ -1,6 +1,6 @@
 # Ambientika Local App 🏠
 
-> **Lokale App für Ambientika Lüftungsgeräte – kein SUEDWIND-Cloud-Server erforderlich.**
+> **Lokale App für Ambientika Lüftungsgeräte – Steuerung im Heimnetz, wahlweise 100% cloudfrei.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-ambientika--eu-green)](https://github.com/ambientika-eu)
@@ -10,12 +10,21 @@
 ## 🎯 Was ist das?
 
 Eine vollständig **lokale** Web-App (PWA) zur Steuerung von Ambientika Lüftungsgeräten –  
-ohne Internetverbindung, ohne Cloud-Server, ohne Datenweitergabe an Dritte.
+die Steuerung läuft vollständig lokal im Heimnetz, ohne Datenweitergabe an Dritte. Die Geräteanbindung gibt es in zwei **Betriebsmodi** (siehe unten) — inklusive einer **100% cloudfreien** Variante ohne Cloud-Server und ohne dauerhafte Internetverbindung.
 
 Die App läuft im Heimnetzwerk auf einem Raspberry Pi, NAS oder jedem Linux-Server  
 und ist per Browser (Handy & PC) erreichbar – auch als installierbare App.
 
 ---
+
+## 🔀 Betriebsmodi
+
+Die App und die Steuerung laufen immer lokal im Heimnetz. Für die **Geräteanbindung** gibt es zwei Modi:
+
+- **Standard – Cloud-Bridge:** `docker-compose.yml` startet die `ambientika-mqtt-bridge`, die die Ambientika-Cloud abfragt und die Daten lokal per MQTT bereitstellt. Benötigt eine einmalige Cloud-Anmeldung (`AMBIENTIKA_EMAIL` / `AMBIENTIKA_PASSWORD`) und Internet.
+- **100% cloudfrei – lokale Bridge:** `docker-compose.local.yml` spricht die Geräte über die lokale TCP-Bridge (`ambientika_local_bridge.py`, Port 11000) direkt im LAN an — **ohne Cloud-Server und ohne dauerhafte Internetverbindung**. Einrichtung: [`README_LOCAL_CLOUDLESS.md`](README_LOCAL_CLOUDLESS.md) und [`CLOUD-INTEGRATION.md`](CLOUD-INTEGRATION.md).
+
+Die Taupunkt-/Feuchteschutz-Funktion läuft ohnehin autonom im Gerät und ist von beidem unabhängig.
 
 ## 🏗️ Architektur
 
@@ -38,6 +47,8 @@ Ambientika Gerät (WiFi)
 ---
 
 ## ⚡ Quick Start (Docker Compose)
+
+> **Standard-Modus (Cloud-Bridge).** Für den 100% cloudfreien Betrieb siehe **Betriebsmodi** oben sowie `README_LOCAL_CLOUDLESS.md` und `CLOUD-INTEGRATION.md`.
 
 ### 1. Repository klonen
 
