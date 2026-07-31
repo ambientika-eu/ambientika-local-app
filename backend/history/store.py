@@ -13,10 +13,9 @@ Keine externen Abhaengigkeiten - nur die Python-Standardbibliothek (sqlite3).
 
 from __future__ import annotations
 
-import json
 import os
 import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, Iterable, List, Optional
 
