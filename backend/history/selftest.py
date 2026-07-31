@@ -20,7 +20,7 @@ import os
 import tempfile
 from datetime import datetime, timezone, timedelta
 
-from .store import HistoryStore, HistoryConfig, utc_iso
+from .store import HistoryConfig, utc_iso
 from .sampler import HistorySampler
 from . import discovery, exporter
 
@@ -80,7 +80,6 @@ def main():
         sampler.sample_once(utc_iso(base + timedelta(minutes=5 * i)))
 
     store = sampler.store
-    rows = store.query()
 
     # ---- Pruefungen --------------------------------------------------------
     assert store.count() == 15, f"erwartet 15 Zeilen, ist {store.count()}"
@@ -115,7 +114,6 @@ def main():
 
     # ---- HA-Discovery ------------------------------------------------------
     cfgs = discovery.build_discovery_configs("ambientika", r2)
-    by_field = {c["payload"]["unique_id"].split("_")[-1]: c for c in cfgs}
     temp_cfg = next(c for c in cfgs if c["payload"]["unique_id"].endswith("temperature"))
     assert temp_cfg["payload"]["device_class"] == "temperature"
     assert temp_cfg["payload"]["state_class"] == "measurement"

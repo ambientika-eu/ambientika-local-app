@@ -17,7 +17,7 @@ entgegen (Dependency Injection) - kein Broker noetig, um die Payloads zu pruefen
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 # Feld -> (HA-Komponente, device_class, state_class, Einheit, Anzeigename)
 # state_class="measurement" auf allen numerischen Feldern => HA-Langzeitstatistik.
