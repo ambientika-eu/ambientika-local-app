@@ -132,7 +132,9 @@ async def lifespan(app: FastAPI):
         logger.info("MQTT loop started")
     except Exception as exc:
         logger.warning("Could not connect to MQTT broker: %s", exc)
+    history_sampler.start()
     yield
+    await history_sampler.stop()
     mqtt_client.loop_stop()
     mqtt_client.disconnect()
 
@@ -148,6 +150,18 @@ app.add_middleware(CORSMiddleware, allow_origins=["*"],
 # ---------------------------------------------------------------------------
 # Pydantic models
 # ---------------------------------------------------------------------------
+# --- Lokale Messwert-Historie (SQLite + MQTT/HA, keine Cloud) ---
+from history.sampler import HistorySampler
+from history.routes import make_history_router
+
+history_sampler = HistorySampler(
+    get_devices=lambda: devices,
+    mqtt_client=mqtt_client,
+    mqtt_prefix=MQTT_PREFIX,
+)
+app.include_router(make_history_router(history_sampler))
+
+
 class DeviceCommand(BaseModel):
     mode:     Optional[str] = None   # HRV | NIGHT | BOOST | ECO | SMART | OFF
     fanSpeed: Optional[int] = None   # 0-100

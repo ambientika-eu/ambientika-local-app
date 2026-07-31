@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="theme-color" content="#0066cc"/>
+<title>Ambientika Local – Historie</title>
+<style>
+/* Gleiche Design-Tokens wie die Haupt-App (index.html), damit der Look passt. */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--primary:#0066cc;--primary-d:#004fa3;--bg:#f0f4f8;--card:#fff;--text:#1a202c;
+--muted:#718096;--border:#e2e8f0;--green:#38a169;--red:#e53e3e;--orange:#dd6b20;
+--radius:12px;--shadow:0 2px 12px rgba(0,0,0,.08)}
+[data-theme="dark"]{--bg:#0f1117;--card:#1a1f2e;--text:#e2e8f0;--muted:#a0aec0;
+--border:#2d3748;--shadow:0 2px 12px rgba(0,0,0,.4)}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+background:var(--bg);color:var(--text);min-height:100vh}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:.7rem 1.2rem;
+display:flex;align-items:center;gap:1rem;position:sticky;top:0;z-index:10;box-shadow:var(--shadow)}
+header h1{font-size:1.05rem;font-weight:700}
+header .back{color:var(--primary);text-decoration:none;font-weight:600;font-size:.9rem}
+header .spacer{margin-left:auto}
+main{padding:1.2rem;max-width:1100px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+box-shadow:var(--shadow);padding:1rem 1.1rem;margin-bottom:1.1rem}
+.controls{display:flex;flex-wrap:wrap;gap:.8rem;align-items:end}
+.field{display:flex;flex-direction:column;gap:.25rem}
+.field label{font-size:.72rem;color:var(--muted);font-weight:700;letter-spacing:.02em;text-transform:uppercase}
+.field input,.field select{padding:.5rem .6rem;border:1px solid var(--border);border-radius:8px;
+background:var(--bg);color:var(--text);font-size:.9rem;min-width:150px}
+button{cursor:pointer;border:none;border-radius:8px;padding:.55rem .95rem;font-weight:700;font-size:.85rem}
+.btn{background:var(--primary);color:#fff}
+.btn:hover{background:var(--primary-d)}
+.btn-ghost{background:transparent;color:var(--primary);border:1px solid var(--primary)}
+.row{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center}
+.stat{display:flex;gap:1.4rem;flex-wrap:wrap;color:var(--muted);font-size:.85rem}
+.stat b{color:var(--text)}
+table{width:100%;border-collapse:collapse;font-size:.8rem}
+th,td{padding:.4rem .5rem;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+thead th{position:sticky;top:0;background:var(--card);color:var(--muted);font-weight:700;
+text-transform:uppercase;font-size:.68rem;letter-spacing:.02em}
+.table-wrap{max-height:60vh;overflow:auto;border:1px solid var(--border);border-radius:var(--radius)}
+.pill{display:inline-block;padding:.1rem .5rem;border-radius:999px;font-size:.72rem;font-weight:700}
+.pill.g{background:#f0fff4;color:#276749}.pill.y{background:#fffff0;color:#975a16}.pill.r{background:#fff5f5;color:#c53030}
+[data-theme="dark"] .pill.g{background:#1a2e22;color:#68d391}
+[data-theme="dark"] .pill.r{background:#2e1a1a;color:#fc8181}
+canvas{width:100%;max-width:100%;height:220px;display:block}
+.muted{color:var(--muted);font-size:.85rem}
+.err{color:var(--red);font-size:.85rem}
+</style>
+</head>
+<body>
+<header>
+<a class="back" href="index.html">&larr; App</a>
+<h1>Messwert-Historie</h1>
+<span class="spacer"></span>
+<button class="btn-ghost" id="theme-btn" title="Hell/Dunkel">◑</button>
+</header>
+
+<main>
+  <div class="card">
+    <div class="controls">
+      <div class="field">
+        <label for="serial">Gerät (Seriennummer)</label>
+        <select id="serial"><option value="">alle</option></select>
+      </div>
+      <div class="field">
+        <label for="start">Von (lokal)</label>
+        <input type="datetime-local" id="start"/>
+      </div>
+      <div class="field">
+        <label for="end">Bis (lokal)</label>
+        <input type="datetime-local" id="end"/>
+      </div>
+      <button class="btn" id="load-btn">Laden</button>
+      <button class="btn-ghost" id="csv-btn">CSV</button>
+      <button class="btn-ghost" id="json-btn">JSON</button>
+      <button class="btn-ghost" id="sample-btn" title="Sofort eine Messung aufzeichnen">Jetzt aufzeichnen</button>
+    </div>
+    <div class="row" style="margin-top:.8rem">
+      <div class="stat" id="stat"></div>
+    </div>
+    <div id="msg" class="err" style="margin-top:.5rem"></div>
+  </div>
+
+  <div class="card">
+    <div class="row" style="justify-content:space-between;margin-bottom:.5rem">
+      <b style="font-size:.9rem">Verlauf</b>
+      <div class="field" style="min-width:auto">
+        <select id="metric">
+          <option value="temperature">Temperatur (°C)</option>
+          <option value="humidity">Luftfeuchtigkeit (%)</option>
+          <option value="air_quality_voc">Luftqualität VOC</option>
+          <option value="air_quality_num">Luftqualität Stufe (0–4)</option>
+          <option value="fan_speed_pct">Lüfter (%)</option>
+          <option value="rssi">Funkgüte (dBm)</option>
+        </select>
+      </div>
+    </div>
+    <canvas id="chart"></canvas>
+    <div class="muted" id="chart-hint">Ein Gerät wählen, um den Verlauf zu zeichnen.</div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Zeit (UTC)</th><th>Gerät</th><th>Modus</th><th>°C</th><th>% rF</th>
+          <th>VOC</th><th>LQ</th><th>Lüfter %</th><th>Filter</th><th>dBm</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+// API-Basis: relativ, da diese Seite vom selben FastAPI-Backend ausgeliefert wird.
+const API = "";
+const $ = (id) => document.getElementById(id);
+let rows = [];
+
+// --- Hell/Dunkel (nur In-Memory, kein Storage) ---
+$("theme-btn").onclick = () => {
+  const el = document.documentElement;
+  el.dataset.theme = el.dataset.theme === "dark" ? "" : "dark";
+};
+
+function toUtcIso(localVal){
+  if(!localVal) return "";
+  // datetime-local -> UTC ISO 8601 (Z)
+  const d = new Date(localVal);
+  return d.toISOString().slice(0,19) + "Z";
+}
+function q(){
+  const p = new URLSearchParams();
+  if($("serial").value) p.set("serial", $("serial").value);
+  const s = toUtcIso($("start").value), e = toUtcIso($("end").value);
+  if(s) p.set("start", s);
+  if(e) p.set("end", e);
+  return p.toString();
+}
+
+async function loadConfig(){
+  try{
+    const c = await fetch(API + "/api/history/config").then(r=>r.json());
+    $("stat").innerHTML =
+      `Intervall <b>${c.interval_seconds}s</b> · Aufbewahrung <b>${c.retention_days} Tage</b> · `+
+      `MQTT <b>${c.mqtt_publish ? "an" : "aus"}</b> · Zeilen gesamt <b>${c.rows}</b>`;
+  }catch(err){ /* Config optional */ }
+}
+
+async function loadSerials(){
+  // Seriennummern aus der Historie ableiten (robust, auch ohne /api/devices-Serial).
+  try{
+    const data = await fetch(API + "/api/history?limit=5000").then(r=>r.json());
+    const set = [...new Set(data.map(r=>r.serial).filter(Boolean))].sort();
+    const sel = $("serial");
+    set.forEach(s=>{
+      const o = document.createElement("option"); o.value=s; o.textContent=s; sel.appendChild(o);
+    });
+  }catch(err){}
+}
+
+function pill(status){
+  if(status==null) return "";
+  const map={gruen:"g","grün":"g",gelb:"y",rot:"r"};
+  const c = map[String(status).toLowerCase()] || "";
+  return `<span class="pill ${c}">${status}</span>`;
+}
+
+function render(){
+  const tb = $("tbody"); tb.innerHTML="";
+  rows.forEach(r=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td>${(r.ts_utc||"").replace("T"," ").replace("Z","")}</td>`+
+      `<td>${r.device_name||r.serial||""}</td>`+
+      `<td>${r.mode_reported??""}</td>`+
+      `<td>${r.temperature??""}</td>`+
+      `<td>${r.humidity??""}</td>`+
+      `<td>${r.air_quality_voc??""}</td>`+
+      `<td>${r.air_quality??""}</td>`+
+      `<td>${r.fan_speed_pct??""}</td>`+
+      `<td>${pill(r.filter_status)}</td>`+
+      `<td>${r.rssi??""}</td>`;
+    tb.appendChild(tr);
+  });
+  drawChart();
+}
+
+function drawChart(){
+  const c = $("chart"); const ctx = c.getContext("2d");
+  const dpr = window.devicePixelRatio||1;
+  const w = c.clientWidth, h = 220;
+  c.width = w*dpr; c.height = h*dpr; ctx.scale(dpr,dpr);
+  ctx.clearRect(0,0,w,h);
+  const metric = $("metric").value;
+  // Nur ein Gerät sinnvoll: falls "alle", nimm das erste vorkommende Serial.
+  let serial = $("serial").value;
+  if(!serial){ const s=[...new Set(rows.map(r=>r.serial))]; serial = s[0]; }
+  const pts = rows.filter(r=>r.serial===serial && r[metric]!=null)
+                  .map(r=>({t:r.ts_utc, v:Number(r[metric])}));
+  $("chart-hint").textContent = pts.length
+    ? `${serial} · ${pts.length} Punkte`
+    : "Keine Daten für die Auswahl.";
+  if(pts.length<2) return;
+  const vals = pts.map(p=>p.v);
+  let min=Math.min(...vals), max=Math.max(...vals);
+  if(min===max){ min-=1; max+=1; }
+  const padL=40, padB=18, padT=10, padR=8;
+  const gx = v => padL + (v/(pts.length-1))*(w-padL-padR);
+  const gy = v => padT + (1-(v-min)/(max-min))*(h-padT-padB);
+  // Achsen
+  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--border");
+  ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(padL,padT); ctx.lineTo(padL,h-padB); ctx.lineTo(w-padR,h-padB); ctx.stroke();
+  ctx.fillStyle = getComputedStyle(document.body).getPropertyValue("--muted");
+  ctx.font="10px sans-serif";
+  ctx.fillText(max.toFixed(1), 2, gy(max)+3);
+  ctx.fillText(min.toFixed(1), 2, gy(min)+3);
+  // Linie
+  ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue("--primary");
+  ctx.lineWidth=2; ctx.beginPath();
+  pts.forEach((p,i)=>{ const x=gx(i), y=gy(p.v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+  ctx.stroke();
+}
+
+async function load(){
+  $("msg").textContent="";
+  try{
+    rows = await fetch(API + "/api/history?" + q() + "&limit=5000").then(r=>r.json());
+    render();
+  }catch(err){ $("msg").textContent = "Fehler beim Laden: " + err; }
+}
+
+$("load-btn").onclick = load;
+$("metric").onchange = drawChart;
+$("serial").onchange = () => { drawChart(); };
+$("csv-btn").onclick = () => { window.location = API + "/api/history/export.csv?" + q(); };
+$("json-btn").onclick = () => { window.location = API + "/api/history/export.json?" + q(); };
+$("sample-btn").onclick = async () => {
+  $("sample-btn").disabled=true;
+  try{ await fetch(API + "/api/history/sample-now", {method:"POST"}); await load(); await loadConfig(); }
+  finally{ $("sample-btn").disabled=false; }
+};
+
+(async function init(){
+  await loadConfig();
+  await loadSerials();
+  await load();
+})();
+</script>
+</body>
+</html>
