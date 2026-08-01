@@ -28,7 +28,11 @@ import paho.mqtt.client as mqtt
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
+# Verbindliche Text<->Zahl-Mappings der Historie werden auch hier fuer die
+# Normalisierung des realen Bridge-States wiederverwendet (eine Quelle).
+from history import mappings as M
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -58,14 +62,92 @@ ws_clients: List[WebSocket] = []
 neuracell_state: Dict[str, Any] = {}
 
 # ---------------------------------------------------------------------------
+# Bridge-State-Normalisierung
+# ---------------------------------------------------------------------------
+# Die Bridge liefert native Feldnamen (operating_mode, fan_speed, air_quality,
+# filters_status, device_role, zone_index ...). Fuer die bestehende PWA werden
+# zusaetzlich kompatible Alias-Felder erzeugt, ohne die Rohdaten zu verlieren.
+#
+# OperatingMode (IntEnum, ambientika_py): Index == nativer Enumwert 0..11.
+OPERATING_MODE_NAMES = [
+    "Smart", "Auto", "ManualHeatRecovery", "Night", "AwayHome", "Surveillance",
+    "TimedExpulsion", "Expulsion", "Intake", "MasterSlaveFlow", "SlaveMasterFlow", "Off",
+]
+# OperatingMode-Name -> altes PWA-Token (nur fuer die Anzeige der alten Oberflaeche).
+_MODE_NAME_TO_TOKEN = {
+    "Smart": "SMART", "Auto": "AUTO", "ManualHeatRecovery": "MANUAL_HRV",
+    "Night": "NIGHT", "AwayHome": "AWAY", "Surveillance": "MONITORING",
+    "TimedExpulsion": "TIMED_EXHAUST", "Expulsion": "EXHAUST", "Intake": "SUPPLY",
+    "MasterSlaveFlow": "MS_FLOW", "SlaveMasterFlow": "SM_FLOW", "Off": "OFF",
+}
+# Erlaubte Kommando-Attribute an die Bridge (<prefix>/<serial>/set/<attr>).
+_SETTABLE_ATTRS = ("operating_mode", "fan_speed", "humidity_level", "light_sensor_level")
+
+
+def _mode_num_to_name(num: Optional[int]) -> Optional[str]:
+    if num is None:
+        return None
+    if 0 <= int(num) < len(OPERATING_MODE_NAMES):
+        return OPERATING_MODE_NAMES[int(num)]
+    return None
+
+
+def normalize_state(serial: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Realen Bridge-State in das interne Geraete-Dict uebersetzen.
+
+    Enthaelt die ROHFELDER der Bridge (verlustfrei) UND kompatible Alias-Felder
+    fuer die bestehende PWA. Vorhandene Felder (z.B. online aus availability)
+    werden vom Aufrufer beibehalten.
+    """
+    d: Dict[str, Any] = dict(payload)   # Rohdaten der Bridge unveraendert uebernehmen
+    d["serial"] = serial
+    d["deviceId"] = serial
+    # Bridge-State enthaelt keinen Klarnamen -> Seriennummer als Anzeigename.
+    d.setdefault("name", payload.get("name") or serial)
+
+    # -- Betriebsmodus --
+    op_mode = payload.get("operating_mode")
+    if op_mode is not None:
+        d["mode"] = _MODE_NAME_TO_TOKEN.get(str(op_mode), str(op_mode))
+
+    # -- Rolle / Zone --
+    role = payload.get("device_role")
+    if role is not None:
+        d["role"] = str(role).upper()
+    zi = payload.get("zone_index")
+    if zi is not None:
+        d["zone"] = f"Zone {zi}"        # truthy + lesbar (zone_index 0 bleibt erhalten)
+
+    # -- Luftqualitaet (numerisch-sicher fuer die Alt-UI + Smart-Endpoint) --
+    aq_voc, aq_text, aq_num = M.air_quality_normalize(payload.get("air_quality"))
+    d["airQuality"] = aq_voc            # nur Zahl (ppm) oder None -> nie String
+    d["airQualityText"] = aq_text
+    d["airQualityLevel"] = aq_num
+
+    # -- Luefter (3-stufig) --
+    fan_num = M.fan_speed_to_num(payload.get("fan_speed"))
+    d["fanSpeed"] = fan_num             # 1..3 (Kompat-Zahl)
+    d["fanSpeedText"] = payload.get("fan_speed")
+
+    # -- Filterampel + Alt-Alarm-Bool --
+    fil_text, fil_num = M.filter_status_normalize(payload.get("filters_status"))
+    d["filterStatus"] = fil_text
+    d["filterStatusNum"] = fil_num
+    d["filterAlarm"] = M.filter_num_is_alarm(fil_num)
+
+    return d
+
+
+# ---------------------------------------------------------------------------
 # MQTT
 # ---------------------------------------------------------------------------
 mqtt_client = mqtt.Client(client_id="ambientika-local-app")
 
 def on_connect(client, userdata, flags, rc):
     if rc == 0:
-        logger.info("MQTT connected – subscribing to %s/+/status", MQTT_PREFIX)
-        client.subscribe(f"{MQTT_PREFIX}/+/status")
+        logger.info("MQTT connected – subscribing to %s/+/state", MQTT_PREFIX)
+        # Realer Bridge-Contract: Zustand kommt auf <prefix>/<serial>/state.
+        client.subscribe(f"{MQTT_PREFIX}/+/state")
         client.subscribe(f"{MQTT_PREFIX}/+/availability")
         client.subscribe(f"{MQTT_PREFIX}/neuracell/state")  # NeuraCell-X status
     else:
@@ -87,16 +169,37 @@ def on_message(client, userdata, msg):
                 broadcast({"event": "neuracell", "data": neuracell_state}), loop)
             return
         device_id, kind = parts[1], parts[2]
-        payload = json.loads(msg.payload.decode())
-        if kind == "status":
-            devices[device_id] = {**payload, "lastSeen": int(time.time())}
-        elif kind == "availability":
-            if device_id in devices:
-                devices[device_id]["online"] = (
-                    payload == "online" or payload.get("state") == "online"
-                )
+        if kind == "availability":
+            # Availability-Payload ist ein Klartext ("online"/"offline"),
+            # gelegentlich auch ein kleines JSON {"state": "..."}.
+            raw = msg.payload.decode().strip()
+            try:
+                pj = json.loads(raw)
+                online = (pj.get("state") == "online") if isinstance(pj, dict) else (pj == "online")
+            except Exception:
+                online = (raw.lower() == "online")
+            prev = devices.get(device_id, {})
+            prev["serial"] = device_id
+            prev.setdefault("deviceId", device_id)
+            prev["online"] = online
+            prev["lastSeen"] = int(time.time())
+            devices[device_id] = prev
+            event = "availability"
+        elif kind == "state":
+            payload = json.loads(msg.payload.decode())
+            if not isinstance(payload, dict):
+                return
+            norm = normalize_state(device_id, payload)
+            norm["lastSeen"] = int(time.time())
+            # Online-Status aus availability nicht ueberschreiben.
+            if "online" in devices.get(device_id, {}):
+                norm["online"] = devices[device_id]["online"]
+            devices[device_id] = norm
+            event = "status"   # Kompat: die PWA lauscht auf 'status'
+        else:
+            return
         asyncio.run_coroutine_threadsafe(
-            broadcast({"event": kind, "deviceId": device_id,
+            broadcast({"event": event, "deviceId": device_id,
                        "data": devices.get(device_id, {})}),
             loop,
         )
@@ -163,20 +266,36 @@ app.include_router(make_history_router(history_sampler))
 
 
 class DeviceCommand(BaseModel):
-    mode:     Optional[str] = None   # HRV | NIGHT | BOOST | ECO | SMART | OFF
-    fanSpeed: Optional[int] = None   # 0-100
+    # Kompat: die PWA schickt weiterhin mode/fanSpeed. Zusaetzlich koennen die
+    # nativen Bridge-Attribute direkt gesetzt werden. Alle optional.
+    mode:               Optional[str] = None   # PWA-Token ODER OperatingMode-Name ODER 0..11
+    fanSpeed:           Optional[Any] = None   # 'Low'/'Medium'/'High', 1..3 oder 0..100 (Legacy)
+    operating_mode:     Optional[str] = None   # OperatingMode-Name (direkt)
+    fan_speed:          Optional[str] = None   # 'Low'|'Medium'|'High' (direkt)
+    humidity_level:     Optional[str] = None   # 'Dry'|'Normal'|'Moist'
+    light_sensor_level: Optional[str] = None   # 'NotAvailable'|'Off'|'Low'|'Medium'
 
 class DeviceInfo(BaseModel):
-    deviceId:    str
-    name:        Optional[str]   = None
-    mode:        Optional[str]   = None
-    fanSpeed:    Optional[int]   = None
-    temperature: Optional[float] = None
-    humidity:    Optional[int]   = None
-    airQuality:  Optional[int]   = None
-    filterAlarm: Optional[bool]  = None
-    online:      Optional[bool]  = None
-    lastSeen:    Optional[int]   = None
+    # extra='allow' -> die verlustfrei uebernommenen Bridge-Rohfelder
+    # (operating_mode, filters_status, zone_index ...) bleiben in der Antwort.
+    model_config = ConfigDict(extra="allow")
+    deviceId:       str
+    serial:         Optional[str]   = None
+    name:           Optional[str]   = None
+    mode:           Optional[str]   = None   # PWA-Token (aus operating_mode)
+    role:           Optional[str]   = None
+    zone:           Optional[str]   = None
+    temperature:    Optional[float] = None
+    humidity:       Optional[int]   = None
+    airQuality:     Optional[int]   = None   # VOC/ppm-Zahl oder None (nie String)
+    airQualityText: Optional[str]   = None   # 5-stufige Kategorie
+    airQualityLevel: Optional[int]  = None   # 0..4
+    fanSpeed:       Optional[int]   = None   # 1..3
+    fanSpeedText:   Optional[str]   = None   # Low|Medium|High
+    filterAlarm:    Optional[bool]  = None
+    filterStatus:   Optional[str]   = None   # gruen|gelb|rot
+    online:         Optional[bool]  = None
+    lastSeen:       Optional[int]   = None
 
 WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 
@@ -204,26 +323,72 @@ class WeekSchedule(BaseModel):
 @app.get("/api/devices", response_model=List[DeviceInfo], tags=["Devices"])
 async def list_devices():
     """Return all known Ambientika devices with their current state."""
-    return [DeviceInfo(deviceId=did, **state) for did, state in devices.items()]
+    return [DeviceInfo(**{**state, "deviceId": did}) for did, state in devices.items()]
 
 @app.get("/api/devices/{device_id}", response_model=DeviceInfo, tags=["Devices"])
 async def get_device(device_id: str):
     if device_id not in devices:
         raise HTTPException(status_code=404, detail="Device not found")
-    return DeviceInfo(deviceId=device_id, **devices[device_id])
+    return DeviceInfo(**{**devices[device_id], "deviceId": device_id})
+
+
+def _resolve_commands(cmd: "DeviceCommand") -> Dict[str, str]:
+    """Uebersetzt ein Kommando in native Bridge-Attribute + Enum-Namen.
+
+    Rueckgabe: {attr: enum_name} fuer je <prefix>/<serial>/set/<attr>.
+    Akzeptiert sowohl die Alt-PWA-Form (mode/fanSpeed) als auch native Felder.
+    """
+    out: Dict[str, str] = {}
+
+    # Betriebsmodus: Token/Name/Zahl -> OperatingMode-Name
+    mode_val = cmd.operating_mode if cmd.operating_mode is not None else cmd.mode
+    if mode_val is not None:
+        num = None
+        s = str(mode_val).strip()
+        if s.isdigit():
+            num = int(s)
+        else:
+            num = M.mode_to_num(s)
+        name = _mode_num_to_name(num)
+        if name is None:
+            raise HTTPException(status_code=400, detail=f"Unknown mode: {mode_val}")
+        out["operating_mode"] = name
+
+    # Luefter: Name/Stufe/Prozent -> FanSpeed-Name
+    fan_val = cmd.fan_speed if cmd.fan_speed is not None else cmd.fanSpeed
+    if fan_val is not None:
+        fan_name = M.fan_num_to_name(M.fan_speed_to_num(fan_val))
+        if fan_name is None:
+            raise HTTPException(status_code=400, detail=f"Unknown fanSpeed: {fan_val}")
+        out["fan_speed"] = fan_name
+
+    # Feuchtestufe / Lichtsensor: direkt als Enum-Name (validiert)
+    if cmd.humidity_level is not None:
+        if M.humidity_level_to_num(cmd.humidity_level) is None:
+            raise HTTPException(status_code=400, detail=f"Unknown humidity_level: {cmd.humidity_level}")
+        out["humidity_level"] = str(cmd.humidity_level).capitalize()
+    if cmd.light_sensor_level is not None:
+        out["light_sensor_level"] = str(cmd.light_sensor_level)
+
+    return out
 
 @app.post("/api/devices/{device_id}/command", tags=["Devices"])
 async def send_command(device_id: str, cmd: DeviceCommand):
-    """Send mode / fanSpeed command to a device via MQTT."""
+    """Send a command to a device via MQTT (per-attribute set/<attr> topics)."""
     if device_id not in devices:
         raise HTTPException(status_code=404, detail="Device not found")
-    payload = cmd.dict(exclude_none=True)
-    if not payload:
-        raise HTTPException(status_code=400, detail="Provide mode or fanSpeed")
-    topic = f"{MQTT_PREFIX}/{device_id}/set"
-    mqtt_client.publish(topic, json.dumps(payload), qos=1)
-    logger.info("Command → %s: %s", device_id, payload)
-    return {"status": "ok", "topic": topic, "payload": payload}
+    attrs = _resolve_commands(cmd)
+    if not attrs:
+        raise HTTPException(status_code=400, detail="Provide mode / fanSpeed / humidity_level / light_sensor_level")
+    published = []
+    for attr, value in attrs.items():
+        if attr not in _SETTABLE_ATTRS:
+            continue
+        topic = f"{MQTT_PREFIX}/{device_id}/set/{attr}"
+        mqtt_client.publish(topic, value, qos=1)   # Bridge parst per Enum-Name
+        published.append({"topic": topic, "value": value})
+        logger.info("Command → %s: %s = %s", device_id, attr, value)
+    return {"status": "ok", "commands": published}
 
 # ---------------------------------------------------------------------------
 # REST – Schedule (Wochenzeitplan)
