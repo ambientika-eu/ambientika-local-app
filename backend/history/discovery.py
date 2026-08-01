@@ -9,9 +9,12 @@ Zweck laut Spezifikation:
   reine Text-/Enum-Sensoren bekommen in HA keine numerische Statistik, die
   numerische Variante schon.
 
-Die Discovery-Payloads werden hier als reine Funktionen gebaut (ohne Broker),
-d.h. voll testbar. publish_* nimmt einen bereits verbundenen paho-mqtt-Client
-entgegen (Dependency Injection) - kein Broker noetig, um die Payloads zu pruefen.
+Die Historie publiziert auf ein EIGENES Topic
+  <prefix>/history/<serial>/state
+das sich bewusst vom Bridge-eigenen  <prefix>/<serial>/state  unterscheidet
+(keine Kollision). Die Payloads werden hier als reine Funktionen gebaut (ohne
+Broker), d.h. voll testbar. publish_* nimmt einen bereits verbundenen
+paho-mqtt-Client entgegen (Dependency Injection) - kein Broker noetig.
 """
 
 from __future__ import annotations
@@ -22,32 +25,38 @@ from typing import Any, Dict, List
 # Feld -> (HA-Komponente, device_class, state_class, Einheit, Anzeigename)
 # state_class="measurement" auf allen numerischen Feldern => HA-Langzeitstatistik.
 SENSOR_SPEC: List[Dict[str, Any]] = [
-    # numerische Sensoren (Langzeitstatistik)
-    {"field": "temperature",       "component": "sensor",        "device_class": "temperature",     "state_class": "measurement", "unit": "°C",  "name": "Temperatur"},
-    {"field": "humidity",          "component": "sensor",        "device_class": "humidity",        "state_class": "measurement", "unit": "%",   "name": "Luftfeuchtigkeit"},
-    {"field": "air_quality_voc",   "component": "sensor",        "device_class": "volatile_organic_compounds_parts", "state_class": "measurement", "unit": "ppb", "name": "Luftqualitaet VOC"},
-    {"field": "air_quality_num",   "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Luftqualitaet Stufe"},
-    {"field": "fan_speed_pct",     "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": "%",   "name": "Luefter"},
-    {"field": "fan_speed_num",     "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Luefterstufe"},
-    {"field": "mode_reported_num", "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Modus (num)"},
-    {"field": "mode_effective_num","component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Modus Zone (num)"},
-    {"field": "filter_status_num", "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Filterstatus (num)"},
-    {"field": "humidity_threshold","component": "sensor",        "device_class": "humidity",        "state_class": "measurement", "unit": "%",   "name": "Feuchteschwelle"},
-    {"field": "rssi",              "component": "sensor",        "device_class": "signal_strength", "state_class": "measurement", "unit": "dBm", "name": "Funkguete"},
-    # Text-/Enum-Sensoren (Anzeige, keine numerische Statistik)
-    {"field": "air_quality",       "component": "sensor",        "device_class": "enum",           "state_class": None,          "unit": None,  "name": "Luftqualitaet"},
-    {"field": "mode_reported",     "component": "sensor",        "device_class": "enum",           "state_class": None,          "unit": None,  "name": "Modus"},
-    {"field": "mode_effective",    "component": "sensor",        "device_class": "enum",           "state_class": None,          "unit": None,  "name": "Modus Zone"},
-    {"field": "filter_status",     "component": "sensor",        "device_class": "enum",           "state_class": None,          "unit": None,  "name": "Filterstatus"},
-    # Bool -> binary_sensor
-    {"field": "humidity_alarm",    "component": "binary_sensor", "device_class": "moisture",        "state_class": None,          "unit": None,  "name": "Feuchtealarm", "payload": (1, 0)},
-    {"field": "night_mode",        "component": "binary_sensor", "device_class": "running",         "state_class": None,          "unit": None,  "name": "Nachtmodus",   "payload": (1, 0)},
-    {"field": "online",            "component": "binary_sensor", "device_class": "connectivity",    "state_class": None,          "unit": None,  "name": "Online",       "payload": (1, 0)},
+    # --- numerische Sensoren (Langzeitstatistik) --------------------------
+    {"field": "temperature",            "component": "sensor",        "device_class": "temperature",     "state_class": "measurement", "unit": "°C",  "name": "Temperatur"},
+    {"field": "humidity",               "component": "sensor",        "device_class": "humidity",        "state_class": "measurement", "unit": "%",   "name": "Luftfeuchtigkeit"},
+    {"field": "air_quality_voc",        "component": "sensor",        "device_class": "volatile_organic_compounds_parts", "state_class": "measurement", "unit": "ppb", "name": "Luftqualitaet VOC"},
+    {"field": "air_quality_num",        "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Luftqualitaet Stufe"},
+    {"field": "fan_speed_num",          "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Luefterstufe"},
+    {"field": "mode_reported_num",      "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Modus (num)"},
+    {"field": "mode_last_num",          "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Letzter Modus (num)"},
+    {"field": "humidity_level_num",     "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Feuchtestufe (num)"},
+    {"field": "light_sensor_level_num", "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Lichtsensor (num)"},
+    {"field": "filter_status_num",      "component": "sensor",        "device_class": None,              "state_class": "measurement", "unit": None,  "name": "Filterstatus (num)"},
+    # --- Diagnose / Text (keine numerische Statistik) ---------------------
+    {"field": "zone_index",             "component": "sensor",        "device_class": None,              "state_class": None,          "unit": None,  "name": "Zone"},
+    {"field": "air_quality",            "component": "sensor",        "device_class": None,              "state_class": None,          "unit": None,  "name": "Luftqualitaet"},
+    {"field": "fan_speed",              "component": "sensor",        "device_class": None,              "state_class": None,          "unit": None,  "name": "Luefter"},
+    {"field": "mode_reported",          "component": "sensor",        "device_class": None,              "state_class": None,          "unit": None,  "name": "Modus"},
+    {"field": "mode_last",              "component": "sensor",        "device_class": None,              "state_class": None,          "unit": None,  "name": "Letzter Modus"},
+    {"field": "humidity_level",         "component": "sensor",        "device_class": None,              "state_class": None,          "unit": None,  "name": "Feuchtestufe"},
+    {"field": "light_sensor_level",     "component": "sensor",        "device_class": None,              "state_class": None,          "unit": None,  "name": "Lichtsensor"},
+    {"field": "filter_status",          "component": "sensor",        "device_class": "enum",            "state_class": None,          "unit": None,  "name": "Filterstatus", "options": ["gruen", "gelb", "rot"]},
+    {"field": "role",                   "component": "sensor",        "device_class": None,              "state_class": None,          "unit": None,  "name": "Rolle"},
+    # --- Bool -> binary_sensor --------------------------------------------
+    {"field": "humidity_alarm",         "component": "binary_sensor", "device_class": "moisture",        "state_class": None,          "unit": None,  "name": "Feuchtealarm", "payload": (1, 0)},
+    {"field": "night_alarm",            "component": "binary_sensor", "device_class": "problem",         "state_class": None,          "unit": None,  "name": "Nachtalarm",   "payload": (1, 0)},
+    {"field": "night_mode",             "component": "binary_sensor", "device_class": "running",         "state_class": None,          "unit": None,  "name": "Nachtmodus",   "payload": (1, 0)},
+    {"field": "online",                 "component": "binary_sensor", "device_class": "connectivity",    "state_class": None,          "unit": None,  "name": "Online",       "payload": (1, 0)},
 ]
 
 
 def state_topic(prefix: str, serial: str) -> str:
-    """Gemeinsames numerisches State-Topic je Geraet (JSON, retained)."""
+    """Eigenes numerisches State-Topic je Geraet (JSON, retained).
+    Bewusst UNTER <prefix>/history/... - kollidiert nicht mit dem Bridge-State."""
     return f"{prefix}/history/{serial}/state"
 
 
@@ -59,6 +68,7 @@ def build_state_payload(record: Dict[str, Any]) -> str:
 def build_discovery_configs(prefix: str, record: Dict[str, Any]) -> List[Dict[str, Any]]:
     """
     Baut je Feld eine (topic, payload)-Discovery-Konfiguration.
+    Felder ohne Wert (None) werden uebersprungen -> keine toten HA-Sensoren.
     Rueckgabe: Liste von {"topic":..., "payload": {...}}.
     """
     serial = record.get("serial")
@@ -67,13 +77,13 @@ def build_discovery_configs(prefix: str, record: Dict[str, Any]) -> List[Dict[st
     device_block = {
         "identifiers": [serial],
         "name": name,
-        "manufacturer": "Ambientika",
+        "manufacturer": "Ambientika / SUEDWIND",
         "model": "Ambientika Smart",
     }
     configs: List[Dict[str, Any]] = []
     for spec in SENSOR_SPEC:
         field = spec["field"]
-        if field not in record:
+        if field not in record or record.get(field) is None:
             continue
         object_id = f"ambientika_{serial}_{field}"
         payload: Dict[str, Any] = {
@@ -89,12 +99,12 @@ def build_discovery_configs(prefix: str, record: Dict[str, Any]) -> List[Dict[st
             payload["device_class"] = spec["device_class"]
         if spec.get("state_class"):
             payload["state_class"] = spec["state_class"]
+        if spec.get("options") and spec.get("device_class") == "enum":
+            payload["options"] = spec["options"]
         if spec["component"] == "binary_sensor":
             on, off = spec.get("payload", (1, 0))
             payload["payload_on"] = on
             payload["payload_off"] = off
-        if spec["device_class"] == "enum" and field == "filter_status":
-            payload["options"] = ["gruen", "gelb", "rot"]
         topic = f"homeassistant/{spec['component']}/{object_id}/config"
         configs.append({"topic": topic, "payload": payload})
     return configs

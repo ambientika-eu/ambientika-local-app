@@ -64,22 +64,36 @@ geschrieben und per MQTT/HA veröffentlicht.
 - `GET /api/history/config` — Intervall/Aufbewahrung/Zeilenzahl
 - `POST /api/history/sample-now` — sofort eine Runde aufzeichnen
 
-## Was schon 1:1 mit dem heutigen System funktioniert
-`serial`, `device_name`, `temperature`, `humidity`, `mode`(+num), `fanSpeed`(%+Stufe),
-`airQuality`(VOC + 5-Stufen-Kategorie), `filterAlarm`→Ampel(grün/rot), `rssi`
-(Funkgüte), `online`. Alles aus dem realen Bridge-Status-Payload.
+## Realer Bridge-State-Contract (Anker der Mappings)
+Die Bridge publiziert unter `<prefix>/<serial>/state` (JSON, retained) exakt diese
+Felder — daran ist das Paket ausgerichtet:
+`operating_mode`, `fan_speed` (Low/Medium/High), `humidity_level` (Dry/Normal/Moist),
+`light_sensor_level`, `temperature`, `humidity`, `air_quality` (**String**, z. B. „good"),
+`humidity_alarm`, `filters_status` (green/yellow/red), `night_alarm`, `device_role`
+(Master/Slave), `last_operating_mode`, `zone_index`. Die Seriennummer steht im **Topic**,
+`online` kommt aus dem separaten `availability`-Topic.
 
-## Was noch von eurer Seite kommt (heute NULL, bricht nichts)
-Die Bridge liefert im Status-Payload **noch nicht**: `zone`, `role` (Master/Slave),
-`humidity_threshold`, `night_mode` (eigenes Feld), `mode_effective` (Zonen-/Master-Modus).
-`recorder.py` übernimmt diese Felder **automatisch**, sobald die Bridge sie mitschickt
-(Keys: `zone`, `role`, `humidityThreshold`, `nightMode`, `modeEffective`/`zoneMode`/`masterMode`).
+Damit werden **alle** ursprünglichen Wunschfelder abgedeckt: Rolle, Zone,
+Betriebsmodus (aktuell **und** zuletzt gesetzt: `mode_reported` + `mode_last`),
+Feuchteschwelle (`humidity_level`), Nachtmodus (abgeleitet aus `operating_mode == Night`)
+und die Filter-Ampel (grün/**gelb**/rot). Jeder Textwert bekommt zusätzlich sein `*_num`.
 
-## Gegen App/Firmware final zu bestätigen (Defaults sind gesetzt)
-- **VOC→Luftqualitätsstufe**: Schwellen 300/600/1000/1500 (`mappings.AIR_QUALITY_VOC_BANDS`).
-- **Lüfter %→Stufe**: 0/33/66/100 (`mappings.FAN_STAGE_BANDS`) — Rohprozent bleibt ohnehin erhalten.
-- **Filter „gelb"**: heute nicht im Payload (nur bool) → nur grün/rot, bis die Bridge einen echten Filterstatus liefert.
-- **Modus-Nummern**: an die realen Bridge-Strings gebunden (HRV/NIGHT/BOOST/ECO/SMART/OFF), nicht an die 12 Handbuch-Namen. Weitere native Modi in `mappings.MODE_NUM` ergänzen.
+Betriebsmodus-Nummern = **native `OperatingMode`-Enumwerte** aus `ambientika_py`
+(Smart=0, Auto=1, ManualHeatRecovery=2, Night=3, AwayHome=4, Surveillance=5,
+TimedExpulsion=6, Expulsion=7, Intake=8, MasterSlaveFlow=9, SlaveMasterFlow=10, Off=11) —
+genau **ein** Nummernkreis, von der Bibliothek definiert.
+
+## Nicht verfügbar (bewusst weggelassen)
+`rssi`/Funkgüte, Außen-Temperatur/-Feuchte, VOC-Rohzahl und `isDark` liefert die
+Bibliothek/Bridge **nicht** — daher nicht im Schema (kein toter HA-Sensor). Liefert die
+Firmware `air_quality` ausnahmsweise als **Zahl** (ppm/CO₂), wird sie als `air_quality_voc`
+gespeichert und über die VOC-Bänder klassifiziert (Dual-Pfad in `air_quality_normalize`).
+
+## Gegen die reale Firmware final zu bestätigen (Defaults sind gesetzt, `mappings.FLAGS`)
+- **Luftqualität-String → Stufe**: `AIR_QUALITY_TEXT_NUM` (mehrsprachig, tolerant) gegen die
+  echten Gerätestrings kalibrieren; ersatzweise VOC-Bänder 300/600/1000/1500.
+- **Lüfter**: real 3-stufig (Low/Medium/High → 1/2/3); keine separate Nachtdrehzahl als Fan-Wert.
+- **`device_role`**: als String erwartet (Master/Slave); bei Zahlencode `ROLE_NUM` ergänzen.
 
 ## Grafana (Resch-Pilot)
 Grafana kann direkt auf die SQLite (Plugin `frser-sqlite-datasource`) oder — der
