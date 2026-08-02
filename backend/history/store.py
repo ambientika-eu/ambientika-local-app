@@ -34,49 +34,53 @@ class HistoryConfig:
 
 
 # Spaltenreihenfolge = Exportreihenfolge. Text- und *_num-Felder gemeinsam.
+# Anker = realer Bridge-State-Contract (siehe mappings.py).
 COLUMNS: List[str] = [
     "ts_utc", "serial", "device_id", "device_name",
-    "role", "role_num", "zone",
+    "role", "role_num", "zone_index",
     "temperature", "humidity",
     "air_quality_voc", "air_quality", "air_quality_num",
-    "fan_speed_pct", "fan_speed", "fan_speed_num",
+    "fan_speed", "fan_speed_num",
     "mode_reported", "mode_reported_num",
-    "mode_effective", "mode_effective_num",
-    "humidity_threshold",
+    "mode_last", "mode_last_num",
+    "humidity_level", "humidity_level_num",
+    "light_sensor_level", "light_sensor_level_num",
     "filter_status", "filter_status_num",
-    "humidity_alarm", "night_mode",
-    "rssi", "online",
+    "humidity_alarm", "night_alarm", "night_mode",
+    "online",
 ]
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS device_history (
-    id                  INTEGER PRIMARY KEY,
-    ts_utc              TEXT    NOT NULL,   -- ISO 8601 UTC, z.B. 2026-07-31T12:00:00Z
-    serial              TEXT    NOT NULL,   -- fachlicher Schluessel
-    device_id           TEXT,              -- MQTT-Topic-ID
-    device_name         TEXT,
-    role                TEXT,              -- 'Master' | 'Slave'   (falls Bridge liefert)
-    role_num            INTEGER,           -- 0 Slave, 1 Master
-    zone                TEXT,              -- (falls Bridge liefert)
-    temperature         REAL,              -- °C
-    humidity            INTEGER,           -- % rF
-    air_quality_voc     INTEGER,           -- VOC-Rohwert
-    air_quality         TEXT,              -- 5-stufige Kategorie
-    air_quality_num     INTEGER,           -- 0..4 (hoeher = besser)
-    fan_speed_pct       INTEGER,           -- 0..100 % (Rohwert inkl. Nacht)
-    fan_speed           TEXT,              -- grobe Stufe
-    fan_speed_num       INTEGER,           -- 0..3
-    mode_reported       TEXT,              -- am Geraet gemeldeter Modus
-    mode_reported_num   INTEGER,
-    mode_effective      TEXT,              -- tatsaechlicher/Zonen-Modus (falls Bridge liefert)
-    mode_effective_num  INTEGER,
-    humidity_threshold  INTEGER,           -- % rF (falls Bridge liefert)
-    filter_status       TEXT,              -- 'gruen' | 'gelb' | 'rot'
-    filter_status_num   INTEGER,           -- 0..2 (hoeher = dringlicher)
-    humidity_alarm      INTEGER,           -- 0/1 (falls Bridge liefert)
-    night_mode          INTEGER,           -- 0/1 (falls Bridge liefert)
-    rssi                INTEGER,           -- dBm (Funkguete)
-    online              INTEGER,           -- 0/1
+    id                      INTEGER PRIMARY KEY,
+    ts_utc                  TEXT    NOT NULL,   -- ISO 8601 UTC, z.B. 2026-07-31T12:00:00Z
+    serial                  TEXT    NOT NULL,   -- fachlicher Schluessel (aus Topic)
+    device_id               TEXT,              -- MQTT-Topic-ID (= serial)
+    device_name             TEXT,
+    role                    TEXT,              -- 'Master' | 'Slave' (device_role)
+    role_num                INTEGER,           -- 0 Slave, 1 Master
+    zone_index              INTEGER,           -- Zonenindex (zone_index)
+    temperature             REAL,              -- °C
+    humidity                INTEGER,           -- % rF
+    air_quality_voc         INTEGER,           -- VOC/CO2-Rohwert, falls Geraet Zahl liefert
+    air_quality             TEXT,              -- 5-stufige Kategorie (bzw. Roh-String)
+    air_quality_num         INTEGER,           -- 0..4 (hoeher = besser)
+    fan_speed               TEXT,              -- Low | Medium | High
+    fan_speed_num           INTEGER,           -- 1..3 (hoeher = schneller)
+    mode_reported           TEXT,              -- aktueller Betriebsmodus (operating_mode)
+    mode_reported_num       INTEGER,           -- nativer OperatingMode-Wert 0..11
+    mode_last               TEXT,              -- last_operating_mode (zuletzt gesetzter Modus)
+    mode_last_num           INTEGER,           -- nativer OperatingMode-Wert 0..11
+    humidity_level          TEXT,              -- Dry | Normal | Moist (Feuchteschwelle)
+    humidity_level_num      INTEGER,           -- 0..2
+    light_sensor_level      TEXT,              -- NotAvailable | Off | Low | Medium
+    light_sensor_level_num  INTEGER,           -- 0..3
+    filter_status           TEXT,              -- 'gruen' | 'gelb' | 'rot'
+    filter_status_num       INTEGER,           -- 0..2 (hoeher = dringlicher)
+    humidity_alarm          INTEGER,           -- 0/1
+    night_alarm             INTEGER,           -- 0/1
+    night_mode              INTEGER,           -- 0/1 (abgeleitet: Modus == Night)
+    online                  INTEGER,           -- 0/1 (aus availability-Topic)
     UNIQUE(serial, ts_utc)
 );
 CREATE INDEX IF NOT EXISTS idx_hist_serial_ts ON device_history (serial, ts_utc);
