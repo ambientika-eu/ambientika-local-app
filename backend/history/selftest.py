@@ -42,24 +42,24 @@ def scenario_devices():
         "AMB-2024-001": {"serial": "AMB-2024-001", "name": "Wohnzimmer",
                          "operating_mode": "Smart", "fan_speed": "Medium",
                          "humidity_level": "Normal", "light_sensor_level": "Off",
-                         "temperature": 21.9, "humidity": 48, "air_quality": "good",
-                         "humidity_alarm": False, "filters_status": "green",
+                         "temperature": 21.9, "humidity": 48, "air_quality": "VeryGood",
+                         "humidity_alarm": False, "filters_status": "Good",
                          "night_alarm": False, "device_role": "Master",
                          "last_operating_mode": "Auto", "zone_index": 0, "online": True},
         # Zone 0 - Slave (Filter gelb, Feuchte Moist)
         "AMB-2024-002": {"serial": "AMB-2024-002", "name": "Kueche",
                          "operating_mode": "ManualHeatRecovery", "fan_speed": "High",
                          "humidity_level": "Moist", "light_sensor_level": "Off",
-                         "temperature": 22.4, "humidity": 55, "air_quality": "moderate",
-                         "humidity_alarm": False, "filters_status": "yellow",
+                         "temperature": 22.4, "humidity": 55, "air_quality": "Medium",
+                         "humidity_alarm": False, "filters_status": "Medium",
                          "night_alarm": False, "device_role": "Slave",
                          "last_operating_mode": "Smart", "zone_index": 0, "online": True},
         # Zone 1 - Master (Nacht, Filter rot)
         "AMB-2024-003": {"serial": "AMB-2024-003", "name": "Schlafzimmer",
                          "operating_mode": "Night", "fan_speed": "Low",
                          "humidity_level": "Dry", "light_sensor_level": "Low",
-                         "temperature": 20.1, "humidity": 60, "air_quality": "bad",
-                         "humidity_alarm": False, "filters_status": "red",
+                         "temperature": 20.1, "humidity": 60, "air_quality": "Bad",
+                         "humidity_alarm": False, "filters_status": "Bad",
                          "night_alarm": True, "device_role": "Master",
                          "last_operating_mode": "Night", "zone_index": 1, "online": True},
         # Zone 1 - Slave (air_quality als ZAHL -> VOC-Pfad)
@@ -67,14 +67,14 @@ def scenario_devices():
                          "operating_mode": "Expulsion", "fan_speed": "High",
                          "humidity_level": "Normal", "light_sensor_level": "NotAvailable",
                          "temperature": 23.0, "humidity": 68, "air_quality": 1200,
-                         "humidity_alarm": True, "filters_status": "green",
+                         "humidity_alarm": True, "filters_status": "Good",
                          "night_alarm": False, "device_role": "Slave",
                          "last_operating_mode": "Auto", "zone_index": 1, "online": True},
         # Zone 2 - minimaler Payload (nur garantierte Felder, kein air_quality/role)
         "AMB-2024-005": {"serial": "AMB-2024-005", "name": "Keller",
                          "operating_mode": "Off", "fan_speed": "Low",
                          "temperature": 18.5, "humidity": 72,
-                         "filters_status": "green", "zone_index": 2, "online": True},
+                         "filters_status": "Good", "zone_index": 2, "online": True},
     }
 
 
@@ -104,11 +104,12 @@ def main():
     sampler.sample_once(utc_iso(base))
     assert store.count() == 15, f"Upsert nicht idempotent: {store.count()}"
 
-    # Master EG: Smart(0), Luft "good"->gut(3), Fan Medium(2), Filter gruen(0),
-    #            Rolle Master(1), Feuchte Normal(1), letzter Modus Auto(1), Zone 0
+    # Master EG: Smart(0), Luft "VeryGood"->sehr gut(4), Fan Medium(2),
+    #            Filter "Good"->gruen(0), Rolle Master(1), Feuchte Normal(1),
+    #            letzter Modus Auto(1), Zone 0
     r1 = store.query(serial="AMB-2024-001")[0]
     assert r1["mode_reported"] == "Smart" and r1["mode_reported_num"] == 0
-    assert r1["air_quality"] == "gut" and r1["air_quality_num"] == 3 and r1["air_quality_voc"] is None
+    assert r1["air_quality"] == "sehr gut" and r1["air_quality_num"] == 4 and r1["air_quality_voc"] is None
     assert r1["fan_speed"] == "Medium" and r1["fan_speed_num"] == 2
     assert r1["filter_status"] == "gruen" and r1["filter_status_num"] == 0
     assert r1["role"] == "Master" and r1["role_num"] == 1
@@ -116,25 +117,25 @@ def main():
     assert r1["mode_last"] == "Auto" and r1["mode_last_num"] == 1
     assert r1["zone_index"] == 0 and r1["night_mode"] == 0
 
-    # Slave EG: ManualHeatRecovery(2), Luft "moderate"->befriedigend(2),
-    #           Fan High(3), Filter gelb(1), Rolle Slave(0), Feuchte Moist(2)
+    # Slave EG: ManualHeatRecovery(2), Luft "Medium"->mittel(2),
+    #           Fan High(3), Filter "Medium"->gelb(1), Rolle Slave(0), Feuchte Moist(2)
     r2 = store.query(serial="AMB-2024-002")[0]
     assert r2["mode_reported"] == "ManualHeatRecovery" and r2["mode_reported_num"] == 2
-    assert r2["air_quality"] == "befriedigend" and r2["air_quality_num"] == 2
+    assert r2["air_quality"] == "mittel" and r2["air_quality_num"] == 2
     assert r2["fan_speed_num"] == 3 and r2["filter_status"] == "gelb" and r2["filter_status_num"] == 1
     assert r2["role_num"] == 0 and r2["humidity_level_num"] == 2
 
-    # Master OG: Night(3) -> night_mode 1, Filter rot(2), Luft bad->schlecht(0),
-    #            Lichtsensor Low(2), Nachtalarm 1
+    # Master OG: Night(3) -> night_mode 1. Gleicher String "Bad" bewusst
+    # unterschiedlich: Luft "Bad"->schlecht(1), Filter "Bad"->rot(2).
     r3 = store.query(serial="AMB-2024-003")[0]
     assert r3["mode_reported_num"] == 3 and r3["night_mode"] == 1
     assert r3["filter_status"] == "rot" and r3["filter_status_num"] == 2
-    assert r3["air_quality"] == "schlecht" and r3["air_quality_num"] == 0
+    assert r3["air_quality"] == "schlecht" and r3["air_quality_num"] == 1
     assert r3["light_sensor_level_num"] == 2 and r3["night_alarm"] == 1
 
-    # Slave OG: air_quality ZAHL 1200 -> VOC-Pfad: voc 1200, maessig(1)
+    # Slave OG: air_quality ZAHL 1200 -> VOC-Pfad: voc 1200, schlecht(1)
     r4 = store.query(serial="AMB-2024-004")[0]
-    assert r4["air_quality_voc"] == 1200 and r4["air_quality"] == "maessig" and r4["air_quality_num"] == 1
+    assert r4["air_quality_voc"] == 1200 and r4["air_quality"] == "schlecht" and r4["air_quality_num"] == 1
     assert r4["mode_reported"] == "Expulsion" and r4["mode_reported_num"] == 7
     assert r4["humidity_alarm"] == 1
 

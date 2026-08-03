@@ -143,9 +143,9 @@ def fan_num_to_name(num: Optional[int]) -> Optional[str]:
 # ---------------------------------------------------------------------------
 # 0 = schlechteste Luft, 4 = beste Luft.
 AIR_QUALITY_LABELS: Dict[int, str] = {
-    0: "schlecht",
-    1: "maessig",
-    2: "befriedigend",
+    0: "sehr schlecht",
+    1: "schlecht",
+    2: "mittel",
     3: "gut",
     4: "sehr gut",
 }
@@ -163,22 +163,23 @@ AIR_QUALITY_VOC_BANDS: List[Tuple[float, int]] = [
 
 # 3b) kategorialer Weg: Geraete-/API-String -> Stufe. Mehrsprachig + tolerant.
 #     DEFAULT - gegen die realen Strings der Firmware bestaetigen (FLAG A).
+# Kalibriert auf die REALEN 5 Geraetestrings (VeryGood/Good/Medium/Bad/VeryBad),
+# entspricht der App-Skala sehr gut..sehr schlecht. Mehrsprachige Synonyme dabei.
 AIR_QUALITY_TEXT_NUM: Dict[str, int] = {
-    # 4 - sehr gut
-    "excellent": 4, "verygood": 4, "sehrgut": 4, "ottima": 4, "ottimo": 4,
-    "eccellente": 4, "perfect": 4, "best": 4, "5": 4,
-    # 3 - gut
-    "good": 3, "gut": 3, "buona": 3, "buono": 3, "healthy": 3, "fine": 3,
-    "ok": 3, "4": 3,
-    # 2 - befriedigend / mittel
-    "fair": 2, "moderate": 2, "medium": 2, "mittel": 2, "befriedigend": 2,
-    "media": 2, "discreta": 2, "acceptable": 2, "average": 2, "normal": 2, "3": 2,
-    # 1 - maessig / schwach
-    "poor": 1, "maessig": 1, "massig": 1, "scarsa": 1, "scarso": 1, "low": 1,
-    "weak": 1, "mediocre": 1, "unhealthysensitive": 1, "2": 1,
-    # 0 - schlecht
-    "bad": 0, "schlecht": 0, "cattiva": 0, "cattivo": 0, "verypoor": 0,
-    "hazardous": 0, "critical": 0, "worst": 0, "unhealthy": 0, "severe": 0, "1": 0,
+    # 4 - sehr gut  (Geraet: "VeryGood")
+    "verygood": 4, "sehrgut": 4, "excellent": 4, "ottima": 4, "ottimo": 4,
+    "eccellente": 4, "perfect": 4, "best": 4,
+    # 3 - gut  (Geraet: "Good")
+    "good": 3, "gut": 3, "buona": 3, "buono": 3, "healthy": 3, "fine": 3, "ok": 3,
+    # 2 - mittel  (Geraet: "Medium")
+    "medium": 2, "mittel": 2, "moderate": 2, "fair": 2, "media": 2, "discreta": 2,
+    "acceptable": 2, "average": 2, "normal": 2, "befriedigend": 2,
+    # 1 - schlecht  (Geraet: "Bad")
+    "bad": 1, "schlecht": 1, "poor": 1, "cattiva": 1, "cattivo": 1, "scarsa": 1,
+    "scarso": 1, "mediocre": 1, "unhealthy": 1, "maessig": 1,
+    # 0 - sehr schlecht  (Geraet: "VeryBad")
+    "verybad": 0, "sehrschlecht": 0, "verypoor": 0, "hazardous": 0, "critical": 0,
+    "worst": 0, "severe": 0, "cattivissima": 0,
 }
 
 
@@ -217,10 +218,14 @@ def air_quality_normalize(value: Any) -> Tuple[Optional[int], Optional[str], Opt
 # 4  Filterstatus  (Ampel, Text + Zahl)
 # ---------------------------------------------------------------------------
 FILTER_STATUS_LABELS: Dict[int, str] = {0: "gruen", 1: "gelb", 2: "rot"}
+# Reale Bridge-/Geraetewerte fuer den Filter sind Good/Medium/Bad (nicht
+# green/yellow/red) - beides wird hier auf die Ampel 0/1/2 abgebildet.
 FILTER_STATUS_NUM: Dict[str, int] = {
     "green": 0, "gruen": 0, "grun": 0, "verde": 0, "ok": 0, "good": 0, "clean": 0,
-    "yellow": 1, "gelb": 1, "giallo": 1, "amber": 1, "warn": 1, "warning": 1, "soon": 1,
-    "red": 2, "rot": 2, "rosso": 2, "alarm": 2, "replace": 2, "critical": 2, "dirty": 2,
+    "yellow": 1, "gelb": 1, "giallo": 1, "amber": 1, "warn": 1, "warning": 1,
+    "soon": 1, "medium": 1, "moderate": 1,
+    "red": 2, "rot": 2, "rosso": 2, "alarm": 2, "replace": 2, "critical": 2,
+    "dirty": 2, "bad": 2,
 }
 
 
@@ -313,9 +318,13 @@ def bool_to_int(value: Any) -> Optional[int]:
 # ---------------------------------------------------------------------------
 FLAGS = {
     "A_air_quality":
-        "air_quality kommt real als STRING (Kategorie) - selten als Zahl. Die "
-        "String->Stufe-Tabelle (AIR_QUALITY_TEXT_NUM) und die VOC-Baender gegen "
-        "die tatsaechlichen Geraetewerte kalibrieren.",
+        "air_quality kommt real als STRING (5 Stufen: VeryGood/Good/Medium/Bad/"
+        "VeryBad) - selten als Zahl. AIR_QUALITY_TEXT_NUM ist auf genau diese "
+        "Geraetestrings kalibriert; die VOC-Baender greifen nur, falls doch eine "
+        "Zahl geliefert wird.",
+    "E_filter_strings":
+        "filters_status kommt real als Good/Medium/Bad (nicht green/yellow/red); "
+        "FILTER_STATUS_NUM bildet beide Vokabulare auf 0/1/2 ab.",
     "B_role_numeric":
         "device_role wird als String (Master/Slave) erwartet. Falls die Firmware "
         "einen Zahlencode liefert, Zuordnung in ROLE_NUM ergaenzen/bestaetigen.",
