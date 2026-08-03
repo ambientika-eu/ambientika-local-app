@@ -390,6 +390,22 @@ async def send_command(device_id: str, cmd: DeviceCommand):
         logger.info("Command → %s: %s = %s", device_id, attr, value)
     return {"status": "ok", "commands": published}
 
+@app.post("/api/devices/{device_id}/filter/reset", tags=["Devices"])
+async def reset_filter(device_id: str):
+    """Filterzaehler/-alarm des Geraets zuruecksetzen.
+
+    Publiziert set/reset_filter; die Bridge ruft den Cloud-Endpunkt
+    device/reset-filter auf. Funktioniert ZUSTANDSUNABHAENGIG - also auch
+    schon bei 'gelb' (verschmutzt), bevor der App-eigene Reset-Button (erst
+    bei 'rot') erscheint.
+    """
+    if device_id not in devices:
+        raise HTTPException(status_code=404, detail="Device not found")
+    topic = f"{MQTT_PREFIX}/{device_id}/set/reset_filter"
+    mqtt_client.publish(topic, "PRESS", qos=1)
+    logger.info("Filter-Reset → %s", device_id)
+    return {"status": "ok", "topic": topic}
+
 # ---------------------------------------------------------------------------
 # REST – Schedule (Wochenzeitplan)
 # ---------------------------------------------------------------------------
