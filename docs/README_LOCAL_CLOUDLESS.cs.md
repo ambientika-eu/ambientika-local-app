@@ -97,7 +97,8 @@ se všechny ochrany zruší, provede **přesné obnovení**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefix tématu (ponechte `ambientika` kvůli shodě s aplikací) |
 | `LOCAL_TCP_PORT` | `11000` | port, ke kterému se jednotky připojují |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | nastavení odeslané při připojení |
+| `SEND_SETUP` | `false` | výslovně povolí zápis topologie zařízení při připojení; nejprve ověřte všechny hodnoty níže |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | hodnoty nastavení použité pouze při `SEND_SETUP=true` |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | vykonavatel plánu |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | řídicí jednotka radonu + rosného bodu |
 | `RADON_THRESHOLD` | `100` | práh automatického sepnutí v Bq/m³ `>>> CONTROL <<<` |

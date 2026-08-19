@@ -116,11 +116,11 @@ def test_F_temperature_decoded_signed():
     assert m.decode_status(build_status(temp=22))["temperature"] == 22
 
 
-# --- Finding E: writer swap resets setup_sent & re-fires setup --------------
+# --- Finding E: writer swap allows opt-in setup to be re-sent ----------------
 def test_E_reconnect_new_writer_preserves_state():
     """Fixed: reconnect swaps the writer on the SAME Device, preserving runtime
-    state (raw_codes/last_status/firmware); only setup_sent resets so setup is
-    re-pushed once on the new transport."""
+    state (raw_codes/last_status/firmware); only setup_sent resets so an
+    explicitly enabled setup can be re-pushed once on the new transport."""
     b = bridge_no_loop()
     w1 = FakeWriter()
     dev1 = b._register("AABBCCDDEE09", w1)
@@ -131,7 +131,7 @@ def test_E_reconnect_new_writer_preserves_state():
     dev2 = b._register("AABBCCDDEE09", w2)     # different writer -> swap
     assert dev2 is dev1                        # same object, not replaced
     assert dev2.writer is w2                   # transport swapped
-    assert dev2.setup_sent is False            # setup re-sent once
+    assert dev2.setup_sent is False            # opt-in setup may be re-sent once
     assert dev2.last_status == {"x": 1}        # state PRESERVED
     assert dev2.raw_codes["mode"] == 2         # raw_codes preserved
 

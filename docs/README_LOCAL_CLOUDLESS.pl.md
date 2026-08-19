@@ -97,7 +97,8 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefiks tematów (zachowaj `ambientika`, aby pasował do aplikacji) |
 | `LOCAL_TCP_PORT` | `11000` | port, z którym łączą się urządzenia |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | konfiguracja wysyłana przy połączeniu |
+| `SEND_SETUP` | `false` | jawnie włącza zapis topologii urządzenia przy połączeniu; najpierw sprawdź wszystkie wartości poniżej |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | wartości konfiguracji używane tylko przy `SEND_SETUP=true` |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | wykonawca harmonogramu |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | kontroler radonu i punktu rosy |
 | `RADON_THRESHOLD` | `100` | próg automatycznego wyzwolenia w Bq/m³ `>>> CONTROL <<<` |

@@ -358,7 +358,9 @@ class Config:
     setup_role: int = int(os.getenv("DEVICE_ROLE", "0"))
     setup_zone: int = int(os.getenv("DEVICE_ZONE", "0"))
     setup_house: int = int(os.getenv("HOUSE_ID", "1"))
-    send_setup: bool = os.getenv("SEND_SETUP", "true").lower() == "true"
+    # Setup frames change the unit's master/slave topology. Keep this write
+    # disabled unless the operator explicitly opts in with known-good values.
+    send_setup: bool = os.getenv("SEND_SETUP", "false").lower() == "true"
     # scheduler
     scheduler_enabled: bool = os.getenv("SCHEDULER_ENABLED", "true").lower() == "true"
     scheduler_tick: int = int(os.getenv("SCHEDULER_TICK", "30"))

@@ -100,7 +100,8 @@ gendannelse**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic-præfiks (behold `ambientika` for at matche appen) |
 | `LOCAL_TCP_PORT` | `11000` | port, som enhederne forbinder til |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | opsætning sendt ved tilslutning |
+| `SEND_SETUP` | `false` | aktivér eksplicit skrivning af enhedstopologien ved tilslutning; kontrollér først alle værdier nedenfor |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | opsætningsværdier, der kun bruges ved `SEND_SETUP=true` |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | skema-udfører |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dugpunkt-controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ tærskel for automatisk udløsning `>>> CONTROL <<<` |

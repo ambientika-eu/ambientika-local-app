@@ -97,7 +97,8 @@ protections clear it performs an **exact restore**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic prefix (keep `ambientika` to match the app) |
 | `LOCAL_TCP_PORT` | `11000` | port the units connect to |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | setup pushed on connect |
+| `SEND_SETUP` | `false` | opt in to writing device topology on connect; verify all values below first |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | setup values used only when `SEND_SETUP=true` |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schedule executor |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dew-point controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ auto-trip threshold `>>> CONTROL <<<` |

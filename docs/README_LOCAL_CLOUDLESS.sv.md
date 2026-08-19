@@ -97,7 +97,8 @@ skydd upphör utför den en **exakt återställning**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | mäklare |
 | `MQTT_PREFIX` | `ambientika` | topic-prefix (behåll `ambientika` för att matcha appen) |
 | `LOCAL_TCP_PORT` | `11000` | port som enheterna ansluter till |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | konfiguration som skickas vid anslutning |
+| `SEND_SETUP` | `false` | aktivera uttryckligen skrivning av enhetstopologin vid anslutning; kontrollera först alla värden nedan |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | konfigurationsvärden som endast används med `SEND_SETUP=true` |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schemakörare |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon- och daggpunktsstyrning |
 | `RADON_THRESHOLD` | `100` | Bq/m³ tröskel för automatisk utlösning `>>> CONTROL <<<` |
