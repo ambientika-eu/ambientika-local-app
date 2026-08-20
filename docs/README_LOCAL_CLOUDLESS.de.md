@@ -100,7 +100,8 @@ Wiederherstellung** durch.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | Broker |
 | `MQTT_PREFIX` | `ambientika` | Topic-Präfix (`ambientika` beibehalten, damit es zur App passt) |
 | `LOCAL_TCP_PORT` | `11000` | Port, mit dem sich die Geräte verbinden |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | Setup, das beim Verbinden gesendet wird |
+| `SEND_SETUP` | `false` | Opt-in zum Schreiben der Gerätetopologie beim Verbinden; vorher alle folgenden Werte prüfen |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | Setup-Werte, die nur bei `SEND_SETUP=true` verwendet werden |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | Zeitplan-Ausführer |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | Radon+Taupunkt-Controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ Schwelle für automatisches Auslösen `>>> CONTROL <<<` |

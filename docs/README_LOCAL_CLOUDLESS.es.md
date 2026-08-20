@@ -97,7 +97,8 @@ las protecciones se desactivan, realiza una **restauración exacta**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefijo de tema (mantén `ambientika` para que coincida con la aplicación) |
 | `LOCAL_TCP_PORT` | `11000` | puerto al que se conectan los dispositivos |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | configuración enviada al conectar |
+| `SEND_SETUP` | `false` | activa explícitamente la escritura de la topología al conectar; comprueba primero todos los valores siguientes |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | valores de configuración usados solo con `SEND_SETUP=true` |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | ejecutor del programa |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | controlador de radón y punto de rocío |
 | `RADON_THRESHOLD` | `100` | umbral de activación automática en Bq/m³ `>>> CONTROL <<<` |

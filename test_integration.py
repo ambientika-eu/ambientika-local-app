@@ -18,21 +18,34 @@ class FakeReader:
         return b""
 
 
-def make_bridge():
-    b = m.LocalBridge(m.Config())
+def make_bridge(**config_overrides):
+    cfg = m.Config()
+    for key, value in config_overrides.items():
+        setattr(cfg, key, value)
+    b = m.LocalBridge(cfg)
     b.mqtt = FakeMqtt()
     b.loop = asyncio.get_event_loop()
     return b
 
 
-def test_handle_conn_processes_status_and_sends_setup():
+def test_handle_conn_does_not_send_setup_by_default():
     async def run():
         b = make_bridge()
         w = FakeWriter()
         r = FakeReader([build_status(mode=0, speed=1)])
         await b._handle_conn(r, w)
+        return [f for f in w.frames if len(f) == 16 and f[8] == 0x00]
+    assert asyncio.run(run()) == []
+
+
+def test_handle_conn_sends_setup_when_explicitly_enabled():
+    async def run():
+        b = make_bridge(send_setup=True)
+        w = FakeWriter()
+        r = FakeReader([build_status(mode=0, speed=1)])
+        await b._handle_conn(r, w)
         dev_serial = "AABBCCDDEEFF"
-        # setup frame should have been written (16 bytes, starts 02 00, byte8=0x00)
+        # Opt-in setup frame: 16 bytes, starts 02 00, byte8=0x00.
         setups = [f for f in w.frames if len(f) == 16 and f[8] == 0x00]
         status_pub = [p for p in b.mqtt.pubs if "/AABBCCDDEEFF/status" in p[0][0]]
         return len(setups), len(status_pub), dev_serial in b.devices

@@ -97,7 +97,8 @@ beschermingen zijn opgeheven, voert hij een **exact herstel** uit.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic-prefix (houd `ambientika` aan om bij de app te passen) |
 | `LOCAL_TCP_PORT` | `11000` | poort waarmee de toestellen verbinden |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | setup verstuurd bij verbinden |
+| `SEND_SETUP` | `false` | schakel het schrijven van de apparaattopologie bij verbinden expliciet in; controleer eerst alle waarden hieronder |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | setupwaarden die alleen bij `SEND_SETUP=true` worden gebruikt |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schema-uitvoerder |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dauwpunt-controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ auto-activeringsdrempel `>>> CONTROL <<<` |

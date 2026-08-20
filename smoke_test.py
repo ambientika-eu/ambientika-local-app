@@ -5,7 +5,7 @@ Runs the REAL bridge against a REAL MQTT broker (amqtt, in-process) with a
 simulated ventilation unit on the raw-TCP side and a real MQTT client on the
 app side. Verifies, on live wire traffic:
 
-  1. device connect -> setup pushed, status + availability published
+  1. device connect -> opt-in setup pushed, status + availability published
   2. MQTT mode command  -> correct 13-byte frame reaches the unit
   3. radon ON           -> unit driven INTAKE/LOW, neuracell state = RADON
   4. command under protection is suppressed
@@ -75,6 +75,7 @@ async def main():
     cfg.mqtt_host, cfg.mqtt_port = BROKER, MQTT_PORT
     cfg.tcp_host, cfg.tcp_port = "127.0.0.1", TCP_PORT
     cfg.scheduler_tick, cfg.neuracell_tick = 1, 1
+    cfg.send_setup = True  # Exercise the explicit opt-in path in this test.
     bridge = alb.LocalBridge(cfg)
     bridge_task = asyncio.create_task(bridge.run())
     await asyncio.sleep(1.0)
@@ -115,7 +116,7 @@ async def main():
     await asyncio.sleep(0.6)
     frames = split_downlink(downlink)
     setup = [f for f in frames if len(f) == 16 and f[8] == 0x00]
-    check("1. setup pushed to unit on connect", len(setup) == 1,
+    check("1. opt-in setup pushed to unit on connect", len(setup) == 1,
           f"{len(setup)} setup frame(s)")
     st = msgs.get(f"{PREFIX}/{SERIAL}/status")
     ok_status = False
