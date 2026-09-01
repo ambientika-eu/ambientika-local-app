@@ -304,15 +304,27 @@ def app_mode_name(code: int) -> str:
     return PROTO_TO_APP_MODE.get(code, OPERATING_MODE.get(code, f"UNKNOWN_{code}"))
 
 
+class StatusFrameLengthError(ValueError, IndexError):
+    """A status frame whose length the codec does not know.
+
+    Derived from both ``ValueError`` and ``IndexError`` on purpose: the old
+    in-bridge decoder simply indexed past the end of a short buffer, so the
+    repository's existing tests and any caller written against them catch
+    ``IndexError``. Raising a named error with a useful message should not cost
+    anybody a rewrite.
+    """
+
+
 def decode_status(buf: bytes, calibration: Calibration = NO_CALIBRATION) -> dict:
     """Decode a 19- or 21-byte status frame into the app's vocabulary.
 
-    Raises ValueError on a length the codec does not know, so an unexpected
-    frame surfaces as an error instead of silently producing wrong readings.
+    Raises :class:`StatusFrameLengthError` on a length the codec does not know,
+    so an unexpected frame surfaces as an error instead of silently producing
+    wrong readings.
     """
     n = len(buf)
     if n not in (STATUS_LEN_LEGACY, STATUS_LEN_MODERN):
-        raise ValueError(f"unsupported status frame length: {n}")
+        raise StatusFrameLengthError(f"unsupported status frame length: {n}")
 
     mode_code = buf[OFF_MODE]
     speed_code = buf[OFF_SPEED]
