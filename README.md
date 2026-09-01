@@ -206,3 +206,15 @@ uvicorn main:app --host 0.0.0.0 --port 8080
 ## 📄 Lizenz
 
 MIT License – © Ambientika / SUEDWIND
+
+---
+
+## Betrieb ganz ohne unseren Server
+
+Diese Local App bezieht ihre Daten über den Ambientika-Server. Wer die Anlage vollständig im eigenen Netz betreiben will, findet dafür eine zweite, eigenständige Fassung:
+
+https://github.com/ambientika-eu/ambientika-local-standalone
+
+Sie ersetzt den Server durch einen lokalen Dienst, der dasselbe Protokoll spricht. Die Erstinbetriebnahme läuft weiterhin einmalig über die Ambientika-App, danach bleibt alles im Haus.
+
+Diese Fassung hier ist im Feld bewährt und bleibt die empfohlene Variante. Die eigenständige ist neu und noch nicht an allen Firmwareständen erprobt; sie wird deshalb im Beobachtungsmodus ausgeliefert.
