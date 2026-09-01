@@ -23,6 +23,12 @@ Now cloud-free end-to-end, including:
 
     Device (WiFi, TCP:11000) <-> [THIS bridge] <-> MQTT <-> local-app / HA
 
+The wire codec and the write-policy rules live in two separate modules so they
+can be reviewed and tested without a device and without an MQTT broker:
+
+  * ``ambientika_protocol`` — framing, decoding, encoding, calibration
+  * ``ambientika_policy``   — when the bridge is allowed to write to hardware
+
 --------------------------------------------------------------------------------
 CLEAN-ROOM NOTE
 --------------------------------------------------------------------------------
@@ -35,8 +41,9 @@ SAFETY / PRODUCT SIGN-OFF (read before shipping)
 --------------------------------------------------------------------------------
 This drives real ventilation and, via NeuraCell-X, radon and moisture behaviour.
 1. Validate against real hardware first — the binary offsets are reverse-engineered.
-   In particular the SIGNED decoding of temperature and RSSI (see _s8) must be
-   confirmed on a real unit.
+   In particular the SIGNED decoding of temperature and RSSI must be confirmed on
+   a real unit. ``OBSERVE_ONLY=true`` does exactly that: the bridge reads,
+   decodes and publishes, and every write path is closed.
 2. Devices only reach this server if redirected to it (BLE H_<host>:11000, or a
    static route/DNAT for 185.214.203.87). See CLOUD-INTEGRATION.md.
 3. The control THRESHOLDS and mappings are sensible defaults, not certified:
@@ -47,6 +54,11 @@ This drives real ventilation and, via NeuraCell-X, radon and moisture behaviour.
    does not contain. Publish it locally to `ambientika/weather`
    ({"temperature": t, "humidity": rh}); without it, auto dew-point is inactive
    and only the manual `ambientika/dewpoint/block` override works.
+5. Setup frames (role / zone / house) are OPT-IN per serial via SETUP_DEVICES.
+   A setup frame rewrites the master/slave topology of an installation. The
+   bridge will not send one to a unit it was not explicitly told about, and it
+   will not change a role the unit reports about itself unless
+   SETUP_ALLOW_ROLE_CHANGE says that is the intent.
 
 Requires: Python 3.10+, paho-mqtt>=1.6  (pip install paho-mqtt)  — works with
 both the 1.x and the 2.x callback API.
@@ -58,7 +70,6 @@ import asyncio
 import datetime as _dt
 import json
 import logging
-import math
 import os
 import signal
 from dataclasses import dataclass, field
@@ -66,23 +77,27 @@ from typing import Callable, Optional
 
 import paho.mqtt.client as mqtt
 
+from ambientika_protocol import (  # noqa: F401  (re-exported, see below)
+    AIR_QUALITY, APP_MODE_TO_PROTO, DEVICE_ROLE, FAN_SPEED, FILTER_STATUS,
+    HUMIDITY_LEVEL, LEVEL_TO_PCT, LIGHT_SENS, OPERATING_MODE, PROTO_TO_APP_MODE,
+    NO_CALIBRATION, FrameReader, _s8, app_mode_name, decode_firmware,
+    decode_status, dew_point, encode_filter_reset, encode_mode_command,
+    encode_setup, implausible_fields, parse_calibration, parse_serial,
+    serial_to_mac, status_raw_codes, status_role_code,
+)
+# The codec moved into ambientika_protocol, but the names stay reachable as
+# ``ambientika_local_bridge.<name>``. The repository's existing test suites
+# (test_bridge.py, test_integration.py, test_newfindings.py, smoke_test.py)
+# address them that way, and a refactor that quietly breaks the tests guarding
+# the thing being refactored is the worst possible trade. Hence the F401:
+# AIR_QUALITY, DEVICE_ROLE, FILTER_STATUS, LEVEL_TO_PCT, _s8 and serial_to_mac
+# are unused *here* and deliberately kept importable.
+from ambientika_policy import (
+    SETUP_SEND, command_is_noop, parse_serial_list, parse_setup_devices,
+    serial_allowed, setup_decision, write_refusal,
+)
+
 log = logging.getLogger("ambientika.local")
-
-
-# ---------------------------------------------------------------------------
-# Wire-protocol enums  (source: PROTOCOL.md)
-# ---------------------------------------------------------------------------
-OPERATING_MODE = {
-    0: "SMART", 1: "AUTO", 2: "MANUAL_HEAT_RECOVERY", 3: "NIGHT",
-    4: "AWAY_HOME", 5: "SURVEILLANCE", 6: "TIMED_EXPULSION", 7: "EXPULSION",
-    8: "INTAKE", 9: "MASTER_SLAVE_FLOW", 10: "SLAVE_MASTER_FLOW", 11: "OFF",
-}
-FAN_SPEED = {0: "LOW", 1: "MEDIUM", 2: "HIGH", 3: "NIGHT"}
-HUMIDITY_LEVEL = {0: "DRY", 1: "NORMAL", 2: "MOIST"}
-DEVICE_ROLE = {0: "MASTER", 1: "SLAVE_EQUAL_MASTER", 2: "SLAVE_OPPOSITE_MASTER"}
-AIR_QUALITY = {0: "VERY_GOOD", 1: "GOOD", 2: "MEDIUM", 3: "POOR", 4: "BAD"}  # raw-1
-FILTER_STATUS = {0: "GOOD", 1: "MEDIUM", 2: "BAD"}
-LIGHT_SENS = {0: "NOT_AVAILABLE", 1: "OFF", 2: "LOW", 3: "MEDIUM"}
 
 MODE_INTAKE = 8
 MODE_OFF = 11
@@ -93,29 +108,10 @@ _REV_SPEED = {v: k for k, v in FAN_SPEED.items()}
 _REV_HUM = {v: k for k, v in HUMIDITY_LEVEL.items()}
 _REV_LIGHT = {v: k for k, v in LIGHT_SENS.items()}
 
+
 # ---------------------------------------------------------------------------
-# App-vocabulary mapping  (local-app: HRV|NIGHT|BOOST|ECO|SMART|OFF, fan 0-100)
+# Value coercion  (app vocabulary -> wire codes)
 # ---------------------------------------------------------------------------
-# >>> MAPPING <<<  friendly app mode  <->  wire operating-mode code
-APP_MODE_TO_PROTO = {
-    "SMART": 0, "ECO": 1, "HRV": 2, "NIGHT": 3, "BOOST": 6, "OFF": 11,
-}
-PROTO_TO_APP_MODE = {v: k for k, v in APP_MODE_TO_PROTO.items()}
-
-# >>> MAPPING <<<  fan level  <->  percentage the PWA slider uses.
-# NOTE: NIGHT (level 3) is a MODE-LINKED speed, not a slider position, so it is
-# intentionally one-way: it is *reported* as a distinct low % (and the "fanLevel"
-# field always carries the exact wire level "NIGHT"), but a user %-command only
-# ever selects LOW/MEDIUM/HIGH — NIGHT speed is entered via NIGHT mode.
-LEVEL_TO_PCT = {0: 40, 1: 70, 2: 100, 3: 15}  # LOW, MEDIUM, HIGH, NIGHT
-
-
-def _s8(b: int) -> int:
-    """Interpret an unsigned byte as a signed 8-bit two's-complement value.
-    Temperature (°C, can be negative) and RSSI (negative dBm) are signed."""
-    return b - 256 if b >= 128 else b
-
-
 def pct_to_level(pct) -> int:
     p = int(float(pct))
     if p <= 40:
@@ -123,10 +119,6 @@ def pct_to_level(pct) -> int:
     if p <= 75:
         return 1
     return 2
-
-
-def app_mode_name(code: int) -> str:
-    return PROTO_TO_APP_MODE.get(code, OPERATING_MODE.get(code, f"UNKNOWN_{code}"))
 
 
 def mode_to_code(value, default: Optional[int]) -> Optional[int]:
@@ -170,110 +162,6 @@ def _generic_to_code(value, table_rev: dict, default: int) -> int:
     if s.isdigit():
         return int(s)
     return default
-
-
-def dew_point(temp_c, rh_pct) -> Optional[float]:
-    """Dew point in °C from temperature (°C) and relative humidity (%),
-    Magnus-Tetens (Sonntag) coefficients. None on invalid input."""
-    try:
-        t = float(temp_c)
-        rh = float(rh_pct)
-    except (TypeError, ValueError):
-        return None
-    if rh <= 0 or rh > 100:
-        return None
-    a, b = 17.62, 243.12
-    gamma = math.log(rh / 100.0) + (a * t) / (b + t)
-    return round((b * gamma) / (a - gamma), 2)
-
-
-# ---------------------------------------------------------------------------
-# Packet codec  (byte layout verified against PROTOCOL.md examples)
-# ---------------------------------------------------------------------------
-def parse_serial(buf: bytes) -> str:
-    return buf[2:8].hex().upper()
-
-
-def serial_to_mac(serial: str) -> bytes:
-    return bytes.fromhex(serial)
-
-
-def decode_status(buf: bytes) -> dict:
-    """21-byte device status -> app-compatible dict (+ raw fields for HA/debug)."""
-    mode_code = buf[8]
-    speed_code = buf[9]
-    temp = _s8(buf[11])                      # signed: outdoor/intake can be < 0 °C
-    aq_raw = buf[13]
-    if aq_raw <= 0:                          # 0 = sensor not ready / no data
-        aq_class = 0
-        aq_label = "UNKNOWN_SENSOR"
-    else:
-        aq_class = min(aq_raw - 1, 4)        # clamp to the 0..4 label range
-        aq_label = AIR_QUALITY.get(aq_class, f"UNKNOWN_{aq_raw}")
-    dp = dew_point(temp, buf[12])
-    return {
-        "serial": parse_serial(buf),
-        "name": parse_serial(buf),
-        "mode": app_mode_name(mode_code),
-        "fanSpeed": LEVEL_TO_PCT.get(speed_code, 0),
-        "temperature": temp,
-        "humidity": buf[12],
-        "airQuality": aq_class,
-        "filterAlarm": buf[15] == 2,
-        "dewPoint": dp,
-        "online": True,
-        "airQualityLabel": aq_label,
-        "humidityLevel": HUMIDITY_LEVEL.get(buf[10], f"UNKNOWN_{buf[10]}"),
-        "humidityAlarm": bool(buf[14]),
-        "filterStatus": FILTER_STATUS.get(buf[15], f"UNKNOWN_{buf[15]}"),
-        "nightAlarm": bool(buf[16]),
-        "deviceRole": DEVICE_ROLE.get(buf[17], f"UNKNOWN_{buf[17]}"),
-        "lastMode": app_mode_name(buf[18]),
-        "lightSensor": LIGHT_SENS.get(buf[19], f"UNKNOWN_{buf[19]}"),
-        "rssi": _s8(buf[20]),                # signed dBm
-        "modeProtocol": OPERATING_MODE.get(mode_code, f"UNKNOWN_{mode_code}"),
-        "fanLevel": FAN_SPEED.get(speed_code, f"UNKNOWN_{speed_code}"),
-    }
-
-
-def status_raw_codes(buf: bytes) -> dict:
-    return {"mode": buf[8], "speed": buf[9], "humidity": buf[10], "light": buf[19]}
-
-
-def decode_firmware(buf: bytes) -> dict:
-    return {
-        "serial": parse_serial(buf),
-        "radioFw": f"{buf[8]}.{buf[9]}.{buf[10]}",
-        "microFw": f"{buf[11]}.{buf[12]}.{buf[13]}",
-        "radioAtFw": f"{buf[14]}.{buf[15]}.{buf[16]}.{buf[17]}",
-    }
-
-
-def encode_mode_command(serial: str, mode_code: int, speed_code: int,
-                        humidity_code: int, light_code: int) -> bytes:
-    """13-byte operating-mode command: 02 00 <MAC> 01 <mode><speed><hum><light>."""
-    return bytes(
-        [0x02, 0x00]
-        + list(serial_to_mac(serial))
-        + [0x01, mode_code & 0xFF, speed_code & 0xFF,
-           humidity_code & 0xFF, light_code & 0xFF]
-    )
-
-
-def encode_filter_reset(serial: str) -> bytes:
-    return bytes([0x02, 0x00] + list(serial_to_mac(serial)) + [0x03])
-
-
-def encode_setup(serial: str, role: int, zone: int, house_id: int) -> bytes:
-    # Clamp house_id into the unsigned 32-bit range so a mis-set HOUSE_ID can
-    # never raise OverflowError (which would loop the device on every connect).
-    hid = max(0, min(int(house_id), 0xFFFFFFFF))
-    return bytes(
-        [0x02, 0x00]
-        + list(serial_to_mac(serial))
-        + [0x00, role & 0xFF, zone & 0xFF, 0x00]
-        + list(hid.to_bytes(4, "little"))
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -334,6 +222,11 @@ class Device:
                                                      "humidity": 1, "light": 1})
     firmware: dict = field(default_factory=dict)
     setup_sent: bool = False
+    # One frame reader per connection: it learns this unit's status-frame
+    # length from the firmware frame it saw.
+    reader: FrameReader = field(default_factory=FrameReader)
+    # What the unit reports about itself. Learned, never overwritten from config.
+    role_code: Optional[int] = None
     # per-device write serialisation so two coroutines never overlap drain()
     send_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
@@ -355,10 +248,28 @@ class Config:
     mqtt_pass: str = os.getenv("MQTT_PASSWORD", "")
     mqtt_prefix: str = os.getenv("MQTT_PREFIX", "ambientika")
     ha_discovery: bool = os.getenv("HA_DISCOVERY", "false").lower() == "true"
-    setup_role: int = int(os.getenv("DEVICE_ROLE", "0"))
-    setup_zone: int = int(os.getenv("DEVICE_ZONE", "0"))
-    setup_house: int = int(os.getenv("HOUSE_ID", "1"))
-    send_setup: bool = os.getenv("SEND_SETUP", "true").lower() == "true"
+
+    # --- setup frames -----------------------------------------------------
+    # Opt-in, per serial. Sending one rewrites an installation's topology, so
+    # the default is now "send nothing to anybody".
+    send_setup: bool = os.getenv("SEND_SETUP", "false").lower() == "true"
+    setup_devices: dict = field(
+        default_factory=lambda: parse_setup_devices(os.getenv("SETUP_DEVICES", "{}")))
+    setup_allow_role_change: bool = \
+        os.getenv("SETUP_ALLOW_ROLE_CHANGE", "false").lower() == "true"
+
+    # --- reading ----------------------------------------------------------
+    calibration: dict = field(
+        default_factory=lambda: parse_calibration(os.getenv("CALIBRATION", "{}")))
+    status_len_override: Optional[int] = (
+        int(os.getenv("STATUS_FRAME_LEN")) if os.getenv("STATUS_FRAME_LEN") else None)
+
+    # --- writing ----------------------------------------------------------
+    allowed_serials: set = field(
+        default_factory=lambda: parse_serial_list(os.getenv("ALLOWED_SERIALS", "")))
+    suppress_noop: bool = os.getenv("SUPPRESS_NOOP", "true").lower() == "true"
+    observe_only: bool = os.getenv("OBSERVE_ONLY", "false").lower() == "true"
+
     # scheduler
     scheduler_enabled: bool = os.getenv("SCHEDULER_ENABLED", "true").lower() == "true"
     scheduler_tick: int = int(os.getenv("SCHEDULER_TICK", "30"))
@@ -411,6 +322,14 @@ class LocalBridge:
         self.weather: dict = {}                        # {temperature, humidity} outdoor
         self.weather_ts: Optional[_dt.datetime] = None
         self._last_nc_json: Optional[str] = None       # publish-gate for neuracell state
+        self._implausible_logged: set = set()          # serial+field, log once
+
+        if cfg.observe_only:
+            log.warning("OBSERVE_ONLY is set — the bridge reads and publishes, "
+                        "but will not write to any unit.")
+        if not cfg.allowed_serials:
+            log.info("ALLOWED_SERIALS is empty — every unit that connects is "
+                     "accepted. Set it once the installation is known.")
 
     def _make_mqtt_client(self):
         """Build a paho client on the 2.x callback API when available, else 1.x.
@@ -478,7 +397,7 @@ class LocalBridge:
             log.warning("command for unknown/offline device %s", serial)
             return
         if payload.get("resetFilter"):
-            await self._send(dev, encode_filter_reset(serial))
+            await self._send(dev, encode_filter_reset(serial), what="filter reset")
             return
         async with self._lock:
             if self.protection != "NONE":
@@ -497,15 +416,67 @@ class LocalBridge:
             return
         humidity_code = _generic_to_code(payload.get("humidityLevel"), _REV_HUM, cur["humidity"])
         light_code = _generic_to_code(payload.get("lightSensor"), _REV_LIGHT, cur["light"])
+
+        # Every accepted command makes the unit beep. Dropping the ones that
+        # would change nothing is the difference between a quiet bedroom and a
+        # unit that chirps on every scheduler tick.
+        if self.cfg.suppress_noop and command_is_noop(
+                cur, mode_code, speed_code, humidity_code, light_code):
+            log.debug("skip no-op command for %s (already mode=%s speed=%s)",
+                      dev.serial, mode_code, speed_code)
+            self.normal_codes[dev.serial] = (mode_code, speed_code)
+            return
+
         await self._send(dev, encode_mode_command(
             dev.serial, mode_code, speed_code, humidity_code, light_code))
         self.normal_codes[dev.serial] = (mode_code, speed_code)   # remember normal target
         log.info("-> %s cmd=%s (mode=%s speed=%s)", dev.serial, payload, mode_code, speed_code)
 
-    async def _send_codes(self, dev: Device, mode_code: int, speed_code: int):
+    async def _send_codes(self, dev: Device, mode_code: int, speed_code: int,
+                          force: bool = False):
+        """Write mode+speed to one unit.
+
+        ``force`` skips the no-op check and must be used for every protection
+        and restore write. The check compares against the unit's last *echo*,
+        and after a protective write that echo has not arrived yet — so a
+        restore issued before the unit reported back looks redundant and would
+        be dropped, leaving the ventilation sitting in OFF or INTAKE. An extra
+        beep is cheaper than a unit that never comes back.
+        """
         cur = dev.raw_codes
+        if not force and self.cfg.suppress_noop and command_is_noop(
+                cur, mode_code, speed_code, cur["humidity"], cur["light"]):
+            log.debug("skip no-op write for %s (already mode=%s speed=%s)",
+                      dev.serial, mode_code, speed_code)
+            return
         await self._send(dev, encode_mode_command(
             dev.serial, mode_code, speed_code, cur["humidity"], cur["light"]))
+
+    # ---- setup ------------------------------------------------------------
+    async def _maybe_send_setup(self, dev: Device):
+        """Send a setup frame only where that was explicitly asked for.
+
+        A setup frame carries role / zone / house id. Getting it wrong on a
+        multi-unit installation rewrites the master/slave topology and stops
+        cross ventilation. The decision lives in ``ambientika_policy`` so it can
+        be tested without a device.
+        """
+        action, target, reason = setup_decision(
+            serial=dev.serial,
+            enabled=self.cfg.send_setup,
+            targets=self.cfg.setup_devices,
+            reported_role=dev.role_code,
+            already_sent=dev.setup_sent,
+            allow_role_change=self.cfg.setup_allow_role_change,
+        )
+        if action != SETUP_SEND:
+            log.debug("no setup frame for %s: %s", dev.serial, reason)
+            return
+        await self._send(dev, encode_setup(dev.serial, target.role, target.zone,
+                                           target.house), what="setup frame")
+        dev.setup_sent = True
+        log.warning("setup frame sent to %s: role=%s zone=%s house=%s",
+                    dev.serial, target.role, target.zone, target.house)
 
     # ---- schedule ---------------------------------------------------------
     def _store_week(self, serial: str, week: dict):
@@ -660,19 +631,20 @@ class LocalBridge:
         self.protection = new
         if new == "RADON":
             for dev in list(self.devices.values()):
-                await self._send_codes(dev, self.cfg.radon_protect_mode, self.cfg.radon_protect_fan)
+                await self._send_codes(dev, self.cfg.radon_protect_mode,
+                                       self.cfg.radon_protect_fan, force=True)
             if prev != new:
                 log.warning("NeuraCell-X: RADON protection ON -> all units INTAKE/LOW")
         elif new == "DEWPOINT":
             for dev in list(self.devices.values()):
-                await self._send_codes(dev, MODE_OFF, dev.raw_codes["speed"])
+                await self._send_codes(dev, MODE_OFF, dev.raw_codes["speed"], force=True)
             if prev != new:
                 log.warning("NeuraCell-X: dew-point block ON -> all units OFF")
         elif new == "NONE":
             for s, (m, sp) in list(self.baseline.items()):
                 dev = self.devices.get(s)
                 if dev:
-                    await self._send_codes(dev, m, sp)
+                    await self._send_codes(dev, m, sp, force=True)
             if prev != new:
                 log.warning("NeuraCell-X: all clear -> exact restore of previous modes")
             self.baseline.clear()
@@ -686,9 +658,10 @@ class LocalBridge:
             self.baseline.setdefault(dev.serial, self.normal_codes.get(
                 dev.serial, (dev.raw_codes["mode"], dev.raw_codes["speed"])))
             if self.protection == "RADON":
-                await self._send_codes(dev, self.cfg.radon_protect_mode, self.cfg.radon_protect_fan)
+                await self._send_codes(dev, self.cfg.radon_protect_mode,
+                                       self.cfg.radon_protect_fan, force=True)
             elif self.protection == "DEWPOINT":
-                await self._send_codes(dev, MODE_OFF, dev.raw_codes["speed"])
+                await self._send_codes(dev, MODE_OFF, dev.raw_codes["speed"], force=True)
 
     def _publish_neuracell(self, radon, dew, indoor_dp, outdoor_dp):
         state = {
@@ -718,6 +691,22 @@ class LocalBridge:
             await asyncio.sleep(self.cfg.neuracell_tick)
 
     # ---- MQTT publish (status) -------------------------------------------
+    def _check_plausible(self, dev: Device):
+        """Log a decoded reading that cannot be real — once per device+field.
+
+        A wrong frame length shows up here first: temperature and humidity read
+        from the wrong offsets land outside any physical range. Logging it once
+        keeps the signal without flooding the journal every few seconds.
+        """
+        for name in implausible_fields(dev.last_status):
+            key = f"{dev.serial}:{name}"
+            if key in self._implausible_logged:
+                continue
+            self._implausible_logged.add(key)
+            log.warning("implausible %s from %s: %r — check the frame length "
+                        "(STATUS_FRAME_LEN) before trusting this device",
+                        name, dev.serial, dev.last_status.get(name))
+
     def _publish_status(self, dev: Device):
         data = dict(dev.last_status)
         data.update(dev.firmware)
@@ -772,7 +761,16 @@ class LocalBridge:
             "value_template": "{{ 'ON' if value_json.filterAlarm else 'OFF' }}"})
 
     # ---- TCP --------------------------------------------------------------
-    async def _send(self, dev: Device, frame: bytes):
+    async def _send(self, dev: Device, frame: bytes, what: str = "command"):
+        """The single gate through which every byte to a unit passes.
+
+        Observation mode is enforced here rather than at each call site, so a
+        new write path cannot forget to check it.
+        """
+        refusal = write_refusal(self.cfg.observe_only, what)
+        if refusal:
+            log.info("%s (%s)", refusal, dev.serial)
+            return
         try:
             async with dev.send_lock:            # serialise writes per device
                 dev.writer.write(frame)
@@ -780,54 +778,49 @@ class LocalBridge:
         except Exception as exc:  # noqa: BLE001
             log.warning("write to %s failed: %s", dev.serial, exc)
 
-    async def _handle_conn(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
+    async def _handle_conn(self, reader_stream: asyncio.StreamReader,
+                           writer: asyncio.StreamWriter):
         peer = writer.get_extra_info("peername")
         log.info("device connected from %s", peer)
         serial: Optional[str] = None
-        buf = b""
+        reader = FrameReader(forced_len=self.cfg.status_len_override)
         try:
             while True:
-                chunk = await reader.read(256)
+                chunk = await reader_stream.read(256)
                 if not chunk:
                     break
-                buf += chunk
-                while buf:
-                    b0 = buf[0]
-                    if b0 == 0x01:                        # status (21 bytes)
-                        if len(buf) < 21:
-                            break                         # wait for the full frame
-                        frame, buf = buf[:21], buf[21:]
-                        serial = parse_serial(frame)
-                        dev = self._register(serial, writer)
-                        first = not dev.last_status
-                        dev.last_status = decode_status(frame)
-                        dev.raw_codes = status_raw_codes(frame)
-                        if self.protection == "NONE":
-                            # track the true normal target for the restore baseline
-                            self.normal_codes[serial] = (dev.raw_codes["mode"],
-                                                         dev.raw_codes["speed"])
-                        need_setup = self.cfg.send_setup and not dev.setup_sent
-                        if need_setup:
-                            await self._send(dev, encode_setup(
-                                serial, self.cfg.setup_role, self.cfg.setup_zone, self.cfg.setup_house))
-                            dev.setup_sent = True
-                        self._publish_status(dev)
-                        # (re)apply protection on first connect or after a reconnect
-                        if self.protection != "NONE" and (first or need_setup):
-                            await self._protect_new_device(dev)
-                        await self._neuracell_evaluate()
-                    elif b0 == 0x03:                      # firmware info (18 bytes)
-                        if len(buf) < 18:
-                            break
-                        frame, buf = buf[:18], buf[18:]
-                        serial = parse_serial(frame)
-                        dev = self._register(serial, writer)
+                for kind, frame in reader.feed(chunk):
+                    serial = parse_serial(frame)
+                    if not serial_allowed(serial, self.cfg.allowed_serials):
+                        log.warning("refusing unlisted serial %s from %s", serial, peer)
+                        return
+                    dev = self._register(serial, writer)
+                    dev.reader = reader
+
+                    if kind == "firmware":
                         dev.firmware = decode_firmware(frame)
+                        # The firmware frame is what teaches the reader this
+                        # unit's status-frame length.
+                        reader.set_radio_fw(dev.firmware["radioFw"])
                         self._publish_discovery(serial)
-                    else:
-                        # Unknown leading byte: drop one byte and resync, instead
-                        # of stalling this connection forever.
-                        buf = buf[1:]
+                        continue
+
+                    first = not dev.last_status
+                    cal = self.cfg.calibration.get(serial, NO_CALIBRATION)
+                    dev.last_status = decode_status(frame, cal)
+                    dev.raw_codes = status_raw_codes(frame)
+                    dev.role_code = status_role_code(frame)   # learn, do not overwrite
+                    self._check_plausible(dev)
+                    if self.protection == "NONE":
+                        # track the true normal target for the restore baseline
+                        self.normal_codes[serial] = (dev.raw_codes["mode"],
+                                                     dev.raw_codes["speed"])
+                    await self._maybe_send_setup(dev)
+                    self._publish_status(dev)
+                    # (re)apply protection on first connect or after a reconnect
+                    if self.protection != "NONE" and first:
+                        await self._protect_new_device(dev)
+                    await self._neuracell_evaluate()
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001
@@ -851,7 +844,9 @@ class LocalBridge:
             log.info("registered device %s", serial)
         elif dev.writer is not writer:
             # Reconnect on a new transport: keep runtime state (raw_codes,
-            # last_status, firmware) but swap the writer and re-send setup once.
+            # last_status, firmware) but swap the writer. setup_sent is reset so
+            # an explicitly configured unit can be set up again on the new
+            # connection; for every other unit the policy still says "no".
             dev.writer = writer
             dev.setup_sent = False
             log.info("device %s reconnected (writer swapped)", serial)
