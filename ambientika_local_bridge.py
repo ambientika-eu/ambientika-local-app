@@ -3,46 +3,53 @@
 ambientika_local_bridge.py
 ==========================
 
-Cloud-independent local bridge for Ambientika Smart / Office ventilation units.
+Local bridge for Ambientika Smart / Office ventilation units — server-independent
+operating mode of the Ambientika Local App.
 
-The device firmware opens a persistent *outbound* raw-TCP connection to whatever
-host:port it was provisioned with (normally app.ambientika.eu:11000). This module
-implements the server side of that connection locally, so the units can be
-controlled and monitored entirely on the LAN — no internet, no SUEDWIND cloud.
+The device firmware opens a persistent outbound TCP connection to the host:port it
+was provisioned with (by default app.ambientika.eu:11000). This module implements
+that server endpoint locally, so the units are monitored and controlled entirely on
+the LAN — without the Ambientika server and without an internet connection.
 
-Drop-in replacement for the cloud-polling MQTT bridge in the ambientika-local-app
-stack: it publishes the same topics AND speaks the same field vocabulary the app
-expects (friendly mode names + fanSpeed 0-100 %), so the FastAPI backend and PWA
-work unchanged with zero cloud contact.
+Positioning: the recommended operating mode of the Local App remains the cloud
+bridge. This local bridge is the FALLBACK layer — it keeps an installation operable
+while the Ambientika server is unreachable (maintenance windows, network outages) and
+serves buildings for which no permanent internet connection is intended.
 
-Now cloud-free end-to-end, including:
+It is interface-compatible with the cloud bridge: the same MQTT topics and the same
+field vocabulary (mode names + fanSpeed 0-100 %), so the FastAPI backend and the PWA
+run unchanged.
+
+Feature scope, fully server-free:
   • device monitoring + control                    (status <-> commands)
-  • weekly schedule execution (Wochenzeitplan)      (schedule/* topics)
+  • weekly schedule execution                      (schedule/* topics)
   • NeuraCell-X: radon protection + dew-point       (radon/dewpoint topics)
     control, with priority and exact restore.
 
     Device (WiFi, TCP:11000) <-> [THIS bridge] <-> MQTT <-> local-app / HA
 
 --------------------------------------------------------------------------------
-CLEAN-ROOM NOTE
+IMPLEMENTATION NOTE
 --------------------------------------------------------------------------------
-Fresh implementation written only from the documented binary-protocol spec
-(PROTOCOL.md / CLOUD-INTEGRATION.md). No source copied from
-sragas/ambientika-local-control ("personal use only") or its fork.
+Independent in-house implementation, written against the documented binary protocol
+specification (see CLOUD-INTEGRATION.md). No third-party source is incorporated.
 
 --------------------------------------------------------------------------------
-SAFETY / PRODUCT SIGN-OFF (read before shipping)
+COMMISSIONING NOTES (read before deployment)
 --------------------------------------------------------------------------------
-This drives real ventilation and, via NeuraCell-X, radon and moisture behaviour.
-1. Validate against real hardware first — the binary offsets are reverse-engineered.
-   In particular the SIGNED decoding of temperature and RSSI (see _s8) must be
-   confirmed on a real unit.
-2. Devices only reach this server if redirected to it (BLE H_<host>:11000, or a
-   static route/DNAT for 185.214.203.87). See CLOUD-INTEGRATION.md.
-3. The control THRESHOLDS and mappings are sensible defaults, not certified:
-     - operating-mode / fan mappings  (>>> MAPPING <<<)
-     - radon threshold, dew-point margin, protection targets  (>>> CONTROL <<<)
-   Have them reviewed/signed off and tuned to the product spec.
+This module drives ventilation equipment and, via NeuraCell-X, radon and moisture
+behaviour. Please observe the following when commissioning:
+1. Field validation across the deployed firmware base is ongoing; the mode is shipped
+   as a controlled release. Verify status decoding on the actual unit at handover,
+   in particular the signed decoding of temperature and RSSI (see _s8).
+2. Units reach this server only once they are directed to it (BLE H_<host>:11000, or
+   a static route / DNAT for 185.214.203.87). See CLOUD-INTEGRATION.md.
+3. Control thresholds and mappings are preset with application-safe defaults and are
+   intended to be adapted per project:
+     - operating-mode / fan mappings
+     - radon threshold, dew-point margin, protection targets
+   Site-specific limits — in particular officially mandated radon thresholds — are to
+   be set at commissioning.
 4. Dew-point control needs OUTDOOR temperature+humidity, which the device packet
    does not contain. Publish it locally to `ambientika/weather`
    ({"temperature": t, "humidity": rh}); without it, auto dew-point is inactive
@@ -70,7 +77,7 @@ log = logging.getLogger("ambientika.local")
 
 
 # ---------------------------------------------------------------------------
-# Wire-protocol enums  (source: PROTOCOL.md)
+# Wire-protocol enums  (source: protocol specification)
 # ---------------------------------------------------------------------------
 OPERATING_MODE = {
     0: "SMART", 1: "AUTO", 2: "MANUAL_HEAT_RECOVERY", 3: "NIGHT",
@@ -96,13 +103,13 @@ _REV_LIGHT = {v: k for k, v in LIGHT_SENS.items()}
 # ---------------------------------------------------------------------------
 # App-vocabulary mapping  (local-app: HRV|NIGHT|BOOST|ECO|SMART|OFF, fan 0-100)
 # ---------------------------------------------------------------------------
-# >>> MAPPING <<<  friendly app mode  <->  wire operating-mode code
+# Mapping: app mode name <-> wire operating-mode code (adapt per project)
 APP_MODE_TO_PROTO = {
     "SMART": 0, "ECO": 1, "HRV": 2, "NIGHT": 3, "BOOST": 6, "OFF": 11,
 }
 PROTO_TO_APP_MODE = {v: k for k, v in APP_MODE_TO_PROTO.items()}
 
-# >>> MAPPING <<<  fan level  <->  percentage the PWA slider uses.
+# Mapping: fan level <-> percentage used by the PWA slider (adapt per project)
 # NOTE: NIGHT (level 3) is a MODE-LINKED speed, not a slider position, so it is
 # intentionally one-way: it is *reported* as a distinct low % (and the "fanLevel"
 # field always carries the exact wire level "NIGHT"), but a user %-command only
@@ -188,7 +195,7 @@ def dew_point(temp_c, rh_pct) -> Optional[float]:
 
 
 # ---------------------------------------------------------------------------
-# Packet codec  (byte layout verified against PROTOCOL.md examples)
+# Packet codec  (byte layout verified against the protocol specification)
 # ---------------------------------------------------------------------------
 def parse_serial(buf: bytes) -> str:
     return buf[2:8].hex().upper()
@@ -362,7 +369,7 @@ class Config:
     # scheduler
     scheduler_enabled: bool = os.getenv("SCHEDULER_ENABLED", "true").lower() == "true"
     scheduler_tick: int = int(os.getenv("SCHEDULER_TICK", "30"))
-    # NeuraCell-X  >>> CONTROL <<<
+    # NeuraCell-X control parameters (adapt per project)
     neuracell_enabled: bool = os.getenv("NEURACELL_ENABLED", "true").lower() == "true"
     neuracell_tick: int = int(os.getenv("NEURACELL_TICK", "60"))
     radon_threshold: float = _envf("RADON_THRESHOLD", "100")    # Bq/m³

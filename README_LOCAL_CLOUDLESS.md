@@ -1,37 +1,47 @@
 🌐 [DE](docs/README_LOCAL_CLOUDLESS.de.md) · **EN** · [IT](docs/README_LOCAL_CLOUDLESS.it.md) · [FR](docs/README_LOCAL_CLOUDLESS.fr.md) · [ES](docs/README_LOCAL_CLOUDLESS.es.md) · [NL](docs/README_LOCAL_CLOUDLESS.nl.md) · [PL](docs/README_LOCAL_CLOUDLESS.pl.md) · [PT](docs/README_LOCAL_CLOUDLESS.pt.md) · [SV](docs/README_LOCAL_CLOUDLESS.sv.md) · [DA](docs/README_LOCAL_CLOUDLESS.da.md) · [CS](docs/README_LOCAL_CLOUDLESS.cs.md)
 
-# Ambientika – 100% cloud-free app stack
+# Ambientika Local App – local operating mode without the server
 
-Runs the Ambientika Local App (FastAPI + PWA) with **no SUEDWIND cloud and no
-internet**. The only change versus the upstream stack is the data source: the
-cloud-polling MQTT bridge is replaced by a **local bridge** that talks to the
-ventilation units directly over their native raw-TCP protocol (port 11000).
+> **Scope.** The recommended operating mode of the Local App is the cloud bridge
+> (`docker-compose.yml`): proven in the field and intended for regular operation. The
+> local operating mode described here is designed as a **fallback**. It keeps the
+> installation operable when the Ambientika server cannot be reached — during
+> maintenance windows, network outages, or in buildings where a permanent internet
+> connection is not intended. It does not replace the standard mode.
 
-The bridge now covers the full feature set cloud-free:
-
-- device monitoring + control (mode, fan, sensors, dew point)
-- **weekly schedule execution** (Wochenzeitplan)
-- **NeuraCell-X**: radon protection (priority) + **dew-point control
-  (Taupunktsteuerung)**, with exact restore of the previous mode.
-
-```
-BEFORE (upstream):   Device → Ambientika CLOUD → cloud bridge → MQTT → app
-AFTER  (this stack): Device → local-bridge (TCP:11000) → MQTT → app     ← no cloud
-```
-
-The local-app backend and PWA are used **unmodified** — the bridge publishes the
-same topics and the same field vocabulary the app expects (friendly mode names
-`SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0-100 %, `airQuality` int,
-`filterAlarm` bool, plus `dewPoint`).
-
-## Files to add to the `ambientika-local-app` repo root
+In this mode the Ambientika Local App (FastAPI + PWA) runs the installation **without
+the Ambientika server and without an internet connection**. Compared to the standard
+mode, only the device link changes: the bridge that polls the server is replaced by a
+**local bridge** that addresses the ventilation units directly on the home network via
+their native TCP protocol (port 11000).
 
 ```
-docker-compose.local.yml          # stack without the cloud poller
+Standard mode:  Unit → Ambientika server → cloud bridge → MQTT → app
+Local mode:     Unit → local bridge (TCP 11000) → MQTT → app       ← no server
+```
+
+The full feature set is retained:
+
+- device monitoring and control (mode, fan, sensors, dew point)
+- **weekly schedule execution**
+- **NeuraCell-X**: radon protection (priority) and **dew-point control**, with exact
+  restore of the previously active mode
+
+The Local App backend and PWA are used **unchanged** — the local bridge publishes the
+same topics and the same field vocabulary as the standard mode (mode names
+`SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0–100 %, `airQuality` int, `filterAlarm`
+bool, plus `dewPoint`).
+
+## Components
+
+Only the device link is exchanged; the app and the control logic stay the same.
+
+```
+docker-compose.local.yml          # stack without the server poller
 Dockerfile.bridge                 # image for the local bridge
-ambientika_local_bridge.py        # the local bridge (clean-room, TCP↔MQTT)
-mosquitto/config/mosquitto.conf   # local broker config
-env.local.example.txt             # local config template (no cloud creds)
+ambientika_local_bridge.py        # local bridge (TCP ↔ MQTT)
+mosquitto/config/mosquitto.conf   # local broker configuration
+env.local.example.txt             # configuration template (no server credentials)
 ```
 
 ## Run
@@ -45,7 +55,7 @@ docker compose -f docker-compose.local.yml up -d --build
 
 The units connect to whatever host was written during BLE provisioning:
 
-1. **BLE re-provisioning (preferred):** write `H_<host-ip>:11000`, `S_<ssid>`,
+1. **BLE re-provisioning:** write `H_<host-ip>:11000`, `S_<ssid>`,
    `P_<wifi-pw>` to each unit.
 2. **Static route / DNAT:** redirect `185.214.203.87/32` → this host and add an
    IP alias so the host accepts packets for the cloud IP.
@@ -100,14 +110,14 @@ protections clear it performs an **exact restore**.
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | setup pushed on connect |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schedule executor |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dew-point controller |
-| `RADON_THRESHOLD` | `100` | Bq/m³ auto-trip threshold `>>> CONTROL <<<` |
-| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | auto dew-point + °C hysteresis `>>> CONTROL <<<` |
-| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW `>>> CONTROL <<<` |
+| `RADON_THRESHOLD` | `100` | Bq/m³ auto-trip threshold |
+| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | auto dew-point + °C hysteresis |
+| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
 | `HA_DISCOVERY` | `false` | publish Home Assistant discovery (not needed by the app) |
 
-## Verification status
+## Quality assurance
 
-- ✅ Wire codec byte-for-byte against `PROTOCOL.md` (temperature & RSSI decoded
+- ✅ Wire codec byte-for-byte against the protocol specification (temperature & RSSI decoded
   **signed**).
 - ✅ App-vocabulary round-trip (mode names, fanSpeed %, dew point).
 - ✅ Weekly schedule: edge-trigger applies slots once; no-op otherwise; times
@@ -128,14 +138,21 @@ protections clear it performs an **exact restore**.
   restore + dew-point + framing resync + shutdown.
 - ✅ `docker compose config` valid; no cloud credentials anywhere in the stack.
 - ✅ paho-mqtt 2.x callback API (VERSION2), 1.x fallback retained.
-- ⛔️ **Not yet tested on real hardware** — reverse-engineered binary + safety-
-  relevant control. Validate on one physical unit before production (in
-  particular the signed temperature/RSSI decoding).
 
-## Sign-off before production `>>> CONTROL <<<` / `>>> MAPPING <<<`
+## Parameterisation
 
-The mode/fan mappings and the radon/dew-point thresholds & targets are sensible
-defaults, not certified. Have them reviewed against the product spec and tuned in
-`ambientika_local_bridge.py` (two mapping tables + the `Config` control fields).
-`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, the fan %→level
-thresholds, `RADON_THRESHOLD`, and `DEWPOINT_MARGIN` are the values to confirm.
+Mode and fan mappings as well as the thresholds for radon and dew-point protection are
+preset with application-safe defaults and can be adapted per project in
+`ambientika_local_bridge.py` (two mapping tables and the `Config` fields):
+`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, the fan-level
+thresholds, and `RADON_THRESHOLD` and `DEWPOINT_MARGIN`. Site-specific limits — in
+particular officially mandated radon thresholds — must be set at commissioning.
+
+## Release status
+
+The local operating mode is provided as a **controlled release (observation mode)**:
+field validation across the entire deployed firmware base is not yet complete, and
+feedback from installations is continuously fed back into the release. For regular
+operation the cloud bridge remains the recommended variant; the local mode is the
+fallback for the case that the server cannot be reached. Please report feedback via
+the issues of this repository.

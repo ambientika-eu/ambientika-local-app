@@ -24,7 +24,9 @@ und ist per Browser (Handy & PC) erreichbar – auch als installierbare App.
 Die App und die Steuerung laufen immer lokal im Heimnetz. Für die **Geräteanbindung** gibt es zwei Modi:
 
 - **Standard – Cloud-Bridge:** `docker-compose.yml` startet die `ambientika-mqtt-bridge`, die die Ambientika-Cloud abfragt und die Daten lokal per MQTT bereitstellt. Benötigt eine einmalige Cloud-Anmeldung (`AMBIENTIKA_EMAIL` / `AMBIENTIKA_PASSWORD`) und Internet.
-- **100% cloudfrei – lokale Bridge:** `docker-compose.local.yml` spricht die Geräte über die lokale TCP-Bridge (`ambientika_local_bridge.py`, Port 11000) direkt im LAN an — **ohne Cloud-Server und ohne dauerhafte Internetverbindung**. Einrichtung: [`README_LOCAL_CLOUDLESS.md`](docs/README_LOCAL_CLOUDLESS.de.md) und [`CLOUD-INTEGRATION.md`](docs/CLOUD-INTEGRATION.de.md).
+- **Lokal – ohne Server:** `docker-compose.local.yml` spricht die Geräte über die lokale TCP-Bridge (`ambientika_local_bridge.py`, Port 11000) direkt im LAN an — **ohne Cloud-Server und ohne dauerhafte Internetverbindung**. Einrichtung: [`README_LOCAL_CLOUDLESS.md`](docs/README_LOCAL_CLOUDLESS.de.md) und [`CLOUD-INTEGRATION.md`](docs/CLOUD-INTEGRATION.de.md).
+
+> Der Standardmodus ist im Feld bewährt und für den Regelbetrieb vorgesehen. Der lokale Modus ist die **Rückfallebene**: Er hält die Anlage bedienbar, wenn der Ambientika-Server nicht erreichbar ist, und deckt Objekte ohne dauerhafte Internetanbindung ab. Er ersetzt den Standardmodus nicht.
 
 Die Taupunkt-/Feuchteschutz-Funktion läuft ohnehin autonom im Gerät und ist von beidem unabhängig.
 
@@ -211,10 +213,11 @@ MIT License – © Ambientika / SUEDWIND
 
 ## Betrieb ganz ohne unseren Server
 
-Diese Local App bezieht ihre Daten über den Ambientika-Server. Wer die Anlage vollständig im eigenen Netz betreiben will, findet dafür eine zweite, eigenständige Fassung:
+Es gibt zwei Wege, die Anlage ohne den Ambientika-Server zu betreiben:
 
-https://github.com/ambientika-eu/ambientika-local-standalone
+- **Lokaler Betriebsmodus dieser App** — `docker-compose.local.yml` ersetzt die Server-Abfrage durch die lokale Bridge. Einrichtung: [`README_LOCAL_CLOUDLESS.de.md`](docs/README_LOCAL_CLOUDLESS.de.md)
+- **Eigenständiger lokaler Server** — ersetzt den Server vollständig, sodass auch die Ambientika-App unverändert gegen ihn läuft: [ambientika-local-standalone](https://github.com/ambientika-eu/ambientika-local-standalone)
 
-Sie ersetzt den Server durch einen lokalen Dienst, der dasselbe Protokoll spricht. Die Erstinbetriebnahme läuft weiterhin einmalig über die Ambientika-App, danach bleibt alles im Haus.
+Beide setzen auf einer Anlage auf, die einmalig über die Ambientika-App in Betrieb genommen wurde; danach bleibt alles im Haus.
 
-Diese Fassung hier ist im Feld bewährt und bleibt die empfohlene Variante. Die eigenständige ist neu und noch nicht an allen Firmwareständen erprobt; sie wird deshalb im Beobachtungsmodus ausgeliefert.
+Der Standardmodus über den Ambientika-Server ist im Feld bewährt und bleibt die empfohlene Variante für den Regelbetrieb. Die serverlosen Varianten sind als **Rückfallebene** gedacht — für Wartungsfenster, Netzstörungen oder Objekte ohne dauerhafte Internetanbindung. Sie sind neu und noch nicht an allen Firmwareständen erprobt und werden deshalb im Beobachtungsmodus ausgeliefert.

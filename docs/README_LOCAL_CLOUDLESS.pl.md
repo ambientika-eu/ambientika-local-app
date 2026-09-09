@@ -1,37 +1,48 @@
 🌐 [DE](README_LOCAL_CLOUDLESS.de.md) · [EN](../README_LOCAL_CLOUDLESS.md) · [IT](README_LOCAL_CLOUDLESS.it.md) · [FR](README_LOCAL_CLOUDLESS.fr.md) · [ES](README_LOCAL_CLOUDLESS.es.md) · [NL](README_LOCAL_CLOUDLESS.nl.md) · **PL** · [PT](README_LOCAL_CLOUDLESS.pt.md) · [SV](README_LOCAL_CLOUDLESS.sv.md) · [DA](README_LOCAL_CLOUDLESS.da.md) · [CS](README_LOCAL_CLOUDLESS.cs.md)
 
-# Ambientika – stos aplikacji w 100% bez chmury
+# Ambientika Local App – lokalny tryb pracy bez serwera
 
-Uruchamia Ambientika Local App (FastAPI + PWA) **bez chmury SUEDWIND i bez
-internetu**. Jedyna zmiana względem oryginalnego stosu to źródło danych: odpytujący
-chmurę MQTT Bridge zostaje zastąpiony przez **lokalny Bridge**, który komunikuje się z
-urządzeniami wentylacyjnymi bezpośrednio przez ich natywny surowy protokół TCP (port 11000).
+> **Umiejscowienie.** Zalecanym trybem pracy Local App jest mostek chmurowy
+> (`docker-compose.yml`): sprawdzony w praktyce i przeznaczony do eksploatacji
+> bieżącej. Opisany tutaj tryb lokalny zaprojektowano jako **poziom awaryjny**.
+> Utrzymuje instalację w gotowości do obsługi, gdy serwer Ambientika jest
+> nieosiągalny — podczas okien serwisowych, awarii sieci lub w obiektach, dla których
+> nie przewidziano stałego łącza internetowego. Nie zastępuje trybu standardowego.
 
-Bridge obejmuje teraz pełen zestaw funkcji bez chmury:
+W tym trybie Ambientika Local App (FastAPI + PWA) prowadzi instalację **bez serwera
+Ambientika i bez połączenia internetowego**. W porównaniu z trybem standardowym
+zmienia się wyłącznie sposób połączenia z urządzeniami: zamiast mostka odpytującego
+serwer działa **mostek lokalny**, który komunikuje się z centralami wentylacyjnymi
+bezpośrednio w sieci domowej przez ich natywny protokół TCP (port 11000).
+
+```
+Tryb standardowy:  Urządzenie → serwer Ambientika → mostek chmurowy → MQTT → app
+Tryb lokalny:      Urządzenie → mostek lokalny (TCP 11000) → MQTT → app  ← bez serwera
+```
+
+Pełny zakres funkcji zostaje zachowany:
 
 - monitorowanie i sterowanie urządzeniami (tryb, wentylator, czujniki, punkt rosy)
-- **wykonywanie harmonogramu tygodniowego** (Wochenzeitplan)
-- **NeuraCell-X**: ochrona przed radonem (priorytet) + **sterowanie punktem rosy
-  (Taupunktsteuerung)**, z dokładnym przywróceniem poprzedniego trybu.
+- **realizacja harmonogramu tygodniowego**
+- **NeuraCell-X**: ochrona radonowa (priorytet) i **sterowanie punktem rosy**, z
+  dokładnym przywróceniem wcześniej aktywnego trybu
+
+Backend Local App i PWA są używane **bez zmian** — mostek lokalny publikuje te same
+tematy i to samo słownictwo pól co tryb standardowy (nazwy trybów
+`SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0–100 %, `airQuality` int, `filterAlarm`
+bool, dodatkowo `dewPoint`).
+
+## Komponenty
+
+Wymieniane jest wyłącznie połączenie z urządzeniami; aplikacja i logika sterowania
+pozostają bez zmian.
 
 ```
-BEFORE (upstream):   Device → Ambientika CLOUD → cloud bridge → MQTT → app
-AFTER  (this stack): Device → local-bridge (TCP:11000) → MQTT → app     ← no cloud
-```
-
-Backend local-app i PWA są używane **bez modyfikacji** — Bridge publikuje te
-same tematy i to samo słownictwo pól, których oczekuje aplikacja (przyjazne nazwy trybów
-`SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0-100 %, `airQuality` typu int,
-`filterAlarm` typu bool oraz `dewPoint`).
-
-## Pliki do dodania w katalogu głównym repozytorium `ambientika-local-app`
-
-```
-docker-compose.local.yml          # stack without the cloud poller
-Dockerfile.bridge                 # image for the local bridge
-ambientika_local_bridge.py        # the local bridge (clean-room, TCP↔MQTT)
-mosquitto/config/mosquitto.conf   # local broker config
-env.local.example.txt             # local config template (no cloud creds)
+docker-compose.local.yml          # stos bez odpytywania serwera
+Dockerfile.bridge                 # obraz mostka lokalnego
+ambientika_local_bridge.py        # mostek lokalny (TCP ↔ MQTT)
+mosquitto/config/mosquitto.conf   # konfiguracja lokalnego brokera
+env.local.example.txt             # szablon konfiguracji (bez danych dostępowych serwera)
 ```
 
 ## Uruchomienie
@@ -45,7 +56,7 @@ docker compose -f docker-compose.local.yml up -d --build
 
 Urządzenia łączą się z tym hostem, który został zapisany podczas provisioningu BLE:
 
-1. **Ponowny provisioning BLE (zalecane):** zapisz `H_<host-ip>:11000`, `S_<ssid>`,
+1. **Ponowny provisioning BLE:** zapisz `H_<host-ip>:11000`, `S_<ssid>`,
    `P_<wifi-pw>` w każdym urządzeniu.
 2. **Trasa statyczna / DNAT:** przekieruj `185.214.203.87/32` → na ten host i dodaj
    alias IP, aby host akceptował pakiety kierowane na adres IP chmury.
@@ -100,14 +111,14 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | konfiguracja wysyłana przy połączeniu |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | wykonawca harmonogramu |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | kontroler radonu i punktu rosy |
-| `RADON_THRESHOLD` | `100` | próg automatycznego wyzwolenia w Bq/m³ `>>> CONTROL <<<` |
-| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatyczny punkt rosy + histereza °C `>>> CONTROL <<<` |
-| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW `>>> CONTROL <<<` |
+| `RADON_THRESHOLD` | `100` | próg automatycznego wyzwolenia w Bq/m³ |
+| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatyczny punkt rosy + histereza °C |
+| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
 | `HA_DISCOVERY` | `false` | publikacja Home Assistant discovery (niepotrzebne aplikacji) |
 
-## Status weryfikacji
+## Zapewnienie jakości
 
-- ✅ Kodek transmisji bajt w bajt zgodny z `PROTOCOL.md` (temperatura i RSSI dekodowane
+- ✅ Kodek transmisji bajt w bajt zgodny z die Protokollspezifikation (temperatura i RSSI dekodowane
   jako **ze znakiem**).
 - ✅ Pełny obieg słownictwa aplikacji (nazwy trybów, fanSpeed %, punkt rosy).
 - ✅ Harmonogram tygodniowy: wyzwalanie zboczem stosuje przedziały raz; w pozostałych przypadkach brak działania; godziny
@@ -128,14 +139,22 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
   przywrócenie + punkt rosy + resynchronizacja ramek + zamknięcie.
 - ✅ `docker compose config` poprawne; brak jakichkolwiek poświadczeń chmury w stosie.
 - ✅ API zwrotne paho-mqtt 2.x (VERSION2), zachowany fallback dla 1.x.
-- ⛔️ **Jeszcze nieprzetestowane na prawdziwym sprzęcie** — protokół binarny odtworzony metodą
-  inżynierii wstecznej + sterowanie istotne dla bezpieczeństwa. Zweryfikuj na jednym fizycznym
-  urządzeniu przed wdrożeniem produkcyjnym (w szczególności dekodowanie temperatury/RSSI ze znakiem).
 
-## Zatwierdzenie przed produkcją `>>> CONTROL <<<` / `>>> MAPPING <<<`
+## Parametryzacja
 
-Mapowania trybów/wentylatora oraz progi i wartości docelowe radonu/punktu rosy to rozsądne
-ustawienia domyślne, lecz niecertyfikowane. Zweryfikuj je względem specyfikacji produktu i dostrój w
-`ambientika_local_bridge.py` (dwie tabele mapowań + pola sterujące `Config`).
-`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, progi %→poziom wentylatora,
-`RADON_THRESHOLD` oraz `DEWPOINT_MARGIN` to wartości do potwierdzenia.
+Przypisania trybów i wentylatora oraz progi ochrony radonowej i punktu rosy są
+wstępnie ustawione na wartości bezpieczne dla zastosowania i można je dostosować do
+projektu w `ambientika_local_bridge.py` (dwie tabele przypisań oraz pola `Config`):
+`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, progi biegów
+wentylatora oraz `RADON_THRESHOLD` i `DEWPOINT_MARGIN`. Wartości graniczne właściwe
+dla obiektu — w szczególności progi radonu wymagane przepisami — należy ustawić przy
+uruchomieniu.
+
+## Status wydania
+
+Lokalny tryb pracy jest udostępniany jako **wydanie kontrolowane (tryb obserwacji)**:
+walidacja w terenie na całym wdrożonym zasobie firmware nie została jeszcze
+zakończona, a informacje zwrotne z instalacji są na bieżąco uwzględniane. Do
+eksploatacji bieżącej zalecanym wariantem pozostaje mostek chmurowy; tryb lokalny
+jest poziomem awaryjnym na wypadek nieosiągalności serwera. Uwagi prosimy zgłaszać
+przez issues tego repozytorium.

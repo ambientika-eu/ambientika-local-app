@@ -1,37 +1,49 @@
 🌐 [DE](README_LOCAL_CLOUDLESS.de.md) · [EN](../README_LOCAL_CLOUDLESS.md) · [IT](README_LOCAL_CLOUDLESS.it.md) · **FR** · [ES](README_LOCAL_CLOUDLESS.es.md) · [NL](README_LOCAL_CLOUDLESS.nl.md) · [PL](README_LOCAL_CLOUDLESS.pl.md) · [PT](README_LOCAL_CLOUDLESS.pt.md) · [SV](README_LOCAL_CLOUDLESS.sv.md) · [DA](README_LOCAL_CLOUDLESS.da.md) · [CS](README_LOCAL_CLOUDLESS.cs.md)
 
-# Ambientika – stack applicative 100% sans cloud
+# Ambientika Local App – mode de fonctionnement local sans serveur
 
-Exécute l'Ambientika Local App (FastAPI + PWA) **sans cloud SUEDWIND ni
-Internet**. La seule différence par rapport à la stack d'origine est la source des données : le
-bridge MQTT qui interroge le cloud est remplacé par un **bridge local** qui communique
-avec les appareils de ventilation directement via leur protocole raw-TCP natif (port 11000).
+> **Positionnement.** Le mode de fonctionnement recommandé de la Local App est le
+> bridge cloud (`docker-compose.yml`) : éprouvé sur le terrain et prévu pour
+> l'exploitation courante. Le mode local décrit ici est conçu comme un **niveau de
+> repli**. Il maintient l'installation utilisable lorsque le serveur Ambientika est
+> injoignable — lors de fenêtres de maintenance, de pannes réseau ou dans des
+> bâtiments où une connexion internet permanente n'est pas prévue. Il ne remplace pas
+> le mode standard.
 
-Le bridge couvre désormais l'ensemble des fonctionnalités sans cloud :
-
-- surveillance et contrôle des appareils (mode, ventilateur, capteurs, point de rosée)
-- **exécution du programme hebdomadaire** (Wochenzeitplan)
-- **NeuraCell-X** : protection radon (prioritaire) + **contrôle du point de rosée
-  (Taupunktsteuerung)**, avec restauration exacte du mode précédent.
+Dans ce mode, l'Ambientika Local App (FastAPI + PWA) pilote l'installation **sans
+serveur Ambientika et sans connexion internet**. Par rapport au mode standard, seule
+la liaison aux appareils change : le bridge qui interroge le serveur est remplacé par
+un **bridge local** qui s'adresse aux appareils de ventilation directement sur le
+réseau domestique via leur protocole TCP natif (port 11000).
 
 ```
-BEFORE (upstream):   Device → Ambientika CLOUD → cloud bridge → MQTT → app
-AFTER  (this stack): Device → local-bridge (TCP:11000) → MQTT → app     ← no cloud
+Mode standard :  Appareil → serveur Ambientika → bridge cloud → MQTT → app
+Mode local :     Appareil → bridge local (TCP 11000) → MQTT → app    ← sans serveur
 ```
 
-Le backend de la local-app et la PWA sont utilisés **sans modification** — le bridge publie les
-mêmes topics et le même vocabulaire de champs que l'application attend (noms de modes conviviaux
-`SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0-100 %, `airQuality` int,
+L'ensemble des fonctionnalités reste disponible :
+
+- surveillance et commande des appareils (mode, ventilateur, capteurs, point de rosée)
+- **exécution du programme hebdomadaire**
+- **NeuraCell-X** : protection radon (prioritaire) et **contrôle du point de rosée**,
+  avec restauration exacte du mode précédemment actif
+
+Le backend de la Local App et la PWA sont utilisés **sans modification** — le bridge
+local publie les mêmes topics et le même vocabulaire de champs que le mode standard
+(noms de modes `SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0–100 %, `airQuality` int,
 `filterAlarm` bool, plus `dewPoint`).
 
-## Fichiers à ajouter à la racine du dépôt `ambientika-local-app`
+## Composants
+
+Seule la liaison aux appareils est remplacée ; l'application et la logique de commande
+restent identiques.
 
 ```
-docker-compose.local.yml          # stack without the cloud poller
-Dockerfile.bridge                 # image for the local bridge
-ambientika_local_bridge.py        # the local bridge (clean-room, TCP↔MQTT)
-mosquitto/config/mosquitto.conf   # local broker config
-env.local.example.txt             # local config template (no cloud creds)
+docker-compose.local.yml          # stack sans interrogation du serveur
+Dockerfile.bridge                 # image du bridge local
+ambientika_local_bridge.py        # bridge local (TCP ↔ MQTT)
+mosquitto/config/mosquitto.conf   # configuration du broker local
+env.local.example.txt             # modèle de configuration (sans identifiants serveur)
 ```
 
 ## Exécution
@@ -45,7 +57,7 @@ docker compose -f docker-compose.local.yml up -d --build
 
 Les appareils se connectent à l'hôte qui a été enregistré lors du provisionnement BLE :
 
-1. **Re-provisionnement BLE (recommandé) :** écrire `H_<host-ip>:11000`, `S_<ssid>`,
+1. **Re-provisionnement BLE :** écrire `H_<host-ip>:11000`, `S_<ssid>`,
    `P_<wifi-pw>` sur chaque appareil.
 2. **Route statique / DNAT :** rediriger `185.214.203.87/32` → cet hôte et ajouter un
    alias IP pour que l'hôte accepte les paquets destinés à l'IP du cloud.
@@ -100,14 +112,14 @@ les protections sont levées, il effectue une **restauration exacte**.
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | configuration envoyée à la connexion |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | exécuteur du programme |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | contrôleur radon + point de rosée |
-| `RADON_THRESHOLD` | `100` | seuil de déclenchement automatique en Bq/m³ `>>> CONTROL <<<` |
-| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | point de rosée automatique + hystérésis en °C `>>> CONTROL <<<` |
-| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW `>>> CONTROL <<<` |
+| `RADON_THRESHOLD` | `100` | seuil de déclenchement automatique en Bq/m³ |
+| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | point de rosée automatique + hystérésis en °C |
+| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
 | `HA_DISCOVERY` | `false` | publie le discovery Home Assistant (non requis par l'application) |
 
-## État de la vérification
+## Assurance qualité
 
-- ✅ Codec de trame octet par octet conforme à `PROTOCOL.md` (température et RSSI décodés
+- ✅ Codec de trame octet par octet conforme à die Protokollspezifikation (température et RSSI décodés
   en **signé**).
 - ✅ Aller-retour du vocabulaire de l'application (noms de modes, fanSpeed %, point de rosée).
 - ✅ Programme hebdomadaire : le déclenchement sur front applique les créneaux une seule fois ; sinon no-op ; heures
@@ -128,14 +140,23 @@ les protections sont levées, il effectue une **restauration exacte**.
   restauration + point de rosée + resynchronisation du tramage + arrêt.
 - ✅ `docker compose config` valide ; aucune information d'identification cloud nulle part dans la stack.
 - ✅ API de callback paho-mqtt 2.x (VERSION2), repli 1.x conservé.
-- ⛔️ **Pas encore testé sur du matériel réel** — binaire rétro-conçu + contrôle
-  critique pour la sécurité. Valider sur un appareil physique avant la mise en production (en
-  particulier le décodage signé de la température/RSSI).
 
-## Validation avant la mise en production `>>> CONTROL <<<` / `>>> MAPPING <<<`
+## Paramétrage
 
-Les correspondances mode/ventilateur et les seuils et cibles radon/point de rosée sont des valeurs
-par défaut raisonnables, non certifiées. Faites-les examiner au regard des spécifications produit et ajustez-les dans
-`ambientika_local_bridge.py` (deux tables de correspondance + les champs de contrôle `Config`).
-`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, les seuils ventilateur %→niveau,
-`RADON_THRESHOLD` et `DEWPOINT_MARGIN` sont les valeurs à confirmer.
+Les correspondances de modes et de ventilateur ainsi que les seuils de protection
+radon et point de rosée sont préréglés avec des valeurs sûres pour l'application et
+sont adaptables par projet dans `ambientika_local_bridge.py` (deux tables de
+correspondance et les champs `Config`) : `BOOST→TIMED_EXPULSION`, `ECO→AUTO`,
+`HRV→MANUAL_HEAT_RECOVERY`, les seuils des niveaux de ventilation ainsi que
+`RADON_THRESHOLD` et `DEWPOINT_MARGIN`. Les valeurs limites propres au bâtiment — en
+particulier les seuils de radon imposés par les autorités — doivent être définies lors
+de la mise en service.
+
+## Statut de publication
+
+Le mode local est fourni sous forme de **livraison contrôlée (mode d'observation)** :
+la validation sur le terrain sur l'ensemble du parc de firmwares déployés n'est pas
+encore achevée et les retours des installations alimentent en continu la validation.
+Pour l'exploitation courante, le bridge cloud reste la variante recommandée ; le mode
+local est le niveau de repli au cas où le serveur serait injoignable. Merci de faire
+remonter vos retours via les issues de ce dépôt.

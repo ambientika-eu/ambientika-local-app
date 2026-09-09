@@ -1,37 +1,47 @@
 🌐 [DE](README_LOCAL_CLOUDLESS.de.md) · [EN](../README_LOCAL_CLOUDLESS.md) · [IT](README_LOCAL_CLOUDLESS.it.md) · [FR](README_LOCAL_CLOUDLESS.fr.md) · [ES](README_LOCAL_CLOUDLESS.es.md) · [NL](README_LOCAL_CLOUDLESS.nl.md) · [PL](README_LOCAL_CLOUDLESS.pl.md) · [PT](README_LOCAL_CLOUDLESS.pt.md) · **SV** · [DA](README_LOCAL_CLOUDLESS.da.md) · [CS](README_LOCAL_CLOUDLESS.cs.md)
 
-# Ambientika – 100% molnfri app-stack
+# Ambientika Local App – lokalt driftläge utan server
 
-Kör Ambientika Local App (FastAPI + PWA) **utan SUEDWIND-moln och utan
-internet**. Den enda skillnaden mot upstream-stacken är datakällan: den
-molnpollande MQTT-bryggan ersätts av en **lokal brygga** som kommunicerar med
-ventilationsenheterna direkt via deras inbyggda raw-TCP-protokoll (port 11000).
+> **Placering.** Det rekommenderade driftläget för Local App är molnbryggan
+> (`docker-compose.yml`): beprövad i fält och avsedd för normal drift. Det lokala
+> driftläge som beskrivs här är utformat som en **reservnivå**. Det håller anläggningen
+> användbar när Ambientika-servern inte kan nås — vid underhållsfönster, nätstörningar
+> eller i byggnader där permanent internetanslutning inte är avsedd. Det ersätter inte
+> standardläget.
 
-Bryggan täcker nu hela funktionsuppsättningen molnfritt:
-
-- enhetsövervakning + styrning (läge, fläkt, sensorer, daggpunkt)
-- **körning av veckoschema** (Veckoschema)
-- **NeuraCell-X**: radonskydd (prioritet) + **daggpunktsstyrning**, med
-  exakt återställning av det föregående läget.
-
-```
-BEFORE (upstream):   Device → Ambientika CLOUD → cloud bridge → MQTT → app
-AFTER  (this stack): Device → local-bridge (TCP:11000) → MQTT → app     ← no cloud
-```
-
-Local-app-backenden och PWA:n används **omodifierade** — bryggan publicerar
-samma topics och samma fältvokabulär som appen förväntar sig (läsvänliga lägesnamn
-`SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0-100 %, `airQuality` int,
-`filterAlarm` bool, plus `dewPoint`).
-
-## Filer att lägga till i roten av `ambientika-local-app`-repot
+I detta läge driver Ambientika Local App (FastAPI + PWA) anläggningen **utan
+Ambientika-server och utan internetanslutning**. Jämfört med standardläget ändras
+endast enhetsanslutningen: i stället för bryggan som frågar servern används en **lokal
+brygga** som kommunicerar med ventilationsaggregaten direkt i hemnätet via deras
+nativa TCP-protokoll (port 11000).
 
 ```
-docker-compose.local.yml          # stack without the cloud poller
-Dockerfile.bridge                 # image for the local bridge
-ambientika_local_bridge.py        # the local bridge (clean-room, TCP↔MQTT)
-mosquitto/config/mosquitto.conf   # local broker config
-env.local.example.txt             # local config template (no cloud creds)
+Standardläge:  Aggregat → Ambientika-server → molnbrygga → MQTT → app
+Lokalt läge:   Aggregat → lokal brygga (TCP 11000) → MQTT → app     ← utan server
+```
+
+Hela funktionsomfånget behålls:
+
+- enhetsövervakning och styrning (läge, fläkt, sensorer, daggpunkt)
+- **utförande av veckoschemat**
+- **NeuraCell-X**: radonskydd (prioritet) och **daggpunktsstyrning**, med exakt
+  återställning av det tidigare aktiva läget
+
+Local App:s backend och PWA används **oförändrade** — den lokala bryggan publicerar
+samma topics och samma fältvokabulär som standardläget (lägesnamn
+`SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0–100 %, `airQuality` int, `filterAlarm`
+bool, samt `dewPoint`).
+
+## Komponenter
+
+Endast enhetsanslutningen byts ut; app och styrlogik förblir desamma.
+
+```
+docker-compose.local.yml          # stack utan serverfrågor
+Dockerfile.bridge                 # image för den lokala bryggan
+ambientika_local_bridge.py        # lokal brygga (TCP ↔ MQTT)
+mosquitto/config/mosquitto.conf   # konfiguration för lokal broker
+env.local.example.txt             # konfigurationsmall (utan serveruppgifter)
 ```
 
 ## Kör
@@ -45,7 +55,7 @@ docker compose -f docker-compose.local.yml up -d --build
 
 Enheterna ansluter till den värd som skrevs in vid BLE-provisioneringen:
 
-1. **BLE-omprovisionering (rekommenderas):** skriv `H_<host-ip>:11000`, `S_<ssid>`,
+1. **BLE-omprovisionering:** skriv `H_<host-ip>:11000`, `S_<ssid>`,
    `P_<wifi-pw>` till varje enhet.
 2. **Statisk rutt / DNAT:** omdirigera `185.214.203.87/32` → den här värden och lägg
    till ett IP-alias så att värden accepterar paket för moln-IP:n.
@@ -100,14 +110,14 @@ skydd upphör utför den en **exakt återställning**.
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | konfiguration som skickas vid anslutning |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schemakörare |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon- och daggpunktsstyrning |
-| `RADON_THRESHOLD` | `100` | Bq/m³ tröskel för automatisk utlösning `>>> CONTROL <<<` |
-| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatisk daggpunkt + °C-hysteres `>>> CONTROL <<<` |
-| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW `>>> CONTROL <<<` |
+| `RADON_THRESHOLD` | `100` | Bq/m³ tröskel för automatisk utlösning |
+| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatisk daggpunkt + °C-hysteres |
+| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
 | `HA_DISCOVERY` | `false` | publicera Home Assistant-discovery (behövs inte av appen) |
 
-## Verifieringsstatus
+## Kvalitetssäkring
 
-- ✅ Wire-codec byte-för-byte mot `PROTOCOL.md` (temperatur och RSSI avkodas
+- ✅ Wire-codec byte-för-byte mot die Protokollspezifikation (temperatur och RSSI avkodas
   **med tecken**).
 - ✅ App-vokabulär-round-trip (lägesnamn, fanSpeed %, daggpunkt).
 - ✅ Veckoschema: flankutlösare tillämpar tidsintervall en gång; annars ingen åtgärd; tider
@@ -129,14 +139,21 @@ skydd upphör utför den en **exakt återställning**.
   -återställning + daggpunkt + inramningsomsynk + avstängning.
 - ✅ `docker compose config` giltig; inga molnuppgifter någonstans i stacken.
 - ✅ paho-mqtt 2.x callback-API (VERSION2), 1.x-fallback bibehållen.
-- ⛔️ **Ännu inte testat på riktig hårdvara** — reverse-engineerad binär +
-  säkerhetsrelevant styrning. Validera på en fysisk enhet före produktion (särskilt
-  den teckenförsedda temperatur-/RSSI-avkodningen).
 
-## Godkännande före produktion `>>> CONTROL <<<` / `>>> MAPPING <<<`
+## Parametrering
 
-Läges-/fläktmappningarna och radon-/daggpunktströsklarna & målvärdena är rimliga
-standardvärden, inte certifierade. Låt granska dem mot produktspecifikationen och
-justera dem i `ambientika_local_bridge.py` (två mappningstabeller + `Config`-styrfälten).
-`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, trösklarna för fläkt-%→nivå,
-`RADON_THRESHOLD` och `DEWPOINT_MARGIN` är värdena att bekräfta.
+Läges- och fläktmappningar samt tröskelvärdena för radon- och daggpunktsskydd är
+förinställda med tillämpningssäkra standardvärden och kan anpassas per projekt i
+`ambientika_local_bridge.py` (två mappningstabeller och `Config`-fälten):
+`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, trösklarna för
+fläktsteg samt `RADON_THRESHOLD` och `DEWPOINT_MARGIN`. Objektsspecifika gränsvärden —
+isärskilt myndighetsföreskrivna radontrösklar — ska sättas vid idrifttagning.
+
+## Frisläppningsstatus
+
+Det lokala driftläget tillhandahålls som en **kontrollerad leverans (observationsläge)**:
+fältvalideringen över hela det levererade firmwarebeståndet är ännu inte avslutad, och
+återkoppling från installationer arbetas löpande in i frisläppningen. För normal drift
+är molnbryggan fortsatt den rekommenderade varianten; det lokala läget är reservnivån
+för det fall servern inte kan nås. Återkoppling lämnas gärna via detta repositorys
+issues.

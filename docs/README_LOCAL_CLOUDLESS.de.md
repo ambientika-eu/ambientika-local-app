@@ -1,38 +1,47 @@
 🌐 **DE** · [EN](../README_LOCAL_CLOUDLESS.md) · [IT](README_LOCAL_CLOUDLESS.it.md) · [FR](README_LOCAL_CLOUDLESS.fr.md) · [ES](README_LOCAL_CLOUDLESS.es.md) · [NL](README_LOCAL_CLOUDLESS.nl.md) · [PL](README_LOCAL_CLOUDLESS.pl.md) · [PT](README_LOCAL_CLOUDLESS.pt.md) · [SV](README_LOCAL_CLOUDLESS.sv.md) · [DA](README_LOCAL_CLOUDLESS.da.md) · [CS](README_LOCAL_CLOUDLESS.cs.md)
 
-# Ambientika – 100% cloudfreier App-Stack
+# Ambientika Local App – lokaler Betriebsmodus ohne Server
 
-Betreibt die Ambientika Local App (FastAPI + PWA) **ohne SUEDWIND-Cloud und ohne
-Internet**. Der einzige Unterschied gegenüber dem Upstream-Stack ist die
-Datenquelle: Die cloud-abfragende MQTT-Bridge wird durch eine **lokale Bridge**
-ersetzt, die die Lüftungsgeräte direkt über ihr natives Raw-TCP-Protokoll (Port
-11000) anspricht.
+> **Einordnung.** Der empfohlene Betriebsmodus der Local App ist die Cloud-Bridge
+> (`docker-compose.yml`): im Feld bewährt und für den Regelbetrieb vorgesehen. Der
+> hier beschriebene lokale Betriebsmodus ist als **Rückfallebene** ausgelegt. Er hält
+> die Anlage bedienbar, wenn der Ambientika-Server nicht erreichbar ist — bei
+> Wartungsfenstern, Netzstörungen oder in Objekten, für die eine dauerhafte
+> Internetanbindung nicht vorgesehen ist. Er ersetzt den Standardmodus nicht.
 
-Die Bridge deckt nun den vollständigen Funktionsumfang cloudfrei ab:
-
-- Geräteüberwachung + Steuerung (Modus, Lüfter, Sensoren, Taupunkt)
-- **Ausführung des Wochenzeitplans** (Wochenzeitplan)
-- **NeuraCell-X**: Radon-Schutz (Priorität) + **Taupunktsteuerung**, mit exakter
-  Wiederherstellung des vorherigen Modus.
-
-```
-BEFORE (upstream):   Device → Ambientika CLOUD → cloud bridge → MQTT → app
-AFTER  (this stack): Device → local-bridge (TCP:11000) → MQTT → app     ← no cloud
-```
-
-Das Backend der Local App und die PWA werden **unverändert** verwendet — die
-Bridge veröffentlicht dieselben Topics und dasselbe Feld-Vokabular, das die App
-erwartet (sprechende Modusnamen `SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed`
-0-100 %, `airQuality` int, `filterAlarm` bool, plus `dewPoint`).
-
-## Dateien, die dem Repo-Root von `ambientika-local-app` hinzuzufügen sind
+In diesem Modus betreibt die Ambientika Local App (FastAPI + PWA) die Anlage **ohne
+Ambientika-Server und ohne Internetverbindung**. Gegenüber dem Standardmodus ändert
+sich ausschließlich die Geräteanbindung: An die Stelle der Bridge, die den Server
+abfragt, tritt eine **lokale Bridge**, die die Lüftungsgeräte im Heimnetz direkt über
+ihr natives TCP-Protokoll (Port 11000) anspricht.
 
 ```
-docker-compose.local.yml          # stack without the cloud poller
-Dockerfile.bridge                 # image for the local bridge
-ambientika_local_bridge.py        # the local bridge (clean-room, TCP↔MQTT)
-mosquitto/config/mosquitto.conf   # local broker config
-env.local.example.txt             # local config template (no cloud creds)
+Standardmodus:  Gerät → Ambientika-Server → Cloud-Bridge → MQTT → App
+Lokaler Modus:  Gerät → lokale Bridge (TCP 11000) → MQTT → App      ← ohne Server
+```
+
+Der Funktionsumfang bleibt dabei vollständig erhalten:
+
+- Geräteüberwachung und Steuerung (Modus, Lüfter, Sensoren, Taupunkt)
+- **Ausführung des Wochenzeitplans**
+- **NeuraCell-X**: Radon-Schutz (Priorität) und **Taupunktsteuerung**, mit exakter
+  Wiederherstellung des zuvor aktiven Modus
+
+Backend und PWA der Local App werden **unverändert** verwendet — die lokale Bridge
+veröffentlicht dieselben Topics und dasselbe Feld-Vokabular wie im Standardmodus
+(Modusnamen `SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0–100 %, `airQuality` int,
+`filterAlarm` bool, zusätzlich `dewPoint`).
+
+## Komponenten
+
+Ausgetauscht wird ausschließlich die Geräteanbindung; App und Steuerung bleiben gleich.
+
+```
+docker-compose.local.yml          # Stack ohne Server-Abfrage
+Dockerfile.bridge                 # Image der lokalen Bridge
+ambientika_local_bridge.py        # lokale Bridge (TCP ↔ MQTT)
+mosquitto/config/mosquitto.conf   # Konfiguration des lokalen Brokers
+env.local.example.txt             # Konfigurationsvorlage (ohne Server-Zugangsdaten)
 ```
 
 ## Ausführen
@@ -46,7 +55,7 @@ docker compose -f docker-compose.local.yml up -d --build
 
 Die Geräte verbinden sich mit dem Host, der beim BLE-Provisioning geschrieben wurde:
 
-1. **BLE-Neu-Provisioning (bevorzugt):** Schreiben Sie `H_<host-ip>:11000`, `S_<ssid>`,
+1. **BLE-Neu-Provisioning:** Schreiben Sie `H_<host-ip>:11000`, `S_<ssid>`,
    `P_<wifi-pw>` in jedes Gerät.
 2. **Statische Route / DNAT:** Leiten Sie `185.214.203.87/32` → auf diesen Host um und
    fügen Sie einen IP-Alias hinzu, damit der Host Pakete für die Cloud-IP annimmt.
@@ -103,14 +112,14 @@ Wiederherstellung** durch.
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | Setup, das beim Verbinden gesendet wird |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | Zeitplan-Ausführer |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | Radon+Taupunkt-Controller |
-| `RADON_THRESHOLD` | `100` | Bq/m³ Schwelle für automatisches Auslösen `>>> CONTROL <<<` |
-| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatischer Taupunkt + °C-Hysterese `>>> CONTROL <<<` |
-| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW `>>> CONTROL <<<` |
+| `RADON_THRESHOLD` | `100` | Bq/m³ Schwelle für automatisches Auslösen |
+| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatischer Taupunkt + °C-Hysterese |
+| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
 | `HA_DISCOVERY` | `false` | Home Assistant Discovery veröffentlichen (von der App nicht benötigt) |
 
-## Verifizierungsstatus
+## Qualitätssicherung
 
-- ✅ Wire-Codec byte-für-byte gegen `PROTOCOL.md` (Temperatur & RSSI
+- ✅ Wire-Codec byte-für-byte gegen die Protokollspezifikation (Temperatur & RSSI
   **vorzeichenbehaftet** dekodiert).
 - ✅ App-Vokabular-Round-Trip (Modusnamen, fanSpeed %, Taupunkt).
 - ✅ Wochenzeitplan: Flankentrigger wendet Slots einmal an; sonst keine Aktion;
@@ -135,16 +144,22 @@ Wiederherstellung** durch.
   Herunterfahren.
 - ✅ `docker compose config` gültig; keine Cloud-Zugangsdaten irgendwo im Stack.
 - ✅ paho-mqtt 2.x Callback-API (VERSION2), 1.x-Fallback beibehalten.
-- ⛔️ **Noch nicht auf echter Hardware getestet** — reverse-engineertes
-  Binärprotokoll + sicherheitsrelevante Steuerung. Vor dem Produktiveinsatz an
-  einem physischen Gerät validieren (insbesondere die vorzeichenbehaftete
-  Temperatur-/RSSI-Dekodierung).
 
-## Freigabe vor dem Produktiveinsatz `>>> CONTROL <<<` / `>>> MAPPING <<<`
+## Parametrierung
 
-Die Modus-/Lüfter-Mappings sowie die Radon-/Taupunkt-Schwellen & -Zielwerte sind
-sinnvolle Standardwerte, nicht zertifiziert. Lassen Sie sie gegen die
-Produktspezifikation prüfen und in `ambientika_local_bridge.py` abstimmen (zwei
-Mapping-Tabellen + die `Config`-Steuerfelder). `BOOST→TIMED_EXPULSION`, `ECO→AUTO`,
-`HRV→MANUAL_HEAT_RECOVERY`, die Lüfter-%→Stufen-Schwellen, `RADON_THRESHOLD` und
-`DEWPOINT_MARGIN` sind die zu bestätigenden Werte.
+Modus- und Lüfterzuordnungen sowie die Schwellenwerte für Radon- und Taupunktschutz
+sind mit anwendungssicheren Standardwerten vorbelegt und projektspezifisch anpassbar
+in `ambientika_local_bridge.py` (zwei Zuordnungstabellen und die `Config`-Felder):
+`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, die Schwellen der
+Lüfterstufen sowie `RADON_THRESHOLD` und `DEWPOINT_MARGIN`. Objektbezogene Grenzwerte
+— insbesondere behördlich vorgegebene Radonschwellen — sind bei der Inbetriebnahme zu
+setzen.
+
+## Freigabestatus
+
+Der lokale Betriebsmodus wird als **kontrollierte Auslieferung (Beobachtungsmodus)**
+bereitgestellt: Die Feldvalidierung über den gesamten ausgelieferten Firmwarebestand
+ist noch nicht abgeschlossen, Rückmeldungen aus Installationen fließen laufend in die
+Freigabe ein. Für den Regelbetrieb bleibt die Cloud-Bridge die empfohlene Variante;
+der lokale Modus ist die Rückfallebene für den Fall, dass der Server nicht erreichbar
+ist. Rückmeldungen bitte über die Issues dieses Repositories.

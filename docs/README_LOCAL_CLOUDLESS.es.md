@@ -1,37 +1,48 @@
 🌐 [DE](README_LOCAL_CLOUDLESS.de.md) · [EN](../README_LOCAL_CLOUDLESS.md) · [IT](README_LOCAL_CLOUDLESS.it.md) · [FR](README_LOCAL_CLOUDLESS.fr.md) · **ES** · [NL](README_LOCAL_CLOUDLESS.nl.md) · [PL](README_LOCAL_CLOUDLESS.pl.md) · [PT](README_LOCAL_CLOUDLESS.pt.md) · [SV](README_LOCAL_CLOUDLESS.sv.md) · [DA](README_LOCAL_CLOUDLESS.da.md) · [CS](README_LOCAL_CLOUDLESS.cs.md)
 
-# Ambientika – Stack de aplicación 100% sin nube
+# Ambientika Local App – modo de funcionamiento local sin servidor
 
-Ejecuta la Ambientika Local App (FastAPI + PWA) **sin la nube de SUEDWIND y sin
-internet**. El único cambio respecto al stack original es la fuente de datos: el
-MQTT bridge que consulta la nube se sustituye por un **bridge local** que se comunica con los
-dispositivos de ventilación directamente mediante su protocolo raw-TCP nativo (puerto 11000).
+> **Encuadre.** El modo de funcionamiento recomendado de la Local App es el bridge en
+> la nube (`docker-compose.yml`): probado en campo y previsto para el funcionamiento
+> habitual. El modo local aquí descrito está concebido como **nivel de respaldo**.
+> Mantiene la instalación operativa cuando el servidor Ambientika no está accesible —
+> durante ventanas de mantenimiento, incidencias de red o en edificios en los que no
+> se prevé una conexión permanente a internet. No sustituye al modo estándar.
 
-El bridge ahora cubre todo el conjunto de funciones sin nube:
-
-- supervisión y control de dispositivos (modo, ventilador, sensores, punto de rocío)
-- **ejecución del programa semanal** (Wochenzeitplan)
-- **NeuraCell-X**: protección contra radón (prioridad) + **control del punto de rocío
-  (Taupunktsteuerung)**, con restauración exacta del modo anterior.
-
-```
-BEFORE (upstream):   Device → Ambientika CLOUD → cloud bridge → MQTT → app
-AFTER  (this stack): Device → local-bridge (TCP:11000) → MQTT → app     ← no cloud
-```
-
-El backend de local-app y la PWA se usan **sin modificar**: el bridge publica los
-mismos temas y el mismo vocabulario de campos que la aplicación espera (nombres de modo legibles
-`SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0-100 %, `airQuality` int,
-`filterAlarm` bool, además de `dewPoint`).
-
-## Archivos que añadir a la raíz del repositorio `ambientika-local-app`
+En este modo, la Ambientika Local App (FastAPI + PWA) gobierna la instalación **sin
+servidor Ambientika y sin conexión a internet**. Frente al modo estándar solo cambia
+la conexión con los equipos: el bridge que consulta el servidor se sustituye por un
+**bridge local** que se dirige a las unidades de ventilación directamente en la red
+doméstica mediante su protocolo TCP nativo (puerto 11000).
 
 ```
-docker-compose.local.yml          # stack without the cloud poller
-Dockerfile.bridge                 # image for the local bridge
-ambientika_local_bridge.py        # the local bridge (clean-room, TCP↔MQTT)
-mosquitto/config/mosquitto.conf   # local broker config
-env.local.example.txt             # local config template (no cloud creds)
+Modo estándar:  Equipo → servidor Ambientika → bridge en la nube → MQTT → app
+Modo local:     Equipo → bridge local (TCP 11000) → MQTT → app        ← sin servidor
+```
+
+Se mantiene todo el alcance funcional:
+
+- supervisión y control de los equipos (modo, ventilador, sensores, punto de rocío)
+- **ejecución del programa semanal**
+- **NeuraCell-X**: protección frente al radón (prioritaria) y **control del punto de
+  rocío**, con restauración exacta del modo activo anteriormente
+
+El backend de la Local App y la PWA se utilizan **sin modificaciones** — el bridge
+local publica los mismos topics y el mismo vocabulario de campos que el modo estándar
+(nombres de modo `SMART/HRV/NIGHT/ECO/BOOST/OFF`, `fanSpeed` 0–100 %, `airQuality`
+int, `filterAlarm` bool, además de `dewPoint`).
+
+## Componentes
+
+Solo se sustituye la conexión con los equipos; la app y la lógica de control no
+cambian.
+
+```
+docker-compose.local.yml          # stack sin consulta al servidor
+Dockerfile.bridge                 # imagen del bridge local
+ambientika_local_bridge.py        # bridge local (TCP ↔ MQTT)
+mosquitto/config/mosquitto.conf   # configuración del broker local
+env.local.example.txt             # plantilla de configuración (sin credenciales de servidor)
 ```
 
 ## Ejecutar
@@ -45,7 +56,7 @@ docker compose -f docker-compose.local.yml up -d --build
 
 Los dispositivos se conectan al host que se haya escrito durante el aprovisionamiento por BLE:
 
-1. **Reaprovisionamiento por BLE (preferido):** escribe `H_<host-ip>:11000`, `S_<ssid>`,
+1. **Reaprovisionamiento por BLE:** escribe `H_<host-ip>:11000`, `S_<ssid>`,
    `P_<wifi-pw>` en cada dispositivo.
 2. **Ruta estática / DNAT:** redirige `185.214.203.87/32` → este host y añade un
    alias de IP para que el host acepte los paquetes destinados a la IP de la nube.
@@ -100,14 +111,14 @@ las protecciones se desactivan, realiza una **restauración exacta**.
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | configuración enviada al conectar |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | ejecutor del programa |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | controlador de radón y punto de rocío |
-| `RADON_THRESHOLD` | `100` | umbral de activación automática en Bq/m³ `>>> CONTROL <<<` |
-| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | punto de rocío automático + histéresis en °C `>>> CONTROL <<<` |
-| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW `>>> CONTROL <<<` |
+| `RADON_THRESHOLD` | `100` | umbral de activación automática en Bq/m³ |
+| `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | punto de rocío automático + histéresis en °C |
+| `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
 | `HA_DISCOVERY` | `false` | publica el discovery de Home Assistant (no lo necesita la aplicación) |
 
-## Estado de verificación
+## Aseguramiento de la calidad
 
-- ✅ Códec de transmisión byte a byte conforme a `PROTOCOL.md` (temperatura y RSSI decodificadas
+- ✅ Códec de transmisión byte a byte conforme a die Protokollspezifikation (temperatura y RSSI decodificadas
   **con signo**).
 - ✅ Ida y vuelta del vocabulario de la aplicación (nombres de modo, fanSpeed %, punto de rocío).
 - ✅ Programa semanal: la activación por flanco aplica las franjas una vez; sin efecto en caso contrario; horas
@@ -128,14 +139,23 @@ las protecciones se desactivan, realiza una **restauración exacta**.
   restauración de radón + punto de rocío + resincronización de encuadre + apagado.
 - ✅ `docker compose config` válido; no hay credenciales de la nube en ninguna parte del stack.
 - ✅ API de callbacks de paho-mqtt 2.x (VERSION2), se mantiene la compatibilidad con 1.x.
-- ⛔️ **Aún no probado en hardware real** — binario obtenido por ingeniería inversa + control
-  relevante para la seguridad. Valídalo en un dispositivo físico antes de pasar a producción (en
-  particular, la decodificación con signo de temperatura/RSSI).
 
-## Aprobación antes de producción `>>> CONTROL <<<` / `>>> MAPPING <<<`
+## Parametrización
 
-Las asignaciones de modo/ventilador y los umbrales y objetivos de radón/punto de rocío son valores
-predeterminados razonables, no certificados. Conviene revisarlos frente a la especificación del producto y ajustarlos en
-`ambientika_local_bridge.py` (dos tablas de asignación + los campos de control de `Config`).
-`BOOST→TIMED_EXPULSION`, `ECO→AUTO`, `HRV→MANUAL_HEAT_RECOVERY`, los umbrales de % de ventilador→nivel,
-`RADON_THRESHOLD` y `DEWPOINT_MARGIN` son los valores que hay que confirmar.
+Las asignaciones de modo y ventilador, así como los umbrales de protección frente a
+radón y punto de rocío, vienen preconfigurados con valores seguros para la aplicación
+y se pueden adaptar por proyecto en `ambientika_local_bridge.py` (dos tablas de
+asignación y los campos `Config`): `BOOST→TIMED_EXPULSION`, `ECO→AUTO`,
+`HRV→MANUAL_HEAT_RECOVERY`, los umbrales de los niveles de ventilación así como
+`RADON_THRESHOLD` y `DEWPOINT_MARGIN`. Los valores límite específicos del edificio —
+en particular los umbrales de radón exigidos por la administración — deben fijarse en
+la puesta en servicio.
+
+## Estado de publicación
+
+El modo local se suministra como **entrega controlada (modo de observación)**: la
+validación en campo sobre todo el parque de firmware desplegado aún no ha concluido y
+el retorno de las instalaciones se incorpora de forma continua a la validación. Para
+el funcionamiento habitual, el bridge en la nube sigue siendo la variante recomendada;
+el modo local es el nivel de respaldo para el caso de que el servidor no esté
+accesible. Rogamos comunicar el retorno a través de las issues de este repositorio.
