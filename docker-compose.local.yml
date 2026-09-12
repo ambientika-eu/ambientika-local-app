@@ -51,9 +51,11 @@ services:
       MQTT_PREFIX: ambientika
       LOCAL_TCP_PORT: 11000
       HA_DISCOVERY: "false"  # the local-app does not need HA discovery
-      HOUSE_ID: "1"
-      DEVICE_ROLE: "0"       # 0 = MASTER (single-master default)
-      DEVICE_ZONE: "0"
+      # Opt in only if these values match the existing device topology.
+      SEND_SETUP: "${SEND_SETUP:-false}"
+      HOUSE_ID: "${HOUSE_ID:-1}"
+      DEVICE_ROLE: "${DEVICE_ROLE:-0}"  # 0 = MASTER
+      DEVICE_ZONE: "${DEVICE_ZONE:-0}"
       LOG_LEVEL: INFO
 
   # -----------------------------------------------------------------------
