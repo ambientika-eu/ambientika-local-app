@@ -45,7 +45,7 @@ MQTT_USER     = os.getenv("MQTT_USER", "")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
 MQTT_PREFIX   = os.getenv("MQTT_PREFIX", "ambientika")
 LOG_LEVEL     = os.getenv("LOG_LEVEL", "INFO")
-APP_VERSION   = "2.1.0"
+APP_VERSION   = "2.1.1"
 # Free-Cooling-Wächter: Bewertungstakt und OpenWeatherMap als Rückfallebene
 # für den Außenwert (bevorzugt wird ein Sensor am Haus, siehe freecooling/outdoor.py).
 FREECOOLING_TICK = int(os.getenv("FREECOOLING_TICK", "60"))
@@ -775,6 +775,16 @@ async def websocket_endpoint(ws: WebSocket):
 # Serve PWA
 # ---------------------------------------------------------------------------
 import pathlib
-pwa_path = pathlib.Path(__file__).parent.parent / "frontend" / "dist"
-if pwa_path.exists():
+# Die PWA (index.html, history.html, sw.js, manifest.json, icons/) liegt im Repo
+# unter frontend/. Ein gebautes frontend/dist/ hat Vorrang, ist aber optional —
+# ohne diesen Rückfall lieferte ein frischer Klon unter http://IP:8080 nur die API.
+_frontend_root = pathlib.Path(__file__).parent.parent / "frontend"
+pwa_path = _frontend_root / "dist"
+if not (pwa_path / "index.html").is_file():
+    pwa_path = _frontend_root
+if (pwa_path / "index.html").is_file():
     app.mount("/", StaticFiles(directory=str(pwa_path), html=True), name="pwa")
+    logger.info("PWA wird aus %s ausgeliefert", pwa_path)
+else:
+    logger.warning("PWA nicht gefunden (weder %s/dist noch %s enthält index.html) – nur die API läuft",
+                   _frontend_root, _frontend_root)
