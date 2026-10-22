@@ -31,8 +31,9 @@ header{background:var(--header-bg);border-bottom:1px solid var(--border);padding
 .all-btn{padding:.3rem .7rem;border:1.5px solid var(--border);border-radius:7px;background:var(--card);font-size:.67rem;font-weight:700;cursor:pointer;color:var(--muted)}
 .all-btn:hover{border-color:var(--primary);color:var(--primary)}
 [data-theme="dark"] .all-btn:hover{border-color:var(--primary);color:var(--primary);background:rgba(0,102,204,.15)}
-nav{background:var(--nav-bg);border-bottom:2px solid var(--border);padding:0 1.2rem;display:flex}
-.nav-tab{padding:.7rem 1.1rem;font-size:.8rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap}
+nav{background:var(--nav-bg);border-bottom:2px solid var(--border);padding:0 1.2rem;display:flex;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+.nav-tab{padding:.7rem 1.1rem;font-size:.8rem;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;flex-shrink:0}
 .nav-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
 main{max-width:1100px;margin:0 auto;padding:1.25rem}
 .section-title{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.9rem;font-weight:700}
@@ -242,6 +243,42 @@ footer strong{color:var(--text)}
 .nc-btn.danger:hover{filter:brightness(1.05);color:#fff}
 .nc-note{font-size:.66rem;color:var(--muted);line-height:1.55;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:.7rem .9rem;display:flex;gap:.5rem;align-items:flex-start}
 .nc-note b{color:var(--text)}
+
+/* ===== Free-Cooling-Wächter ===== */
+.fc-hero{background:linear-gradient(135deg,#0c2a4a 0%,#0b5fa5 55%,#06b6d4 100%);box-shadow:0 6px 24px rgba(11,95,165,.28)}
+.fc-hero .nc-card-icon{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.3);color:#fff;font-size:1.5rem;width:56px;height:56px;border-radius:14px}
+.fc-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.15rem;margin-bottom:1rem}
+@media(max-width:640px){.fc-grid{grid-template-columns:1fr}}
+.fc-dev-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:1rem}
+.fc-card.cooling{border-color:#63b3ed;box-shadow:0 0 0 2px rgba(49,130,206,.18),var(--shadow)}
+.fc-card.muted{opacity:.6}
+.fc-badge{margin-left:auto;font-size:.62rem;font-weight:800;padding:.24rem .6rem;border-radius:999px;border:1px solid var(--border);background:var(--bg);color:var(--muted);white-space:nowrap}
+.fc-badge.cool{background:#ebf8ff;color:#2b6cb0;border-color:#90cdf4}
+.fc-badge.ok{background:#f0fff4;color:#276749;border-color:#c6f6d5}
+.fc-badge.warn{background:#fffaf0;color:#c05621;border-color:#fbd38d}
+.fc-badge.off{background:#fff5f5;color:#c53030;border-color:#feb2b2}
+[data-theme="dark"] .fc-badge.cool{background:#1a2e3d;color:#63b3ed;border-color:#2b6cb0}
+[data-theme="dark"] .fc-badge.ok{background:#14291f;color:#68d391;border-color:#276749}
+[data-theme="dark"] .fc-badge.warn{background:#2d2014;color:#f6ad55;border-color:#744210}
+[data-theme="dark"] .fc-badge.off{background:#2d1515;color:#fc8181;border-color:#822727}
+.fc-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:.55rem .8rem;margin-top:.6rem}
+.fc-form label{font-size:.62rem;font-weight:700;color:var(--muted);display:block;margin-bottom:.18rem}
+.fc-form input,.fc-form select{width:100%;padding:.36rem .5rem;border:1.5px solid var(--border);border-radius:6px;font-size:.76rem;background:var(--bg);color:var(--text);outline:none}
+.fc-form input:focus,.fc-form select:focus{border-color:var(--primary)}
+.fc-form .wide{grid-column:1/-1}
+.fc-devpick{display:flex;flex-wrap:wrap;gap:.4rem .9rem;margin-top:.25rem}
+.fc-devpick label{display:flex;align-items:center;gap:.3rem;font-size:.72rem;font-weight:700;color:var(--text);margin:0;cursor:pointer}
+.fc-devpick input{width:auto;accent-color:var(--primary)}
+.fc-toggle{display:inline-flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:800;cursor:pointer}
+.fc-toggle input{width:auto;accent-color:var(--primary);transform:scale(1.3)}
+.fc-log{width:100%;border-collapse:collapse;font-size:.68rem}
+.fc-log th{text-align:left;font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:.3rem .4rem;border-bottom:1px solid var(--border)}
+.fc-log td{padding:.32rem .4rem;border-bottom:1px solid var(--border);vertical-align:top}
+.fc-log td.ev{font-weight:800;white-space:nowrap}
+.fc-log .ev-start{color:#2b6cb0}.fc-log .ev-end{color:#276749}.fc-log .ev-override{color:#c05621}.fc-log .ev-smart_blocked{color:var(--purple)}.fc-log .ev-config{color:var(--muted)}.fc-log .ev-fan{color:var(--muted)}
+.fc-log-wrap{overflow-x:auto}
+.fc-hint{font-size:.64rem;color:var(--muted);line-height:1.5;margin-top:.5rem}
+.fc-err{font-size:.7rem;color:var(--red);font-weight:700;margin-top:.4rem;display:none}
 </style>
 </head><body><header>
 <svg class="logo-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 46">
@@ -288,6 +325,7 @@ footer strong{color:var(--text)}
 <div class="nav-tab" id="tab-schedule" onclick="showTab('schedule')"></div>
 <div class="nav-tab" id="tab-smart" onclick="showTab('smart')"></div>
 <div class="nav-tab" id="tab-neuracell" onclick="showTab('neuracell')"></div>
+<div class="nav-tab" id="tab-freecooling" onclick="showTab('freecooling')"></div>
 <a class="nav-tab" href="history.html" id="tab-history-link" style="text-decoration:none">Historie</a>
 </nav>
 <main>
@@ -321,6 +359,28 @@ footer strong{color:var(--text)}
 </div>
 <div id="nc-body"></div>
 <p class="nc-note" id="nc-note"></p>
+</div>
+<div id="view-freecooling" style="display:none">
+<div class="nc-hero fc-hero">
+<div class="nc-card-icon">&#10052;&#65039;</div>
+<div class="nc-hero-txt"><h1 id="fc-title">Free Cooling</h1><p id="fc-tagline"></p></div>
+<span class="nc-status-pill" id="fc-overall">…</span>
+</div>
+<div id="fc-body"></div>
+<div class="nc-card" style="margin-bottom:1rem">
+<div class="nc-card-head"><div class="nc-card-icon">&#9881;&#65039;</div><div><div class="nc-card-title" id="fc-settings-title"></div><div class="nc-card-sub" id="fc-settings-sub"></div></div>
+<label class="fc-toggle" style="margin-left:auto"><input type="checkbox" id="fc-enabled" onchange="fcSetEnabled(this.checked)"/><span id="fc-enabled-lbl"></span></label></div>
+<div id="fc-settings"></div>
+<div class="fc-err" id="fc-err"></div>
+<div class="nc-btns" style="margin-top:.8rem"><button class="nc-btn primary" onclick="fcSave()" id="fc-save-btn"></button><button class="nc-btn" onclick="fcEvaluate()" id="fc-eval-btn"></button></div>
+<p class="fc-hint" id="fc-hint"></p>
+</div>
+<div class="nc-card" style="margin-bottom:1rem">
+<div class="nc-card-head"><div class="nc-card-icon">&#128203;</div><div><div class="nc-card-title" id="fc-log-title"></div><div class="nc-card-sub" id="fc-log-sub"></div></div>
+<a class="nc-btn" style="margin-left:auto;flex:0 0 auto;text-decoration:none;text-align:center" href="/api/freecooling/log.csv" id="fc-csv-btn"></a></div>
+<div class="fc-log-wrap" id="fc-log"></div>
+</div>
+<p class="nc-note" id="fc-note"></p>
 </div>
 </main>
 <footer><strong>Südwind GmbH · Ambientika Local</strong> &nbsp;·&nbsp; <span id="t-footer"></span></footer>
@@ -652,6 +712,8 @@ document.getElementById('tab-schedule').textContent=T('tabSchedule');
 document.getElementById('tab-smart').textContent=T('tabSmart');
 var _nct=document.getElementById('tab-neuracell');if(_nct)_nct.innerHTML='\uD83D\uDEE1\uFE0F NeuraCell-X';
 renderNeuracell();
+var _fct=document.getElementById('tab-freecooling');if(_fct)_fct.textContent=TF('tab');
+if(typeof renderFreecooling==='function')renderFreecooling();
 const dt=document.getElementById('devices-title');if(dt&&!Object.keys(devices).length)dt.textContent=T('devices');
 document.getElementById('t-empty-h').textContent=T('noDevH');
 document.getElementById('t-empty-p').textContent=T('noDevP');
@@ -692,7 +754,7 @@ if(savedTheme==='dark')document.getElementById('dark-toggle').textContent='☀�
 function toggleDark(){const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('dark-toggle').textContent=t==='dark'?'☀️':'🌙';}
 function toast(m,d=2500){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
 function setMqtt(ok){document.getElementById('mqtt-dot').className=ok?'connected':'';document.getElementById('mqtt-label').textContent=ok?T('connected'):T('disconnected');}
-function connectWS(){ws=new WebSocket(WS);ws.onopen=()=>setMqtt(true);ws.onclose=()=>{setMqtt(false);setTimeout(connectWS,3000)};ws.onerror=()=>setMqtt(false);ws.onmessage=e=>{const{event,deviceId,data}=JSON.parse(e.data);if(event==='neuracell'){neuracell=data;renderNeuracell();return;}if(event==='status'||event==='availability'){devices[deviceId]={...devices[deviceId],...data,deviceId};if(!history_data[deviceId])history_data[deviceId]=[];if(data.temperature!=null||data.airQuality!=null){history_data[deviceId].push({ts:Date.now(),temp:data.temperature,co2:data.airQuality,hum:data.humidity});if(history_data[deviceId].length>60)history_data[deviceId].shift();}renderCard(deviceId);refreshSmartSel();}};}
+function connectWS(){ws=new WebSocket(WS);ws.onopen=()=>setMqtt(true);ws.onclose=()=>{setMqtt(false);setTimeout(connectWS,3000)};ws.onerror=()=>setMqtt(false);ws.onmessage=e=>{const{event,deviceId,data}=JSON.parse(e.data);if(event==='neuracell'){neuracell=data;renderNeuracell();return;}if(event==='freecooling'){freecooling=data;if(document.getElementById('view-freecooling').style.display!=='none'){apiFetch('/freecooling/log?limit=30').then(l=>{fcLog=l;renderFreecooling();}).catch(()=>renderFreecooling());}return;}if(event==='status'||event==='availability'){devices[deviceId]={...devices[deviceId],...data,deviceId};if(!history_data[deviceId])history_data[deviceId]=[];if(data.temperature!=null||data.airQuality!=null){history_data[deviceId].push({ts:Date.now(),temp:data.temperature,co2:data.airQuality,hum:data.humidity});if(history_data[deviceId].length>60)history_data[deviceId].shift();}renderCard(deviceId);refreshSmartSel();}};}
 async function apiFetch(path,method='GET',body=null){const opts={method,headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);const r=await fetch(API+path,opts);if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sendAll(cmd){const ids=Object.keys(devices);if(!ids.length){toast(T('noDevices'));return;}await Promise.all(ids.map(id=>apiFetch('/devices/'+id+'/command','POST',cmd).catch(()=>{})));toast(T('cmdAll'));}
 async function loadDevices(){try{const list=await apiFetch('/devices');list.forEach(d=>{devices[d.deviceId]=d;});renderAllCards();document.getElementById('devices-title').textContent=Tf('devicesCount',list.length);if(!list.length)document.getElementById('empty-state').style.display='block';list.forEach(d=>loadSchedule(d.deviceId));refreshSmartSel();}catch(e){document.getElementById('empty-state').style.display='block';}}
@@ -854,7 +916,7 @@ function closeSettings(){document.getElementById('settings-modal').classList.rem
 function saveSettings(){const k=document.getElementById('set-owm-key').value.trim();const l=document.getElementById('set-owm-loc').value.trim();localStorage.setItem('owm_key',k);localStorage.setItem('owm_loc',l);closeSettings();if(k&&l){fetchWeather();toast(T('settingsSavedLoading'));}else toast(T('settingsSaved'));}
 function aqiLabel(aqi){const arr=T('aqi');return arr[aqi]||'—';}
 function aqiClass(aqi){return 'aqi-'+(aqi||1);}
-async function fetchWeather(){const key=getOwmKey(),loc=getOwmLoc();if(!key||!loc){renderWeatherBar(null);return;}try{let lat,lon;if(/^-?[\d.]+\s*,\s*-?[\d.]+$/.test(loc)){[lat,lon]=loc.split(',').map(s=>parseFloat(s.trim()));}else{const geo=await fetch('https://api.openweathermap.org/geo/1.0/direct?q='+encodeURIComponent(loc)+'&limit=1&appid='+key);const gd=await geo.json();if(!gd.length)throw new Error('Location not found: '+loc);lat=gd[0].lat;lon=gd[0].lon;}const[wRes,aRes]=await Promise.all([fetch('https://api.openweathermap.org/data/2.5/weather?lat='+lat+'&lon='+lon+'&units=metric&lang=de&appid='+key),fetch('https://api.openweathermap.org/data/2.5/air_pollution?lat='+lat+'&lon='+lon+'&appid='+key)]);const w=await wRes.json();const a=await aRes.json();owmData={temp:w.main.temp,humidity:w.main.humidity,city:w.name,country:w.sys.country,aqi:a.list[0].main.aqi,updated:Date.now()};renderWeatherBar(owmData);if(activeSmartDevice&&document.getElementById('view-smart').style.display!=='none')loadSmart(activeSmartDevice);}catch(err){renderWeatherBar(null,err.message);}}
+async function fetchWeather(){const key=getOwmKey(),loc=getOwmLoc();if(!key||!loc){renderWeatherBar(null);return;}try{let lat,lon;if(/^-?[\d.]+\s*,\s*-?[\d.]+$/.test(loc)){[lat,lon]=loc.split(',').map(s=>parseFloat(s.trim()));}else{const geo=await fetch('https://api.openweathermap.org/geo/1.0/direct?q='+encodeURIComponent(loc)+'&limit=1&appid='+key);const gd=await geo.json();if(!gd.length)throw new Error('Location not found: '+loc);lat=gd[0].lat;lon=gd[0].lon;}const[wRes,aRes]=await Promise.all([fetch('https://api.openweathermap.org/data/2.5/weather?lat='+lat+'&lon='+lon+'&units=metric&lang=de&appid='+key),fetch('https://api.openweathermap.org/data/2.5/air_pollution?lat='+lat+'&lon='+lon+'&appid='+key)]);const w=await wRes.json();const a=await aRes.json();owmData={temp:w.main.temp,humidity:w.main.humidity,city:w.name,country:w.sys.country,aqi:a.list[0].main.aqi,updated:Date.now()};renderWeatherBar(owmData);apiFetch('/freecooling/outdoor','POST',{temperature:owmData.temp,humidity:owmData.humidity,kind:'weather',source:'openweathermap:'+owmData.city+' (browser)'}).catch(()=>{});if(activeSmartDevice&&document.getElementById('view-smart').style.display!=='none')loadSmart(activeSmartDevice);}catch(err){renderWeatherBar(null,err.message);}}
 function renderWeatherBar(d,err){const bar=document.getElementById('weather-bar');if(!getOwmKey()||!getOwmLoc()){bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; <a href="#" onclick="openSettings();return false;" style="color:var(--primary);font-weight:700">'+T('weatherSetup')+'</a> — '+T('weatherHint')+'</span>';return;}if(err){bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; '+T('weatherError')+err+' <button class="weather-refresh" onclick="fetchWeather()">'+T('weatherRetry')+'</button></span>';return;}if(!d){bar.innerHTML='<span class="weather-no-key">&#127780;&#65039; '+T('weatherLoading')+'</span>';return;}const age=Math.round((Date.now()-d.updated)/60000);bar.innerHTML='<span class="weather-loc">&#127780;&#65039; '+d.city+', '+d.country+'</span><span class="weather-item">&#127777;&#65039; '+T('weatherOutdoor')+' <strong>'+d.temp.toFixed(1)+'°C</strong></span><span class="weather-item">&#128167; '+T('weatherHumidity')+' <strong>'+d.humidity+'%</strong></span><span class="weather-item"><span class="weather-aqi '+aqiClass(d.aqi)+'">'+aqiLabel(d.aqi)+'</span></span><span class="weather-item" style="color:var(--muted);font-size:.65rem">'+Tf('weatherAgo',age)+' <button class="weather-refresh" onclick="fetchWeather()">&#8635;</button></span>';}
 function startWeatherTimer(){if(owmTimer)clearInterval(owmTimer);fetchWeather();owmTimer=setInterval(fetchWeather,15*60*1000);}
 async function loadSmart(did){const el=document.getElementById('smart-content');try{const s=await apiFetch('/devices/'+did+'/smart');const sensors=s.sensors||{};const tin=sensors.temperature_in;const hin=sensors.humidity_in;const tout=owmData?owmData.temp:sensors.temperature_out;const hout=owmData?owmData.humidity:sensors.humidity_out;let compareHtml='';if(tin!=null&&tout!=null){const diff=tin-tout;const arrow=diff>0?T('coolPossible'):diff<-1?T('heatSugg'):T('balanced');const tempOcBadge=Math.abs(diff)>2?'oc-warn':'oc-out';compareHtml='<div class="outdoor-compare"><div class="oc-side"><h4>&#127968; '+T('inside')+'</h4><div class="oc-val">'+tin.toFixed(1)+'°C</div>'+(hin!=null?'<div class="oc-sub">'+hin+'% rF</div>':'')+'<span class="oc-badge oc-in">'+T('devSensor')+'</span></div><div class="oc-arrow">&#8652;<br/><span style="font-size:.6rem;color:var(--muted)">'+arrow+'</span></div><div class="oc-side" style="text-align:right"><h4>&#127780;&#65039; '+T('outside')+'</h4><div class="oc-val">'+tout.toFixed(1)+'°C</div>'+(hout!=null?'<div class="oc-sub">'+hout+'% rF</div>':'')+'<span class="oc-badge '+tempOcBadge+'">'+(owmData?T('openWeather'):T('weatherStation'))+'</span></div></div>';}
@@ -862,7 +924,7 @@ el.innerHTML=compareHtml+'<div class="chart-wrap"><h3>&#128200; '+T('histTitle')
 function drawChart(did){const hist=history_data[did]||[];const canvas=document.getElementById('hist-chart');if(!canvas)return;const W=canvas.offsetWidth||800,H=155;canvas.width=W;canvas.height=H;const isDark=document.documentElement.getAttribute('data-theme')==='dark';const bg=isDark?'#1a1f2e':'#fff',gridC=isDark?'#2d3748':'#e2e8f0',textC=isDark?'#a0aec0':'#718096';const ctx=canvas.getContext('2d');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);if(hist.length<2){ctx.fillStyle=textC;ctx.font='11px sans-serif';ctx.fillText(T('noHistory'),16,H/2);return;}const pad={l:46,r:10,t:8,b:22};const cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;ctx.strokeStyle=gridC;ctx.lineWidth=1;[0,.5,1].forEach(f=>{const y=pad.t+cH*(1-f);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();});function dl(data,color,minV,maxV,dashed=false){const range=maxV-minV||1;let started=false;ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;if(dashed)ctx.setLineDash([5,4]);else ctx.setLineDash([]);for(let i=0;i<data.length;i++){const v=data[i];if(v==null)continue;const x=pad.l+i/(data.length-1)*cW;const y=pad.t+cH*(1-(v-minV)/range);if(!started){ctx.moveTo(x,y);started=true;}else{ctx.lineTo(x,y);}}if(started)ctx.stroke();ctx.setLineDash([]);}const temps=hist.map(h=>h.temp).filter(v=>v!=null);const co2s=hist.map(h=>h.co2).filter(v=>v!=null);const tMin=temps.length?Math.min(...temps)-1:0,tMax=temps.length?Math.max(...temps)+1:1;if(temps.length>1)dl(hist.map(h=>h.temp),'#0066cc',tMin,tMax);if(owmData&&temps.length>1)dl(hist.map(()=>owmData.temp),'#38a169',tMin,tMax,true);if(co2s.length>1)dl(hist.map(h=>h.co2),'#dd6b20',Math.min(...co2s)-50,Math.max(...co2s)+50);ctx.fillStyle=textC;ctx.font='10px sans-serif';ctx.textAlign='right';if(temps.length)ctx.fillText(temps[temps.length-1].toFixed(1)+'°',pad.l-3,pad.t+12);if(co2s.length)ctx.fillText(co2s[co2s.length-1]+'ppm',pad.l-3,H-pad.b+2);ctx.textAlign='center';[0,.5,1].forEach(f=>{const idx=Math.floor(f*(hist.length-1));if(!hist[idx])return;const d=new Date(hist[idx].ts);ctx.fillStyle=textC;ctx.fillText(d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'),pad.l+f*cW,H-4);});ctx.textAlign='left';ctx.font='bold 10px sans-serif';ctx.fillStyle='#0066cc';ctx.fillText('— '+T('tempIn'),pad.l,pad.t+12);if(owmData){ctx.setLineDash([5,4]);ctx.beginPath();ctx.strokeStyle='#38a169';ctx.lineWidth=2;ctx.moveTo(pad.l+90,pad.t+8);ctx.lineTo(pad.l+105,pad.t+8);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#38a169';ctx.fillText(' '+T('outside'),pad.l+105,pad.t+12);}ctx.setLineDash([]);ctx.fillStyle='#dd6b20';ctx.fillText('— '+T('co2'),pad.l+(owmData?175:60),pad.t+12);}
 function row(l,v,c=''){return '<div class="cond-row"><span class="cond-label">'+l+'</span><span class="cond-val '+(c||'')+'">'+v+'</span></div>';}
 function modeInd(icon,name,desc,active,isSummer){const cl=isSummer?'summer':active?'active':'';const bc=isSummer?'sun':active?'on':'';const bt=(isSummer||active)?T('active'):T('inactive');return '<div class="mode-ind '+cl+'"><div class="mi-icon">'+icon+'</div><div class="mi-info"><div class="mi-name">'+name+'</div><div class="mi-desc">'+desc+'</div></div><span class="mi-badge '+bc+'">'+bt+'</span></div>';}
-function showTab(tab){['devices','schedule','smart','neuracell'].forEach(t=>{document.getElementById('view-'+t).style.display=t===tab?'block':'none';document.getElementById('tab-'+t).classList.toggle('active',t===tab);});if(tab==='smart'&&activeSmartDevice)loadSmart(activeSmartDevice);if(tab==='neuracell')loadNeuracell();}
+function showTab(tab){['devices','schedule','smart','neuracell','freecooling'].forEach(t=>{document.getElementById('view-'+t).style.display=t===tab?'block':'none';document.getElementById('tab-'+t).classList.toggle('active',t===tab);});if(tab==='smart'&&activeSmartDevice)loadSmart(activeSmartDevice);if(tab==='neuracell')loadNeuracell();if(tab==='freecooling')loadFreecooling();}
 
 /* ===== NeuraCell-X (patent pending) – radon protection + dew-point control ===== */
 let neuracell=null;
@@ -940,13 +1002,154 @@ function renderNeuracell(){
  body.innerHTML=html;
 }
 
+/* ===== Free-Cooling-Wächter – Mindestabstand/Hysterese statt Wetterstations-Vergleich ===== */
+let freecooling=null,fcLog=[];
+const FCL={
+de:{tab:'❄️ Free Cooling',title:'Free-Cooling-Wächter',tagline:'Kühlt nur, wenn die Außenluft wirklich kühler ist – mit Mindestabstand, Haltezeit und Sensor am Haus',
+ on:'Aktiv',off:'Aus',coolingN:'{n} Gerät(e) kühlen',outdoor:'Außenwert',rule:'Regel',indoor:'Innen',delta:'Abstand',
+ src_sensor:'Sensor am Haus',src_weather:'Wetterstation',noOutdoor:'Kein gültiger Außenwert',ago:'vor {m} Min.',expired:'abgelaufen',
+ ruleStart:'Start: innen > {a} °C, außen > {b} °C, Abstand ≥ {c} K',ruleEnd:'Ende: Abstand < {a} K, innen ≤ {b} °C, außen ≤ {c} °C',ruleHold:'Haltezeit {a} Min · Außenwert max. {b} Min alt',
+ ph_disabled:'Wächter aus',ph_not_controlled:'nicht gesteuert',ph_offline:'offline',ph_protected:'NeuraCell-X aktiv',ph_cooling:'Kühlt',ph_override:'Nutzereingriff – Pause',ph_smart_blocked:'SMART → AUTO',ph_manual_mode:'manueller Modus',ph_no_outdoor:'kein Außenwert',ph_hold:'Haltezeit',ph_ready:'Bereit',
+ since:'seit',holdLeft:'noch {m} Min',pauseLeft:'Pause noch {m} Min',back:'zurück zu',lastEvent:'Zuletzt',startCond:'Startbedingung erfüllt',
+ settings:'Einstellungen',settingsSub:'werden gespeichert und sofort angewendet',enabledLbl:'Wächter aktiv',
+ f_delta_on:'Mindestabstand Start (K)',f_delta_off:'Abstand Ende (K)',f_min_hold:'Haltezeit (Min)',f_ttl:'Außenwert gültig (Min)',f_t_in:'Innen mindestens (°C)',f_t_out:'Außen mindestens (°C)',
+ f_fan_day:'Stufe tagsüber',f_fan_night:'Stufe nachts',f_night_hours:'Nachtzeit (HH:MM-HH:MM, leer = nur Dämmerungssensor)',f_rest_mode:'Ruhemodus (statt SMART)',f_block_smart:'SMART automatisch durch Ruhemodus ersetzen',f_override_pause:'Pause nach Nutzereingriff (Min)',f_devices:'Gesteuerte Geräte (keins gewählt = alle Master)',
+ save:'Speichern',evaluate:'Jetzt bewerten',saved:'Gespeichert',evaluated:'{n} Umschaltung(en)',csv:'CSV',
+ logTitle:'Umschalt-Protokoll',logSub:'jede Entscheidung mit Innen-/Außenwert, Quelle und Grund',noLog:'Noch keine Einträge.',
+ th_time:'Zeit',th_dev:'Gerät',th_event:'Ereignis',th_in:'Innen',th_out:'Außen',th_src:'Quelle',th_mode:'Modus',th_reason:'Grund',
+ ev_start:'Start',ev_end:'Ende',ev_override:'Eingriff',ev_smart_blocked:'SMART-Sperre',ev_fan:'Stufe',ev_config:'Konfiguration',
+ hint:'Außenwert liefern: MQTT-Topic ambientika/weather ({"temperature": 21.4, "humidity": 60}) oder ambientika/dewpoint/outdoor_temp, HTTP POST /api/freecooling/outdoor, oder OpenWeatherMap als Rückfallebene (OWM_API_KEY, OWM_LOCATION im Backend). Ein Sensor am Haus geht immer vor.',
+ note:'Die Master laufen im Ruhezustand in AUTO (Wärmerückgewinnung). Zum Kühlen setzt der Wächter den Luftstrom Master-Slave und stellt danach exakt zurück. Aus, Außer Haus und manuell gewählte Modi bleiben unangetastet; ein Eingriff während des Kühlens beendet den Wächter für die eingestellte Pause. Läuft NeuraCell-X (Radon/Taupunkt), hat das Vorrang.'},
+en:{tab:'❄️ Free Cooling',title:'Free-cooling guard',tagline:'Cools only when outdoor air really is cooler – with a minimum margin, hold time and a sensor at the house',
+ on:'Active',off:'Off',coolingN:'{n} device(s) cooling',outdoor:'Outdoor value',rule:'Rule',indoor:'Indoor',delta:'Margin',
+ src_sensor:'Sensor at the house',src_weather:'Weather station',noOutdoor:'No valid outdoor value',ago:'{m} min ago',expired:'expired',
+ ruleStart:'Start: indoor > {a} °C, outdoor > {b} °C, margin ≥ {c} K',ruleEnd:'End: margin < {a} K, indoor ≤ {b} °C, outdoor ≤ {c} °C',ruleHold:'Hold {a} min · outdoor value max. {b} min old',
+ ph_disabled:'Guard off',ph_not_controlled:'not controlled',ph_offline:'offline',ph_protected:'NeuraCell-X active',ph_cooling:'Cooling',ph_override:'Manual override – pause',ph_smart_blocked:'SMART → AUTO',ph_manual_mode:'manual mode',ph_no_outdoor:'no outdoor value',ph_hold:'Hold time',ph_ready:'Ready',
+ since:'since',holdLeft:'{m} min left',pauseLeft:'pause {m} min left',back:'back to',lastEvent:'Last',startCond:'Start condition met',
+ settings:'Settings',settingsSub:'saved and applied immediately',enabledLbl:'Guard active',
+ f_delta_on:'Start margin (K)',f_delta_off:'End margin (K)',f_min_hold:'Hold time (min)',f_ttl:'Outdoor value valid (min)',f_t_in:'Indoor at least (°C)',f_t_out:'Outdoor at least (°C)',
+ f_fan_day:'Fan by day',f_fan_night:'Fan at night',f_night_hours:'Night hours (HH:MM-HH:MM, empty = dusk sensor only)',f_rest_mode:'Rest mode (instead of SMART)',f_block_smart:'Replace SMART with the rest mode automatically',f_override_pause:'Pause after manual override (min)',f_devices:'Controlled devices (none selected = all masters)',
+ save:'Save',evaluate:'Evaluate now',saved:'Saved',evaluated:'{n} switch(es)',csv:'CSV',
+ logTitle:'Switching log',logSub:'every decision with indoor/outdoor value, source and reason',noLog:'No entries yet.',
+ th_time:'Time',th_dev:'Device',th_event:'Event',th_in:'Indoor',th_out:'Outdoor',th_src:'Source',th_mode:'Mode',th_reason:'Reason',
+ ev_start:'Start',ev_end:'End',ev_override:'Override',ev_smart_blocked:'SMART blocked',ev_fan:'Fan',ev_config:'Config',
+ hint:'Provide the outdoor value: MQTT topic ambientika/weather ({"temperature": 21.4, "humidity": 60}) or ambientika/dewpoint/outdoor_temp, HTTP POST /api/freecooling/outdoor, or OpenWeatherMap as fallback (OWM_API_KEY, OWM_LOCATION in the backend). A sensor at the house always wins.',
+ note:'At rest the masters run in AUTO (heat recovery). To cool, the guard sets Master-Slave airflow and restores the previous state exactly afterwards. Off, Away and manually chosen modes are left alone; a manual change while cooling pauses the guard for the configured time. NeuraCell-X (radon/dew point) always has priority.'},
+it:{tab:'❄️ Free Cooling',title:'Guardiano free cooling',tagline:'Raffresca solo se l’aria esterna è davvero più fresca – con differenza minima, tempo di mantenimento e sensore sulla casa',
+ on:'Attivo',off:'Spento',coolingN:'{n} dispositivo/i in raffrescamento',outdoor:'Valore esterno',rule:'Regola',indoor:'Interno',delta:'Differenza',
+ src_sensor:'Sensore sulla casa',src_weather:'Stazione meteo',noOutdoor:'Nessun valore esterno valido',ago:'{m} min fa',expired:'scaduto',
+ ruleStart:'Avvio: interno > {a} °C, esterno > {b} °C, differenza ≥ {c} K',ruleEnd:'Fine: differenza < {a} K, interno ≤ {b} °C, esterno ≤ {c} °C',ruleHold:'Mantenimento {a} min · valore esterno max. {b} min',
+ ph_disabled:'Guardiano spento',ph_not_controlled:'non controllato',ph_offline:'offline',ph_protected:'NeuraCell-X attivo',ph_cooling:'Raffresca',ph_override:'Intervento manuale – pausa',ph_smart_blocked:'SMART → AUTO',ph_manual_mode:'modalità manuale',ph_no_outdoor:'nessun valore esterno',ph_hold:'Mantenimento',ph_ready:'Pronto',
+ since:'da',holdLeft:'ancora {m} min',pauseLeft:'pausa ancora {m} min',back:'torna a',lastEvent:'Ultimo',startCond:'Condizione di avvio soddisfatta',
+ settings:'Impostazioni',settingsSub:'salvate e applicate subito',enabledLbl:'Guardiano attivo',
+ f_delta_on:'Differenza minima avvio (K)',f_delta_off:'Differenza fine (K)',f_min_hold:'Mantenimento (min)',f_ttl:'Validità valore esterno (min)',f_t_in:'Interno almeno (°C)',f_t_out:'Esterno almeno (°C)',
+ f_fan_day:'Velocità di giorno',f_fan_night:'Velocità di notte',f_night_hours:'Ore notturne (HH:MM-HH:MM, vuoto = solo sensore crepuscolare)',f_rest_mode:'Modalità di riposo (al posto di SMART)',f_block_smart:'Sostituire SMART automaticamente con la modalità di riposo',f_override_pause:'Pausa dopo intervento manuale (min)',f_devices:'Dispositivi controllati (nessuno = tutti i master)',
+ save:'Salva',evaluate:'Valuta ora',saved:'Salvato',evaluated:'{n} commutazione/i',csv:'CSV',
+ logTitle:'Registro commutazioni',logSub:'ogni decisione con valore interno/esterno, fonte e motivo',noLog:'Nessuna voce.',
+ th_time:'Ora',th_dev:'Dispositivo',th_event:'Evento',th_in:'Interno',th_out:'Esterno',th_src:'Fonte',th_mode:'Modalità',th_reason:'Motivo',
+ ev_start:'Avvio',ev_end:'Fine',ev_override:'Intervento',ev_smart_blocked:'Blocco SMART',ev_fan:'Velocità',ev_config:'Configurazione',
+ hint:'Fornire il valore esterno: topic MQTT ambientika/weather ({"temperature": 21.4, "humidity": 60}) o ambientika/dewpoint/outdoor_temp, HTTP POST /api/freecooling/outdoor, oppure OpenWeatherMap come riserva (OWM_API_KEY, OWM_LOCATION nel backend). Un sensore sulla casa ha sempre la precedenza.',
+ note:'A riposo i master lavorano in AUTO (recupero di calore). Per raffrescare il guardiano imposta il flusso Master-Slave e poi ripristina esattamente lo stato precedente. Spento, Fuori casa e le modalità scelte a mano restano intatte; un intervento durante il raffrescamento mette in pausa il guardiano. NeuraCell-X (radon/punto di rugiada) ha sempre la priorità.'}};
+function TF(k){const L=FCL[lang]||FCL.en;if(L[k]!==undefined)return L[k];if(FCL.en[k]!==undefined)return FCL.en[k];return FCL.de[k]!==undefined?FCL.de[k]:k;}
+function TFf(k,o){let s=TF(k);Object.keys(o||{}).forEach(x=>{s=s.split('{'+x+'}').join(o[x]);});return s;}
+function fcMin(s){return Math.max(1,Math.round((s||0)/60));}
+function fcAgeMin(iso){return Math.max(0,Math.round((Date.now()-new Date(iso).getTime())/60000));}
+function fcPhaseCls(p){return p==='cooling'?'cool':(p==='ready'||p==='hold')?'ok':(p==='override'||p==='no_outdoor'||p==='protected'||p==='smart_blocked')?'warn':(p==='disabled'||p==='offline')?'off':'';}
+const FC_MODE_LABEL={Auto:'AUTO',ManualHeatRecovery:'HRV man.',Night:'Night',MasterSlaveFlow:'MS-Flow',SlaveMasterFlow:'SM-Flow',Smart:'SMART',Off:'Off',AwayHome:'Away',Surveillance:'Monitor',Intake:'Supply',Expulsion:'Exhaust',TimedExpulsion:'T-Exh.'};
+function fcMode(m){return m?(FC_MODE_LABEL[m]||m):'—';}
+async function loadFreecooling(){try{freecooling=await apiFetch('/freecooling');}catch(e){}try{fcLog=await apiFetch('/freecooling/log?limit=30');}catch(e){fcLog=[];}renderFreecooling();}
+async function fcSetEnabled(on){try{await apiFetch('/freecooling/config','PUT',{enabled:on});toast(TF('title')+' · '+(on?TF('on'):TF('off')));await loadFreecooling();}catch(e){toast('Fehler: '+e.message);await loadFreecooling();}}
+function fcReadForm(){const g=id=>document.getElementById(id);const num=id=>{const v=parseFloat(String(g(id).value).replace(',','.'));return isNaN(v)?null:v;};
+ const devs=[...document.querySelectorAll('#fc-devpick input:checked')].map(i=>i.value);
+ return {delta_on:num('fc-delta-on'),delta_off:num('fc-delta-off'),min_hold_s:num('fc-hold')==null?null:Math.round(num('fc-hold')*60),outdoor_ttl_s:num('fc-ttl')==null?null:Math.round(num('fc-ttl')*60),
+  t_in_min:num('fc-tin'),t_out_min:num('fc-tout'),fan_day:g('fc-fan-day').value,fan_night:g('fc-fan-night').value,night_hours:g('fc-night-hours').value.trim(),rest_mode:g('fc-rest-mode').value,
+  block_smart:g('fc-block-smart').checked,override_pause_s:num('fc-pause')==null?null:Math.round(num('fc-pause')*60),devices:devs};}
+async function fcSave(){const err=document.getElementById('fc-err');err.style.display='none';try{await apiFetch('/freecooling/config','PUT',fcReadForm());toast(TF('saved'));await loadFreecooling();}catch(e){err.textContent=e.message;err.style.display='block';}}
+async function fcEvaluate(){try{const r=await apiFetch('/freecooling/evaluate','POST',{});toast(TFf('evaluated',{n:(r.events||[]).length}));await loadFreecooling();}catch(e){toast('Fehler: '+e.message);}}
+function renderFreecooling(){
+ const tg=document.getElementById('fc-tagline');if(!tg)return;
+ const g=id=>document.getElementById(id);
+ g('fc-title').textContent=TF('title');tg.textContent=TF('tagline');
+ g('fc-settings-title').textContent=TF('settings');g('fc-settings-sub').textContent=TF('settingsSub');g('fc-enabled-lbl').textContent=TF('enabledLbl');
+ g('fc-save-btn').textContent=TF('save');g('fc-eval-btn').textContent=TF('evaluate');g('fc-hint').textContent=TF('hint');
+ g('fc-log-title').textContent=TF('logTitle');g('fc-log-sub').textContent=TF('logSub');g('fc-csv-btn').textContent='⬇ '+TF('csv');
+ g('fc-note').innerHTML='<span>&#128161;</span><span>'+TF('note')+'</span>';
+ const f=freecooling;const overall=g('fc-overall');const body=g('fc-body');
+ if(!f){overall.className='nc-status-pill';overall.textContent='…';body.innerHTML='';g('fc-settings').innerHTML='';g('fc-log').innerHTML='';return;}
+ const cfg=f.config||{};const out=f.outdoor||{};const devs=f.devices||{};
+ const coolingN=Object.values(devs).filter(d=>d.cooling).length;
+ g('fc-enabled').checked=!!cfg.enabled;
+ if(!cfg.enabled){overall.className='nc-status-pill';overall.textContent='⏸ '+TF('off');}
+ else if(coolingN){overall.className='nc-status-pill warn';overall.style.background='#2b6cb0';overall.style.borderColor='#90cdf4';overall.textContent='❄️ '+TFf('coolingN',{n:coolingN});}
+ else{overall.className='nc-status-pill';overall.style.background='';overall.style.borderColor='';overall.textContent='✅ '+TF('on');}
+ if(!coolingN){overall.style.background='';overall.style.borderColor='';}
+ const fmt=(v,u)=>(v===null||v===undefined)?'&mdash;':(Number(v).toFixed(1)+u);
+ // Außenwert + Regel
+ let html='<div class="fc-grid">';
+ const cur=out.current;const lastSeen=(out.readings&&Object.values(out.readings).length)?Object.values(out.readings).sort((a,b)=>new Date(b.ts)-new Date(a.ts))[0]:null;
+ const srcBadge=r=>'<span class="fc-badge '+(r.kind==='sensor'?'ok':'warn')+'" style="margin-left:0">'+(r.kind==='sensor'?TF('src_sensor'):TF('src_weather'))+'</span>';
+ html+='<div class="nc-card"><div class="nc-card-head"><div class="nc-card-icon">&#127777;&#65039;</div><div><div class="nc-card-title">'+TF('outdoor')+'</div><div class="nc-card-sub">'+(cur?cur.source:(lastSeen?lastSeen.source:'—'))+'</div></div>'+(cur?'<span class="fc-badge ok">✓</span>':'<span class="fc-badge off">'+TF('noOutdoor')+'</span>')+'</div>';
+ if(cur){html+='<div class="nc-readout"><div class="nc-metric"><div class="v">'+fmt(cur.temperature,' °C')+'</div><div class="l">'+TF('outdoor')+'</div></div><div class="nc-metric"><div class="v">'+(cur.humidity!=null?Math.round(cur.humidity)+' %':'&mdash;')+'</div><div class="l">rF</div></div><div class="nc-metric"><div class="v">'+TFf('ago',{m:Math.round(cur.age_s/60)})+'</div><div class="l">'+TF('since')+'</div></div></div><div style="margin-top:.4rem">'+srcBadge(cur)+'</div>';}
+ else if(lastSeen){html+='<div class="nc-desc">'+fmt(lastSeen.temperature,' °C')+' · '+TFf('ago',{m:fcAgeMin(lastSeen.ts)})+' · <b>'+TF('expired')+'</b> '+srcBadge(lastSeen)+'</div>';}
+ html+='</div>';
+ html+='<div class="nc-card"><div class="nc-card-head"><div class="nc-card-icon">&#128207;</div><div><div class="nc-card-title">'+TF('rule')+'</div><div class="nc-card-sub">'+fcMode(cfg.rest_mode)+' → '+fcMode(cfg.cool_mode)+' → '+fcMode(cfg.rest_mode)+'</div></div></div>'
+  +'<div class="cond-row"><span class="cond-label">'+TFf('ruleStart',{a:cfg.t_in_min,b:cfg.t_out_min,c:cfg.delta_on})+'</span></div>'
+  +'<div class="cond-row"><span class="cond-label">'+TFf('ruleEnd',{a:cfg.delta_off,b:(cfg.t_in_min-0.5),c:cfg.t_out_min})+'</span></div>'
+  +'<div class="cond-row"><span class="cond-label">'+TFf('ruleHold',{a:fcMin(cfg.min_hold_s),b:fcMin(cfg.outdoor_ttl_s)})+'</span></div>'
+  +'<div class="cond-row"><span class="cond-label">'+TF('f_fan_day')+': '+cfg.fan_day+' · '+TF('f_fan_night')+': '+cfg.fan_night+(cfg.night_hours?' ('+cfg.night_hours+')':'')+'</span></div></div>';
+ html+='</div>';
+ // Geräte
+ const ids=Object.keys(devs);
+ if(ids.length){html+='<div class="fc-dev-grid">';
+  ids.sort((a,b)=>(devs[b].controlled-devs[a].controlled)||String(devs[a].name).localeCompare(String(devs[b].name))).forEach(id=>{const d=devs[id];const cls='nc-card fc-card'+(d.cooling?' cooling':'')+(d.controlled?'':' muted');
+   const extra=d.phase==='hold'?TFf('holdLeft',{m:fcMin(d.hold_left_s)}):d.phase==='override'?TFf('pauseLeft',{m:fcMin(d.pause_left_s)}):d.cooling&&d.since?(TF('since')+' '+new Date(d.since).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(d.baseline_mode?' · '+TF('back')+' '+fcMode(d.baseline_mode):'')):'';
+   html+='<div class="'+cls+'"><div class="nc-card-head"><div class="nc-card-icon">'+(d.cooling?'❄️':'🏠')+'</div><div><div class="nc-card-title">'+(d.name||id)+'</div><div class="nc-card-sub">'+(d.role||'')+' · '+fcMode(d.mode)+(d.fan?' · '+d.fan:'')+(d.night?' · 🌙':'')+'</div></div><span class="fc-badge '+fcPhaseCls(d.phase)+'">'+TF('ph_'+d.phase)+'</span></div>'
+    +'<div class="nc-readout"><div class="nc-metric"><div class="v">'+fmt(d.t_in,'°')+'</div><div class="l">'+TF('indoor')+'</div></div><div class="nc-metric"><div class="v">'+fmt(d.t_out,'°')+'</div><div class="l">'+TF('outdoor')+'</div></div><div class="nc-metric"><div class="v" style="color:'+(d.delta!=null&&d.delta>=cfg.delta_on?'var(--primary)':'var(--text)')+'">'+(d.delta!=null?(d.delta>0?'+':'')+Number(d.delta).toFixed(1)+' K':'&mdash;')+'</div><div class="l">'+TF('delta')+'</div></div></div>'
+    +(extra?'<div class="nc-desc" style="margin-bottom:.3rem">'+extra+'</div>':'')
+    +(d.start_condition&&!d.cooling?'<div class="nc-desc" style="margin:.2rem 0;color:var(--primary);font-weight:700">'+TF('startCond')+'</div>':'')
+    +(d.last_event?'<div class="nc-desc" style="margin:.2rem 0 0">'+TF('lastEvent')+': <b>'+TF('ev_'+d.last_event)+'</b> '+(d.last_event_ts?new Date(d.last_event_ts).toLocaleString([],{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'')+(d.last_reason?'<br/><span style="font-size:.62rem">'+d.last_reason+'</span>':'')+'</div>':'')
+    +'</div>';});
+  html+='</div>';}
+ body.innerHTML=html;
+ // Einstellungen (Formular nur neu bauen, wenn es nicht gerade bearbeitet wird)
+ const sEl=g('fc-settings');
+ if(!sEl.contains(document.activeElement)){
+  const fanOpts=v=>['Low','Medium','High'].map(x=>'<option'+(x===v?' selected':'')+'>'+x+'</option>').join('');
+  const restOpts=v=>[['Auto','AUTO'],['ManualHeatRecovery','HRV man.'],['Night','Night']].map(x=>'<option value="'+x[0]+'"'+(x[0]===v?' selected':'')+'>'+x[1]+'</option>').join('');
+  const known={};Object.keys(devices).forEach(id=>{known[id]={name:devices[id].name,role:devices[id].role};});
+  Object.keys(devs).forEach(id=>{known[id]={name:devs[id].name||(known[id]||{}).name,role:devs[id].role||(known[id]||{}).role};});
+  const pick=Object.keys(known).map(id=>{const role=String(known[id].role||'').toUpperCase();return '<label><input type="checkbox" value="'+id+'"'+((cfg.devices||[]).includes(id)?' checked':'')+'/>'+(known[id].name||id)+(role?' <span class="role-badge '+(role==='MASTER'?'role-master':'role-slave')+'">'+role+'</span>':'')+'</label>';}).join('');
+  sEl.innerHTML='<div class="fc-form">'
+   +'<div><label>'+TF('f_delta_on')+'</label><input id="fc-delta-on" type="number" step="0.1" min="0.1" value="'+cfg.delta_on+'"/></div>'
+   +'<div><label>'+TF('f_delta_off')+'</label><input id="fc-delta-off" type="number" step="0.1" min="0" value="'+cfg.delta_off+'"/></div>'
+   +'<div><label>'+TF('f_min_hold')+'</label><input id="fc-hold" type="number" step="1" min="0" value="'+fcMin(cfg.min_hold_s)+'"/></div>'
+   +'<div><label>'+TF('f_ttl')+'</label><input id="fc-ttl" type="number" step="1" min="1" value="'+fcMin(cfg.outdoor_ttl_s)+'"/></div>'
+   +'<div><label>'+TF('f_t_in')+'</label><input id="fc-tin" type="number" step="0.5" value="'+cfg.t_in_min+'"/></div>'
+   +'<div><label>'+TF('f_t_out')+'</label><input id="fc-tout" type="number" step="0.5" value="'+cfg.t_out_min+'"/></div>'
+   +'<div><label>'+TF('f_fan_day')+'</label><select id="fc-fan-day">'+fanOpts(cfg.fan_day)+'</select></div>'
+   +'<div><label>'+TF('f_fan_night')+'</label><select id="fc-fan-night">'+fanOpts(cfg.fan_night)+'</select></div>'
+   +'<div><label>'+TF('f_night_hours')+'</label><input id="fc-night-hours" type="text" placeholder="22:00-06:00" value="'+(cfg.night_hours||'')+'"/></div>'
+   +'<div><label>'+TF('f_rest_mode')+'</label><select id="fc-rest-mode">'+restOpts(cfg.rest_mode)+'</select></div>'
+   +'<div><label>'+TF('f_override_pause')+'</label><input id="fc-pause" type="number" step="1" min="0" value="'+fcMin(cfg.override_pause_s)+'"/></div>'
+   +'<div><label>&nbsp;</label><label class="fc-toggle" style="font-size:.72rem"><input type="checkbox" id="fc-block-smart"'+(cfg.block_smart?' checked':'')+'/> '+TF('f_block_smart')+'</label></div>'
+   +'<div class="wide"><label>'+TF('f_devices')+'</label><div class="fc-devpick" id="fc-devpick">'+(pick||'<span style="font-size:.7rem;color:var(--muted)">—</span>')+'</div></div>'
+   +'</div>';
+ }
+ // Protokoll
+ const lg=g('fc-log');
+ if(!fcLog.length){lg.innerHTML='<p class="nc-desc">'+TF('noLog')+'</p>';}
+ else{lg.innerHTML='<table class="fc-log"><thead><tr><th>'+TF('th_time')+'</th><th>'+TF('th_dev')+'</th><th>'+TF('th_event')+'</th><th>'+TF('th_in')+'</th><th>'+TF('th_out')+'</th><th>'+TF('th_src')+'</th><th>'+TF('th_mode')+'</th><th>'+TF('th_reason')+'</th></tr></thead><tbody>'
+  +fcLog.map(r=>'<tr><td style="white-space:nowrap">'+new Date(r.ts_utc).toLocaleString([],{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</td><td>'+(r.device_name||r.serial||'')+'</td><td class="ev ev-'+r.event+'">'+TF('ev_'+r.event)+'</td><td>'+(r.t_in!=null?Number(r.t_in).toFixed(1)+'°':'')+'</td><td>'+(r.t_out!=null?Number(r.t_out).toFixed(1)+'°'+(r.delta!=null?' <span style="color:var(--muted)">(Δ '+Number(r.delta).toFixed(1)+')</span>':''):'')+'</td><td style="font-size:.6rem">'+(r.t_out_source||'')+(r.t_out_age_s!=null?' · '+Math.round(r.t_out_age_s/60)+' min':'')+'</td><td style="white-space:nowrap">'+(r.mode_from||r.mode_to?fcMode(r.mode_from)+' → '+fcMode(r.mode_to)+(r.fan_to?' ('+r.fan_to+')':''):'')+'</td><td>'+(r.reason||'')+'</td></tr>').join('')
+  +'</tbody></table>';}
+}
+
 const API=(window.location.origin+'/api'),WS=((location.protocol==='https:'?'wss':'ws')+'://'+location.host+'/ws');
 const devices={},schedules={},history_data={};
 let activeSmartDevice=null,ws=null,copySource=null;
 lang=localStorage.getItem('lang')||'de';
 document.getElementById('lang-select').value=lang;
 applyLang();
-loadDevices();connectWS();startWeatherTimer();loadNeuracell();
+loadDevices();connectWS();startWeatherTimer();loadNeuracell();loadFreecooling();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>

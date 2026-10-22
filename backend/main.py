@@ -10,6 +10,8 @@ Features:
 - Device control (mode, fanSpeed)
 - Weekly schedule (Wochenzeitplan) per device/day
 - Smart-mode logic overview
+- Free-Cooling-Wächter (freecooling/): Mindestabstand, Hysterese, Haltezeit,
+  Außensensor am Haus, Umschalt-Protokoll
 
 Usage:
   pip install -r requirements.txt
@@ -43,6 +45,13 @@ MQTT_USER     = os.getenv("MQTT_USER", "")
 MQTT_PASSWORD = os.getenv("MQTT_PASSWORD", "")
 MQTT_PREFIX   = os.getenv("MQTT_PREFIX", "ambientika")
 LOG_LEVEL     = os.getenv("LOG_LEVEL", "INFO")
+APP_VERSION   = "2.1.0"
+# Free-Cooling-Wächter: Bewertungstakt und OpenWeatherMap als Rückfallebene
+# für den Außenwert (bevorzugt wird ein Sensor am Haus, siehe freecooling/outdoor.py).
+FREECOOLING_TICK = int(os.getenv("FREECOOLING_TICK", "60"))
+OWM_API_KEY   = os.getenv("OWM_API_KEY", "").strip()
+OWM_LOCATION  = os.getenv("OWM_LOCATION", "").strip()
+OWM_INTERVAL  = int(os.getenv("OWM_INTERVAL", "900"))
 
 logging.basicConfig(level=getattr(logging, LOG_LEVEL))
 logger = logging.getLogger("ambientika-local")
@@ -150,12 +159,39 @@ def on_connect(client, userdata, flags, rc):
         client.subscribe(f"{MQTT_PREFIX}/+/state")
         client.subscribe(f"{MQTT_PREFIX}/+/availability")
         client.subscribe(f"{MQTT_PREFIX}/neuracell/state")  # NeuraCell-X status
+        # Außenwert für den Free-Cooling-Wächter: Sensor am Haus
+        client.subscribe(f"{MQTT_PREFIX}/weather")                  # {"temperature","humidity"}
+        client.subscribe(f"{MQTT_PREFIX}/dewpoint/outdoor_temp")    # nackte Zahl (NeuraCell-X computed)
+        client.subscribe(f"{MQTT_PREFIX}/dewpoint/outdoor_humidity")
     else:
         logger.warning("MQTT connection failed rc=%s", rc)
+
+def _on_outdoor_mqtt(topic: str, raw: str) -> None:
+    """Außenwert-Topics -> Wächter (auf dem Event-Loop, nicht im paho-Thread)."""
+    leaf = topic.rsplit("/", 1)[-1]
+    if leaf == "weather":
+        t, h = FC.parse_payload(raw)
+        if t is None:
+            return
+        loop.call_soon_threadsafe(freecooling.on_outdoor, "sensor", t, h, f"mqtt:{topic}")
+    elif leaf == "outdoor_temp":
+        t, _ = FC.parse_payload(raw)
+        if t is None:
+            return
+        loop.call_soon_threadsafe(freecooling.on_outdoor, "sensor", t, None, f"mqtt:{topic}")
+    elif leaf == "outdoor_humidity":
+        h, _ = FC.parse_payload(raw)
+        if h is not None:
+            loop.call_soon_threadsafe(freecooling.outdoor.set_humidity, "sensor", h)
 
 def on_message(client, userdata, msg):
     try:
         parts = msg.topic.split("/")
+        # --- Außenwert (Free-Cooling-Wächter) ---
+        if (len(parts) == 2 and parts[1] == "weather") or \
+           (len(parts) == 3 and parts[1] == "dewpoint" and parts[2] in ("outdoor_temp", "outdoor_humidity")):
+            _on_outdoor_mqtt(msg.topic, msg.payload.decode(errors="replace"))
+            return
         if len(parts) < 3:
             return
         # --- NeuraCell-X status (patent-pending radon + dew-point control) ---
@@ -236,7 +272,12 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Could not connect to MQTT broker: %s", exc)
     history_sampler.start()
+    fc_tasks = [asyncio.create_task(_freecooling_loop())]
+    if OWM_API_KEY and OWM_LOCATION:
+        fc_tasks.append(asyncio.create_task(_owm_loop()))
     yield
+    for t in fc_tasks:
+        t.cancel()
     await history_sampler.stop()
     mqtt_client.loop_stop()
     mqtt_client.disconnect()
@@ -244,7 +285,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Ambientika Local App API",
     description="Local REST + WebSocket API for Ambientika ventilation units",
-    version="2.0.0",
+    version=APP_VERSION,
     lifespan=lifespan,
 )
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
@@ -263,6 +304,74 @@ history_sampler = HistorySampler(
     mqtt_prefix=MQTT_PREFIX,
 )
 app.include_router(make_history_router(history_sampler))
+
+# --- Free-Cooling-Wächter (Mindestabstand/Hysterese statt Wetterstations-Vergleich) ---
+from freecooling import outdoor as FC
+from freecooling.controller import FreeCoolingController
+from freecooling.routes import make_freecooling_router
+from freecooling.store import FreeCoolingStore
+
+
+def _fc_publish(serial: str, payload: Dict[str, Any]) -> None:
+    """Kombinierter Befehl <prefix>/<serial>/set: Modus + Stufe in EINEM change_mode."""
+    topic = f"{MQTT_PREFIX}/{serial}/set"
+    mqtt_client.publish(topic, json.dumps(payload), qos=1)
+    logger.info("FreeCooling → %s: %s", serial, payload)
+
+
+def _fc_protection() -> bool:
+    """True, solange NeuraCell-X (Radon/Taupunkt) die Geräte führt."""
+    n = neuracell_state or {}
+    if n.get("radon_protection") is True or n.get("dewpoint_block") is True:   # Cloud-Bridge
+        return True
+    return str(n.get("activeProtection", "NONE")).upper() not in ("NONE", "")   # lokale Bridge
+
+
+def _fc_push(status: Dict[str, Any]) -> None:
+    lp = globals().get("loop")                          # erst in der lifespan gesetzt
+    if lp is None:
+        return
+    try:
+        asyncio.run_coroutine_threadsafe(broadcast({"event": "freecooling", "data": status}), lp)
+    except Exception:                                   # noqa: BLE001
+        pass
+
+
+freecooling = FreeCoolingController(
+    get_devices=lambda: devices,
+    publish=_fc_publish,
+    store=FreeCoolingStore(),
+    get_protection=_fc_protection,
+    on_change=_fc_push,
+)
+app.include_router(make_freecooling_router(freecooling))
+
+
+async def _freecooling_loop() -> None:
+    logger.info("freecooling: Wächter %s (Takt %ds)",
+                "AKTIV" if freecooling.config.enabled else "bereit, nicht aktiviert", FREECOOLING_TICK)
+    while True:
+        try:
+            freecooling.tick()
+        except Exception as exc:                        # nie den Task sterben lassen
+            logger.exception("freecooling tick: %s", exc)
+        await asyncio.sleep(FREECOOLING_TICK)
+
+
+async def _owm_loop() -> None:
+    """OpenWeatherMap als Rückfallebene für den Außenwert (OWM_API_KEY + OWM_LOCATION)."""
+    lat = lon = None
+    name = OWM_LOCATION
+    while True:
+        try:
+            if lat is None:
+                lat, lon, name = await asyncio.to_thread(FC.resolve_location, OWM_API_KEY, OWM_LOCATION)
+                logger.info("freecooling: OpenWeatherMap-Standort %s (%.4f, %.4f)", name, lat, lon)
+            t, h, station = await asyncio.to_thread(FC.fetch_openweathermap, OWM_API_KEY, lat, lon)
+            freecooling.on_outdoor("weather", t, h, source=f"openweathermap:{station}")
+        except Exception as exc:                        # noqa: BLE001
+            logger.warning("freecooling: OpenWeatherMap-Abfrage fehlgeschlagen: %s", exc)
+        await asyncio.sleep(max(60, OWM_INTERVAL))
 
 
 class DeviceCommand(BaseModel):
@@ -506,7 +615,14 @@ async def get_smart_status(device_id: str):
     hum_in   = d.get("humidity")
     hum_out  = d.get("outsideHumidity")
     voc      = d.get("airQuality")
-    dark     = d.get("isDark", False)
+    dark     = d.get("isDark", d.get("night_alarm", False))
+    # Außenwert des Wächters (Sensor am Haus bzw. Wetterstation), falls das
+    # Geräte-Payload keinen trägt — die Cloud-Bridge liefert keinen Außenwert.
+    fc_out = freecooling.outdoor.current(ttl_s=freecooling.config.outdoor_ttl_s)
+    if temp_out is None and fc_out is not None:
+        temp_out = fc_out.temperature
+        if hum_out is None:
+            hum_out = fc_out.humidity
 
     # Determine active sub-mode
     active_mode  = "HRV_MEDIUM"
@@ -618,7 +734,8 @@ async def health():
         "status":  "ok",
         "mqtt":    mqtt_client.is_connected(),
         "devices": len(devices),
-        "version": "2.0.0",
+        "version": APP_VERSION,
+        "freecooling": freecooling.config.enabled,
     }
 
 # ---------------------------------------------------------------------------
@@ -632,6 +749,7 @@ async def websocket_endpoint(ws: WebSocket):
         await ws.send_json({"event": "status", "deviceId": did, "data": state})
     if neuracell_state:
         await ws.send_json({"event": "neuracell", "data": neuracell_state})
+    await ws.send_json({"event": "freecooling", "data": freecooling.status()})
     try:
         while True:
             await ws.receive_text()
