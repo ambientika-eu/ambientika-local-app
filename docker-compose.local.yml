@@ -72,9 +72,16 @@ services:
       MQTT_PORT: 1883
       MQTT_PREFIX: ambientika
       LOG_LEVEL: INFO
+      HISTORY_DB: /data/history.db
+      TZ: ${TZ:-Europe/Berlin}
+      FREECOOLING_ENABLED: ${FREECOOLING_ENABLED:-false}
+      OWM_API_KEY: ${OWM_API_KEY:-}
+      OWM_LOCATION: ${OWM_LOCATION:-}
     volumes:
       - ./frontend/dist:/app/frontend/dist:ro
+      - ambientika-history:/data
 
 volumes:
   mosquitto-data:
   mosquitto-log:
+  ambientika-history:

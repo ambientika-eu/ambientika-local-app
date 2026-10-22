@@ -97,6 +97,7 @@ Browser: **http://DEINE-IP:8080**
 | Filter alarm display | ✅ |
 | **NeuraCell-X® – radon protection (patent pending)** | ✅ |
 | **NeuraCell-X® – dew-point control** | ✅ |
+| **Free-cooling guard – minimum margin, hold time, sensor at the house, log** | ✅ |
 | PWA – installable on phone & PC | ✅ |
 | Offline mode (Service Worker) | ✅ |
 | WebSocket live updates | ✅ |
@@ -127,6 +128,58 @@ directly onto its own tab, fully locally:
 
 **New API endpoints:** `GET /api/neuracell`, `POST /api/neuracell/radon` `{active}`,
 `POST /api/neuracell/dewpoint` `{block}`.
+
+---
+
+## ❄️ Free-cooling guard
+
+The units' SMART mode compares the master's indoor reading with the outdoor value of a
+**weather station nearby**. When the two are close, the station's deviation alone decides
+whether free cooling starts – and the units may cool although it is warmer outside. The
+guard replaces that decision locally, with an outdoor value from the house:
+
+| | |
+|---|---|
+| **Start** | indoor > 24 °C **and** outdoor > 20 °C **and** indoor − outdoor ≥ **3.0 K** |
+| **End** | indoor − outdoor < **1.0 K**, indoor ≤ 23.5 °C or outdoor ≤ 19.7 °C (20 °C − 0.3 K dead band) |
+| **Immediately** | outdoor air not cooler than indoor, no valid outdoor value (older than 60 min), guard switched off |
+| **Hold time** | at least **15 min** in the new state after every switch |
+
+- At rest the masters run in **AUTO** (heat recovery). To cool, the guard sets
+  **Master→Slave airflow** (level 2 by day, level 1 at night), as the SMART firmware does
+  for free cooling; the indoor sensor sits in the lower part of the housing and captures
+  the room temperature, the bridge's averaged value and the end hysteresis absorb the
+  airflow's influence (Slave→Master is selectable as `cool_mode`). Afterwards the guard
+  restores the previous state **exactly**. While active it replaces SMART on the
+  controlled units with the rest mode (can be disabled).
+- **Robust in practice:** a start counts as confirmed only once the unit reports the
+  cooling mode; a command that arrives late is adopted, an unconfirmed restore is retried
+  (visible as "Restore not confirmed"). After a NeuraCell-X protection episode or a bridge
+  outage a grace period applies, stale device data (> 10 min) or a bridge reporting offline
+  block every decision, retained MQTT values are ignored.
+- **Outdoor value** – a sensor at the house always wins, a weather station is only the
+  fallback:
+  - MQTT `ambientika/weather` → `{"temperature": 21.4, "humidity": 60}` (Shelly, ESPHome,
+    Home Assistant …) or `ambientika/dewpoint/outdoor_temp` (plain number, the same topic as
+    the NeuraCell-X computed dew point)
+  - HTTP `POST /api/freecooling/outdoor` `{"temperature": 21.4, "humidity": 60, "kind": "sensor"}`
+  - OpenWeatherMap polled by the backend (`OWM_API_KEY`, `OWM_LOCATION` in `.env`); the PWA
+    reports its OpenWeatherMap reading as a fallback as well
+- Off, Away, Surveillance and manually chosen airflow modes are **left alone**. If someone
+  changes the mode while the guard is cooling, the guard backs off for a pause (60 min).
+  **NeuraCell-X (radon/dew point) always has priority.**
+- **Log** – every switch is recorded in SQLite (400 days) with indoor/outdoor value, source
+  and age of the outdoor value, mode before/after and the reason, exportable as CSV. The
+  system's behaviour is thereby verifiable.
+
+Enable and tune it on the **❄️ Free Cooling** tab of the app (or `FREECOOLING_ENABLED=true`
+in `.env`; values from the app win and survive a restart). By default the guard controls all
+**masters** – the slaves of a zone follow their master; specific units can be selected explicitly. The night level applies in darkness (the unit's
+dusk sensor) or during fixed night hours (`22:00-06:00`, time zone `TZ`).
+
+**API:** `GET /api/freecooling` (status), `GET|PUT /api/freecooling/config`,
+`GET /api/freecooling/log` and `/log.csv`, `POST /api/freecooling/outdoor`,
+`POST /api/freecooling/evaluate`.
 
 ---
 

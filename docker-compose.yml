@@ -55,6 +55,14 @@ services:
       MQTT_PREFIX:   ambientika
       LOG_LEVEL:     INFO
       HISTORY_DB:    /data/history.db
+      TZ:            ${TZ:-Europe/Berlin}          # für die Nachtzeit des Free-Cooling-Wächters
+      # Free-Cooling-Wächter (Einstellungen auch in der App unter "Free Cooling";
+      # dort gespeicherte Werte gewinnen gegenüber diesen Vorgaben)
+      FREECOOLING_ENABLED:  ${FREECOOLING_ENABLED:-false}
+      # OpenWeatherMap als Rückfallebene für den Außenwert (ein Sensor am Haus
+      # auf ambientika/weather geht immer vor). Leer = aus.
+      OWM_API_KEY:   ${OWM_API_KEY:-}
+      OWM_LOCATION:  ${OWM_LOCATION:-}
     volumes:
       - ./frontend/dist:/app/frontend/dist:ro   # serve PWA from same container
       - ambientika-history:/data

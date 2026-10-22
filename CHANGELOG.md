@@ -5,7 +5,31 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
 
 ## [Unreleased]
 
+### Hinzugefügt
+
+- **Free-Cooling-Wächter** (`backend/freecooling/`, Tab „❄️ Free Cooling“ in der PWA):
+  ersetzt die Free-Cooling-Entscheidung des SMART-Modus durch eine lokale Regel mit
+  Mindestabstand (Start ≥ 3,0 K, Ende < 1,0 K), Haltezeit (15 min), Gültigkeit des
+  Außenwerts (60 min), Totband 0,3 K am unteren Außenwert und sofortigem Ende, sobald die
+  Außenluft nicht kühler ist als innen. Außenwert bevorzugt von einem Sensor am Haus
+  (`ambientika/weather`, `ambientika/dewpoint/outdoor_temp`, `POST /api/freecooling/outdoor`;
+  retained Nachrichten werden ignoriert), OpenWeatherMap nur als Rückfallebene
+  (`OWM_API_KEY`, `OWM_LOCATION`). Kühlt im Luftstrom Master→Slave (wie die SMART-Firmware;
+  Slave→Master wählbar; Tag Stufe 2 / Nacht Stufe 1) und stellt exakt zurück; ersetzt SMART
+  auf den gesteuerten Geräten durch AUTO; erkennt Eingriffe des Nutzers; NeuraCell-X hat
+  Vorrang. Starts werden bestätigt, verspätete Befehle übernommen, Rückschaltungen bis zur
+  Bestätigung wiederholt; Schonfristen nach Schutzphasen und Bridge-Unterbrechungen; alte
+  Gerätewerte sperren Entscheidungen. Jede Umschaltung wird in SQLite protokolliert
+  (Innen-/Außenwert, Quelle, Alter, Modus, Grund) und ist als CSV exportierbar.
+  Konfiguration und Laufzeitzustand überleben einen Neustart. REST: `/api/freecooling`,
+  `/config`, `/log`, `/log.csv`, `/outdoor`, `/evaluate`; WebSocket-Ereignis `freecooling`.
+  64 Tests in `test_freecooling.py`.
+- `GET /api/devices/{id}/smart` zeigt den Außenwert des Wächters, wenn das Gerät keinen liefert.
+- Backend-Version 2.1.0; Service Worker Cache `ambientika-local-v4`.
+
 ### Geändert
+
+- Tab-Leiste der PWA scrollt auf schmalen Bildschirmen horizontal statt die Seite zu verbreitern.
 
 - Dokumentation des lokalen Betriebsmodus überarbeitet: klare Einordnung als
   Rückfallebene gegenüber dem Standardmodus (Cloud-Bridge), einheitliche Struktur

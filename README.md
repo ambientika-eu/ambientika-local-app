@@ -99,6 +99,7 @@ Browser: **http://DEINE-IP:8080**
 | Filter-Alarm Anzeige | ✅ |
 | **NeuraCell-X® – Radon-Schutz (Patent angemeldet)** | ✅ |
 | **NeuraCell-X® – Taupunktsteuerung** | ✅ |
+| **Free-Cooling-Wächter – Mindestabstand, Haltezeit, Sensor am Haus, Protokoll** | ✅ |
 | PWA – installierbar auf Handy & PC | ✅ |
 | Offline-Modus (Service Worker) | ✅ |
 | WebSocket Live-Updates | ✅ |
@@ -132,6 +133,62 @@ direkt auf einen eigenen Tab, vollständig lokal:
 
 ---
 
+## ❄️ Free-Cooling-Wächter
+
+Der SMART-Modus der Geräte vergleicht den Innenwert des Masters mit dem Außenwert
+einer **Wetterstation in der Umgebung**. Liegen beide nah beieinander, entscheidet
+allein die Abweichung der Station darüber, ob Free Cooling anläuft – und dann wird
+unter Umständen gekühlt, obwohl es draußen wärmer ist. Der Wächter ersetzt diese
+Entscheidung lokal, mit einem Außenwert vom Haus:
+
+| | |
+|---|---|
+| **Start** | innen > 24 °C **und** außen > 20 °C **und** innen − außen ≥ **3,0 K** |
+| **Ende** | innen − außen < **1,0 K**, innen ≤ 23,5 °C oder außen ≤ 19,7 °C (20 °C − 0,3 K Totband) |
+| **Sofort** | Außenluft nicht kühler als innen, kein gültiger Außenwert (älter als 60 min), Wächter aus |
+| **Haltezeit** | nach jedem Umschalten mindestens **15 min** im neuen Zustand |
+
+- Die Master laufen im Ruhezustand in **AUTO** (Wärmerückgewinnung). Zum Kühlen setzt
+  der Wächter den **Luftstrom Master→Slave** (tagsüber Stufe 2, nachts Stufe 1), wie es
+  auch die SMART-Firmware beim Free Cooling tut; der Innensensor sitzt unten im Gehäuse und
+  erfasst die Raumtemperatur, der gemittelte Wert der Bridge und die Hysterese am Ende
+  fangen den Einfluss des Luftstroms ab (Slave→Master ist als `cool_mode` wählbar).
+  Danach stellt der Wächter **exakt zurück**. Solange er aktiv ist, ersetzt er SMART auf
+  den gesteuerten Geräten durch den Ruhemodus (abschaltbar).
+- **Robust gegen die Praxis:** Ein Start gilt erst als bestätigt, wenn das Gerät den
+  Kühlmodus meldet; ein verspätet angekommener Befehl wird übernommen, eine nicht
+  bestätigte Rückschaltung wiederholt (sichtbar als „Rückkehr nicht bestätigt“). Nach einer
+  NeuraCell-X-Schutzphase oder einer Unterbrechung der Bridge gilt eine Schonfrist, alte
+  Gerätewerte (> 10 min) oder eine offline gemeldete Bridge sperren jede Entscheidung,
+  retained MQTT-Werte werden ignoriert.
+- **Außenwert** – ein Sensor am Haus geht immer vor, eine Wetterstation ist nur die
+  Rückfallebene:
+  - MQTT `ambientika/weather` → `{"temperature": 21.4, "humidity": 60}` (Shelly, ESPHome,
+    Home Assistant …) oder `ambientika/dewpoint/outdoor_temp` (nackte Zahl, dasselbe Topic
+    wie die NeuraCell-X-Taupunktberechnung)
+  - HTTP `POST /api/freecooling/outdoor` `{"temperature": 21.4, "humidity": 60, "kind": "sensor"}`
+  - OpenWeatherMap vom Backend (`OWM_API_KEY`, `OWM_LOCATION` in `.env`); die PWA meldet
+    ihren OpenWeatherMap-Wert ebenfalls als Rückfallebene
+- **Unangetastet** bleiben Aus, Außer Haus, Überwachung und manuell gewählte
+  Luftstrom-Modi. Stellt jemand während des Kühlens um, zieht sich der Wächter für eine
+  Pause (60 min) zurück. **NeuraCell-X (Radon/Taupunkt) hat immer Vorrang.**
+- **Protokoll** – jede Umschaltung wird mit Innen-/Außenwert, Quelle und Alter des
+  Außenwerts, Modus vorher/nachher und Grund in SQLite festgehalten (400 Tage) und lässt
+  sich als CSV exportieren. Damit ist die Arbeitsweise der Anlage belegbar.
+
+Einschalten und einstellen im Tab **❄️ Free Cooling** der App (oder `FREECOOLING_ENABLED=true`
+in `.env`; Werte aus der App gewinnen und überleben einen Neustart).
+Standardmäßig steuert der Wächter alle **Master** – die Slaves einer Zone folgen ihrem Master; sollen
+bestimmte Geräte ausdrücklich angesteuert werden, lassen sie sich in der Geräteliste auswählen.
+Die Nachtstufe greift bei Dunkelheit (Dämmerungssensor des Geräts) oder in einer festen
+Nachtzeit (`22:00-06:00`, Zeitzone `TZ`).
+
+**API:** `GET /api/freecooling` (Status), `GET|PUT /api/freecooling/config`,
+`GET /api/freecooling/log` und `/log.csv`, `POST /api/freecooling/outdoor`,
+`POST /api/freecooling/evaluate`.
+
+---
+
 ## 🔌 REST API
 
 Die API ist unter `http://DEINE-IP:8080/api` erreichbar.  
@@ -142,6 +199,10 @@ Interaktive Dokumentation: **http://DEINE-IP:8080/docs**
 | `/api/devices` | GET | Alle Geräte mit Status |
 | `/api/devices/{id}` | GET | Einzelnes Gerät |
 | `/api/devices/{id}/command` | POST | Befehl senden |
+| `/api/freecooling` | GET | Free-Cooling-Wächter: Status, Außenwert, Geräte |
+| `/api/freecooling/config` | GET / PUT | Wächter einstellen (wird gespeichert) |
+| `/api/freecooling/log` | GET | Umschalt-Protokoll (`/log.csv` als CSV) |
+| `/api/freecooling/outdoor` | POST | Außenwert melden |
 | `/api/health` | GET | System-Status |
 | `/ws` | WebSocket | Live-Updates |
 
@@ -169,6 +230,8 @@ curl -X POST http://localhost:8080/api/devices/DEV001/command \
 ambientika-local-app/
 ├── backend/
 │   ├── main.py            # FastAPI Backend (REST + WebSocket)
+│   ├── freecooling/       # Free-Cooling-Wächter (Regel, Außenwert, Protokoll, API)
+│   ├── history/           # lokale Messwert-Historie (SQLite)
 │   ├── Dockerfile
 │   └── requirements.txt
 ├── frontend/
