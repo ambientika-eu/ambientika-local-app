@@ -1,5 +1,5 @@
-// Ambientika Local – Service Worker v4.0
-const CACHE = 'ambientika-local-v4';
+// Ambientika Local – Service Worker v5.0
+const CACHE = 'ambientika-local-v5';
 
 // Core assets (müssen vorhanden sein)
 const CORE_ASSETS = [

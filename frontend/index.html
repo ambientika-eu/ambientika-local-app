@@ -1067,7 +1067,8 @@ function fcReadForm(){const g=id=>document.getElementById(id);const missing=[];c
   t_in_min:num('fc-tin'),t_out_min:num('fc-tout'),t_out_hyst:num('fc-tout-hyst'),fan_day:g('fc-fan-day').value,fan_night:g('fc-fan-night').value,night_hours:g('fc-night-hours').value.trim(),rest_mode:g('fc-rest-mode').value,
   block_smart:g('fc-block-smart').checked,override_pause_s:Math.round(num('fc-pause')*60),devices:devs};
  if(missing.length)throw new Error(TF('emptyField'));return cfg;}
-async function fcSave(){const err=document.getElementById('fc-err');err.style.display='none';try{const body=fcReadForm();await apiFetch('/freecooling/config','PUT',body);fcDirty=false;toast(TF('saved'));await loadFreecooling();}catch(e){err.textContent=e.message;err.style.display='block';}}
+function fcErrText(e){const m=(e&&e.message)||String(e);try{const j=JSON.parse(m);if(j&&typeof j.detail==='string')return j.detail;if(j&&Array.isArray(j.detail))return j.detail.map(x=>(x.loc||[]).slice(-1)[0]+': '+x.msg).join(', ');}catch(_){}return m;}
+async function fcSave(){const err=document.getElementById('fc-err');err.style.display='none';try{const body=fcReadForm();await apiFetch('/freecooling/config','PUT',body);fcDirty=false;toast(TF('saved'));await loadFreecooling();}catch(e){err.textContent=fcErrText(e);err.style.display='block';}}
 async function fcEvaluate(){try{const r=await apiFetch('/freecooling/evaluate','POST',{});toast(TFf('evaluated',{n:(r.events||[]).length}));await loadFreecooling();}catch(e){toast('Fehler: '+e.message);}}
 function renderFreecooling(){
  const tg=document.getElementById('fc-tagline');if(!tg)return;

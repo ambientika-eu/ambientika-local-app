@@ -84,9 +84,9 @@ Frontend ausliefert (erreichbar unter `/history.html`). Sie ruft nur die
   gegen die aktuelle `index.html` gemacht werden (nicht blind), damit i18n/Logik
   konsistent bleiben.
 
-> Serving-Hinweis: `docker-compose.yml`/`main.py` liefern das Frontend aus
-> `frontend/dist`. `history.html` muss also im selben ausgelieferten Verzeichnis
-> landen wie `index.html` (dort, wo euer Build `dist` befüllt).
+> Serving-Hinweis: `main.py` liefert das Frontend aus `frontend/dist`, falls dort eine
+> `index.html` liegt, sonst direkt aus `frontend/` (`docker-compose.yml` hängt `./frontend`
+> ein). `history.html` muss also im selben ausgelieferten Verzeichnis liegen wie `index.html`.
 
 ## Prüfen
 ```bash

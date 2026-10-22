@@ -78,7 +78,7 @@ services:
       OWM_API_KEY: ${OWM_API_KEY:-}
       OWM_LOCATION: ${OWM_LOCATION:-}
     volumes:
-      - ./frontend/dist:/app/frontend/dist:ro
+      - ./frontend:/app/frontend:ro   # PWA aus demselben Container (frontend/, optional frontend/dist/)
       - ambientika-history:/data
 
 volumes:

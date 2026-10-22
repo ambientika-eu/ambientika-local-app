@@ -255,7 +255,9 @@ cd backend
 pip install -r requirements.txt
 uvicorn main:app --host 0.0.0.0 --port 8080
 
-# Frontend: index.html einfach im Browser öffnen oder via nginx/caddy servieren
+# Frontend: liefert das Backend selbst aus (frontend/, oder frontend/dist/ falls vorhanden)
+#           -> http://DEINE-IP:8080 ; index.html per Datei zu öffnen funktioniert nicht,
+#           die App spricht die API unter derselben Adresse an
 ```
 
 ---

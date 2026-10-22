@@ -475,6 +475,40 @@ def test_protection_release_with_user_change_after_grace_is_override():
 
 
 # --------------------------------------------------------------- Nutzereingriff
+def test_override_right_after_confirmation_is_detected_immediately():
+    """Nach der Bestätigung ist die Schonfrist erledigt: Ein abweichender Modus mit
+    der nächsten Abfrage (30 s) ist sofort ein Eingriff — nicht erst nach Ablauf
+    der ursprünglichen confirm_grace_s (180 s) ab dem Startbefehl."""
+    r = cooling_rig()                          # Start + Bestätigung nach 30 s
+    r.advance(30)                              # nächste Abfrage, noch innerhalb der 180 s
+    r.devices[MASTER]["operating_mode"] = "Night"
+    r.tick()
+    assert r.events() == ["start", "override"]
+    assert len(r.cmds()) == 1                  # nichts zurückgestellt
+    st = r.c.status(r.now)["devices"][MASTER]
+    assert st["phase"] == "override" and st["pause_left_s"] > 0
+
+
+def test_grace_after_protection_release_still_waits_until_confirmed():
+    """Die Schonfrist nach einer Schutzphase bleibt, solange das Gerät den Kühlmodus
+    noch nicht wieder gemeldet hat; erst die Bestätigung beendet sie."""
+    r = cooling_rig()
+    r.protection = True
+    r.devices[MASTER]["operating_mode"] = "Intake"
+    r.tick()
+    r.protection = False
+    r.tick()                                   # Schonfrist gesetzt, Gerät meldet noch Intake
+    r.advance(30)
+    r.tick()
+    assert r.events() == ["start"]             # kein override innerhalb der Schonfrist
+    r.confirm()
+    r.tick()                                   # Kühlmodus gemeldet -> Schonfrist erledigt
+    r.advance(30)
+    r.devices[MASTER]["operating_mode"] = "Night"
+    r.tick()
+    assert r.events() == ["start", "override"]
+
+
 def test_manual_override_pauses_guard():
     r = cooling_rig()
     r.advance(200)

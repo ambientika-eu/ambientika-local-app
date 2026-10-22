@@ -617,8 +617,13 @@ class FreeCoolingController:
         # 3) Zustand "kühlt".
         if st.cooling:
             if mode == cfg.cool_mode:
-                if not st.confirmed:
+                if not st.confirmed or st.grace_until is not None:
+                    # Das Gerät meldet den Kühlmodus: Start bestätigt. Die Schonfrist
+                    # ist damit erledigt — ein abweichender Modus ab der nächsten
+                    # Abfrage ist ein Eingriff des Nutzers und wartet nicht erst die
+                    # restliche Schonfrist (bis zu confirm_grace_s) ab.
                     st.confirmed = True
+                    st.grace_until = None
                     self._persist(st)
             elif in_grace:
                 return None                              # Abfrage der Bridge abwarten
