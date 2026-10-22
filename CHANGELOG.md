@@ -14,8 +14,8 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
   Außenluft nicht kühler ist als innen. Außenwert bevorzugt von einem Sensor am Haus
   (`ambientika/weather`, `ambientika/dewpoint/outdoor_temp`, `POST /api/freecooling/outdoor`;
   retained Nachrichten werden ignoriert), OpenWeatherMap nur als Rückfallebene
-  (`OWM_API_KEY`, `OWM_LOCATION`). Kühlt im Luftstrom Slave→Master (Master saugt ab, Sensor
-  misst weiter den Raum; Tag Stufe 2 / Nacht Stufe 1) und stellt exakt zurück; ersetzt SMART
+  (`OWM_API_KEY`, `OWM_LOCATION`). Kühlt im Luftstrom Master→Slave (wie die SMART-Firmware;
+  Slave→Master wählbar; Tag Stufe 2 / Nacht Stufe 1) und stellt exakt zurück; ersetzt SMART
   auf den gesteuerten Geräten durch AUTO; erkennt Eingriffe des Nutzers; NeuraCell-X hat
   Vorrang. Starts werden bestätigt, verspätete Befehle übernommen, Rückschaltungen bis zur
   Bestätigung wiederholt; Schonfristen nach Schutzphasen und Bridge-Unterbrechungen; alte

@@ -15,11 +15,13 @@ Regel je gesteuertem Gerät (Standardwerte, alle konfigurierbar):
           Wächter aus, Gerät nicht mehr in der Geräteliste
   Halten  nach jedem Umschalten mindestens 15 min im neuen Zustand
 
-Zum Kühlen wird der Luftstrom Slave→Master gesetzt (tagsüber Stufe 2, nachts
-Stufe 1): Der Master saugt Raumluft ab, sein Sensor misst also weiter den Raum.
-Im Luftstrom Master→Slave stünde der Sensor in der einströmenden Außenluft und
-der Innenwert fiele binnen Minuten auf den Außenwert — die Regel würde kippen.
-Danach wird der Zustand vor dem Kühlen exakt wiederhergestellt. War das SMART,
+Zum Kühlen wird der Luftstrom Master→Slave gesetzt (tagsüber Stufe 2, nachts
+Stufe 1), wie es auch die SMART-Firmware beim Free Cooling tut. Der Innensensor
+sitzt unten im Gehäuse, nicht direkt im Luftstrom, und erfasst die Raumtemperatur;
+den verbleibenden Einfluss des Luftstroms fangen der gemittelte Wert der Bridge
+(temperature_avg) und die Hysterese am Ende ab. Slave→Master ist als cool_mode
+wählbar (der Master saugt dann ab). Danach wird der Zustand vor dem Kühlen
+exakt wiederhergestellt. War das SMART,
 wird stattdessen AUTO gesetzt, weil der Wächter genau die Free-Cooling-
 Entscheidung des SMART-Modus ersetzt. Solange der Wächter aktiv ist, hält er
 die gesteuerten Geräte aus SMART heraus (abschaltbar).
@@ -61,7 +63,7 @@ OPERATING_MODES = (
     "Smart", "Auto", "ManualHeatRecovery", "Night", "AwayHome", "Surveillance",
     "TimedExpulsion", "Expulsion", "Intake", "MasterSlaveFlow", "SlaveMasterFlow", "Off",
 )
-COOL_MODES = ("SlaveMasterFlow", "MasterSlaveFlow")
+COOL_MODES = ("MasterSlaveFlow", "SlaveMasterFlow")
 # Nur aus diesen Ruhezuständen heraus startet der Wächter. Aus, Außer Haus,
 # Überwachung und manuell gewählte Luftstrom-Modi sind Entscheidungen des
 # Nutzers und bleiben unangetastet; SMART wird (bei block_smart) erst ersetzt.
@@ -162,7 +164,7 @@ class FreeCoolingConfig:
     min_hold_s: int = 900
     outdoor_ttl_s: int = 3600
     state_ttl_s: int = 600           # Gerätewerte älter als das gelten als nicht vorhanden
-    cool_mode: str = "SlaveMasterFlow"
+    cool_mode: str = "MasterSlaveFlow"
     fan_day: str = "Medium"
     fan_night: str = "Low"
     night_hours: str = ""            # "22:00-06:00" oder leer (dann nur Dämmerungssensor)

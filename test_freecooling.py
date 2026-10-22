@@ -36,7 +36,7 @@ from freecooling.store import FreeCoolingStore, log_to_csv  # noqa: E402
 T0 = dt.datetime(2026, 7, 15, 12, 0, tzinfo=dt.timezone.utc)
 MASTER = "AABBCCDDEE01"
 SLAVE = "AABBCCDDEE02"
-COOL = "SlaveMasterFlow"          # Master saugt ab, Sensor misst weiter den Raum
+COOL = "MasterSlaveFlow"          # wie die SMART-Firmware beim Free Cooling
 
 
 def dev(serial=MASTER, mode="Auto", fan="Low", t=27.0, t_avg=None, role="Master",

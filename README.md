@@ -149,9 +149,10 @@ Entscheidung lokal, mit einem Außenwert vom Haus:
 | **Haltezeit** | nach jedem Umschalten mindestens **15 min** im neuen Zustand |
 
 - Die Master laufen im Ruhezustand in **AUTO** (Wärmerückgewinnung). Zum Kühlen setzt
-  der Wächter den **Luftstrom Slave→Master** (tagsüber Stufe 2, nachts Stufe 1): Der Master
-  saugt Raumluft ab, sein Sensor misst also weiter den Raum — im Luftstrom Master→Slave
-  stünde er in der einströmenden Außenluft und der Innenwert fiele sofort auf den Außenwert.
+  der Wächter den **Luftstrom Master→Slave** (tagsüber Stufe 2, nachts Stufe 1), wie es
+  auch die SMART-Firmware beim Free Cooling tut; der Innensensor sitzt unten im Gehäuse und
+  erfasst die Raumtemperatur, der gemittelte Wert der Bridge und die Hysterese am Ende
+  fangen den Einfluss des Luftstroms ab (Slave→Master ist als `cool_mode` wählbar).
   Danach stellt der Wächter **exakt zurück**. Solange er aktiv ist, ersetzt er SMART auf
   den gesteuerten Geräten durch den Ruhemodus (abschaltbar).
 - **Robust gegen die Praxis:** Ein Start gilt erst als bestätigt, wenn das Gerät den

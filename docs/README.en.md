@@ -146,11 +146,12 @@ guard replaces that decision locally, with an outdoor value from the house:
 | **Hold time** | at least **15 min** in the new state after every switch |
 
 - At rest the masters run in **AUTO** (heat recovery). To cool, the guard sets
-  **Slave→Master airflow** (level 2 by day, level 1 at night): the master extracts room
-  air, so its sensor keeps measuring the room — in Master→Slave airflow it would sit in the
-  incoming outdoor air and the indoor reading would drop to the outdoor value at once.
-  Afterwards the guard restores the previous state **exactly**. While active it replaces
-  SMART on the controlled units with the rest mode (can be disabled).
+  **Master→Slave airflow** (level 2 by day, level 1 at night), as the SMART firmware does
+  for free cooling; the indoor sensor sits in the lower part of the housing and captures
+  the room temperature, the bridge's averaged value and the end hysteresis absorb the
+  airflow's influence (Slave→Master is selectable as `cool_mode`). Afterwards the guard
+  restores the previous state **exactly**. While active it replaces SMART on the
+  controlled units with the rest mode (can be disabled).
 - **Robust in practice:** a start counts as confirmed only once the unit reports the
   cooling mode; a command that arrives late is adopted, an unconfirmed restore is retried
   (visible as "Restore not confirmed"). After a NeuraCell-X protection episode or a bridge
