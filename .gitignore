@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# lokale Daten / Konfiguration
+.env
+*.db
+*.db-wal
+*.db-shm
+
+# gebaute PWA (wird aus frontend/ kopiert)
+frontend/dist/
