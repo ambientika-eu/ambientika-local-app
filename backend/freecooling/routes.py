@@ -27,10 +27,12 @@ class ConfigUpdate(BaseModel):
     devices: Optional[List[str]] = None
     t_in_min: Optional[float] = None
     t_out_min: Optional[float] = None
+    t_out_hyst: Optional[float] = None
     delta_on: Optional[float] = None
     delta_off: Optional[float] = None
     min_hold_s: Optional[int] = None
     outdoor_ttl_s: Optional[int] = None
+    state_ttl_s: Optional[int] = None
     cool_mode: Optional[str] = None
     fan_day: Optional[str] = None
     fan_night: Optional[str] = None
@@ -39,6 +41,7 @@ class ConfigUpdate(BaseModel):
     block_smart: Optional[bool] = None
     override_pause_s: Optional[int] = None
     confirm_grace_s: Optional[int] = None
+    adopt_window_s: Optional[int] = None
     use_avg_temperature: Optional[bool] = None
 
 
@@ -47,6 +50,12 @@ class OutdoorInput(BaseModel):
     humidity: Optional[float] = None
     kind: str = "sensor"
     source: Optional[str] = None
+
+
+def clean_source(source: Optional[str], default: str) -> str:
+    """Quellenname als Klartext: ohne Markup, kurz (landet im Protokoll und in der PWA)."""
+    s = "".join(ch for ch in str(source or "") if ch.isprintable() and ch not in "<>&\"'`").strip()
+    return s[:80] or default
 
 
 def make_freecooling_router(controller) -> APIRouter:
@@ -92,7 +101,7 @@ def make_freecooling_router(controller) -> APIRouter:
         if kind not in ("sensor", "weather"):
             raise HTTPException(status_code=400, detail="kind: sensor oder weather")
         r = controller.on_outdoor(kind, inp.temperature, inp.humidity,
-                                  source=inp.source or f"http:{kind}")
+                                  source=clean_source(inp.source, f"http:{kind}"))
         if r is None:
             raise HTTPException(status_code=400, detail="Außenwert nicht plausibel (-50..60 °C)")
         return {"status": "ok", "reading": r.as_dict(), "outdoor": controller.outdoor.as_dict()}

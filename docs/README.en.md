@@ -141,14 +141,21 @@ guard replaces that decision locally, with an outdoor value from the house:
 | | |
 |---|---|
 | **Start** | indoor > 24 °C **and** outdoor > 20 °C **and** indoor − outdoor ≥ **3.0 K** |
-| **End** | indoor − outdoor < **1.0 K**, indoor ≤ 23.5 °C or outdoor ≤ 20 °C |
-| **Immediately** | no valid outdoor value (older than 60 min), guard switched off |
+| **End** | indoor − outdoor < **1.0 K**, indoor ≤ 23.5 °C or outdoor ≤ 19.7 °C (20 °C − 0.3 K dead band) |
+| **Immediately** | outdoor air not cooler than indoor, no valid outdoor value (older than 60 min), guard switched off |
 | **Hold time** | at least **15 min** in the new state after every switch |
 
 - At rest the masters run in **AUTO** (heat recovery). To cool, the guard sets
-  **Master-Slave airflow** (level 2 by day, level 1 at night) and restores the previous
-  state **exactly** afterwards. While the guard is active it replaces SMART on the
-  controlled units with the rest mode (can be disabled).
+  **Slave→Master airflow** (level 2 by day, level 1 at night): the master extracts room
+  air, so its sensor keeps measuring the room — in Master→Slave airflow it would sit in the
+  incoming outdoor air and the indoor reading would drop to the outdoor value at once.
+  Afterwards the guard restores the previous state **exactly**. While active it replaces
+  SMART on the controlled units with the rest mode (can be disabled).
+- **Robust in practice:** a start counts as confirmed only once the unit reports the
+  cooling mode; a command that arrives late is adopted, an unconfirmed restore is retried
+  (visible as "Restore not confirmed"). After a NeuraCell-X protection episode or a bridge
+  outage a grace period applies, stale device data (> 10 min) or a bridge reporting offline
+  block every decision, retained MQTT values are ignored.
 - **Outdoor value** – a sensor at the house always wins, a weather station is only the
   fallback:
   - MQTT `ambientika/weather` → `{"temperature": 21.4, "humidity": 60}` (Shelly, ESPHome,

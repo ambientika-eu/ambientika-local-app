@@ -275,7 +275,7 @@ footer strong{color:var(--text)}
 .fc-log th{text-align:left;font-size:.58rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:.3rem .4rem;border-bottom:1px solid var(--border)}
 .fc-log td{padding:.32rem .4rem;border-bottom:1px solid var(--border);vertical-align:top}
 .fc-log td.ev{font-weight:800;white-space:nowrap}
-.fc-log .ev-start{color:#2b6cb0}.fc-log .ev-end{color:#276749}.fc-log .ev-override{color:#c05621}.fc-log .ev-smart_blocked{color:var(--purple)}.fc-log .ev-config{color:var(--muted)}.fc-log .ev-fan{color:var(--muted)}
+.fc-log .ev-start{color:#2b6cb0}.fc-log .ev-adopted{color:#2b6cb0}.fc-log .ev-end{color:#276749}.fc-log .ev-override{color:#c05621}.fc-log .ev-unconfirmed{color:#c05621}.fc-log .ev-send_failed{color:var(--red)}.fc-log .ev-smart_blocked{color:var(--purple)}.fc-log .ev-config{color:var(--muted)}.fc-log .ev-fan{color:var(--muted)}
 .fc-log-wrap{overflow-x:auto}
 .fc-hint{font-size:.64rem;color:var(--muted);line-height:1.5;margin-top:.5rem}
 .fc-err{font-size:.7rem;color:var(--red);font-weight:700;margin-top:.4rem;display:none}
@@ -754,7 +754,7 @@ if(savedTheme==='dark')document.getElementById('dark-toggle').textContent='☀�
 function toggleDark(){const t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('dark-toggle').textContent=t==='dark'?'☀️':'🌙';}
 function toast(m,d=2500){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),d);}
 function setMqtt(ok){document.getElementById('mqtt-dot').className=ok?'connected':'';document.getElementById('mqtt-label').textContent=ok?T('connected'):T('disconnected');}
-function connectWS(){ws=new WebSocket(WS);ws.onopen=()=>setMqtt(true);ws.onclose=()=>{setMqtt(false);setTimeout(connectWS,3000)};ws.onerror=()=>setMqtt(false);ws.onmessage=e=>{const{event,deviceId,data}=JSON.parse(e.data);if(event==='neuracell'){neuracell=data;renderNeuracell();return;}if(event==='freecooling'){freecooling=data;if(document.getElementById('view-freecooling').style.display!=='none'){apiFetch('/freecooling/log?limit=30').then(l=>{fcLog=l;renderFreecooling();}).catch(()=>renderFreecooling());}return;}if(event==='status'||event==='availability'){devices[deviceId]={...devices[deviceId],...data,deviceId};if(!history_data[deviceId])history_data[deviceId]=[];if(data.temperature!=null||data.airQuality!=null){history_data[deviceId].push({ts:Date.now(),temp:data.temperature,co2:data.airQuality,hum:data.humidity});if(history_data[deviceId].length>60)history_data[deviceId].shift();}renderCard(deviceId);refreshSmartSel();}};}
+function connectWS(){ws=new WebSocket(WS);ws.onopen=()=>setMqtt(true);ws.onclose=()=>{setMqtt(false);setTimeout(connectWS,3000)};ws.onerror=()=>setMqtt(false);ws.onmessage=e=>{const{event,deviceId,data}=JSON.parse(e.data);if(event==='neuracell'){neuracell=data;renderNeuracell();return;}if(event==='freecooling'){freecooling=data;if(document.getElementById('view-freecooling').style.display!=='none'){if(data&&data.log_count!==fcLogCount){fcLogCount=data.log_count;apiFetch('/freecooling/log?limit=30').then(l=>{fcLog=l;renderFreecooling();}).catch(()=>renderFreecooling());}else renderFreecooling();}return;}if(event==='status'||event==='availability'){devices[deviceId]={...devices[deviceId],...data,deviceId};if(!history_data[deviceId])history_data[deviceId]=[];if(data.temperature!=null||data.airQuality!=null){history_data[deviceId].push({ts:Date.now(),temp:data.temperature,co2:data.airQuality,hum:data.humidity});if(history_data[deviceId].length>60)history_data[deviceId].shift();}renderCard(deviceId);refreshSmartSel();}};}
 async function apiFetch(path,method='GET',body=null){const opts={method,headers:{'Content-Type':'application/json'}};if(body)opts.body=JSON.stringify(body);const r=await fetch(API+path,opts);if(!r.ok)throw new Error(await r.text());return r.json();}
 async function sendAll(cmd){const ids=Object.keys(devices);if(!ids.length){toast(T('noDevices'));return;}await Promise.all(ids.map(id=>apiFetch('/devices/'+id+'/command','POST',cmd).catch(()=>{})));toast(T('cmdAll'));}
 async function loadDevices(){try{const list=await apiFetch('/devices');list.forEach(d=>{devices[d.deviceId]=d;});renderAllCards();document.getElementById('devices-title').textContent=Tf('devicesCount',list.length);if(!list.length)document.getElementById('empty-state').style.display='block';list.forEach(d=>loadSchedule(d.deviceId));refreshSmartSel();}catch(e){document.getElementById('empty-state').style.display='block';}}
@@ -1009,62 +1009,65 @@ de:{tab:'❄️ Free Cooling',title:'Free-Cooling-Wächter',tagline:'Kühlt nur,
  on:'Aktiv',off:'Aus',coolingN:'{n} Gerät(e) kühlen',outdoor:'Außenwert',rule:'Regel',indoor:'Innen',delta:'Abstand',
  src_sensor:'Sensor am Haus',src_weather:'Wetterstation',noOutdoor:'Kein gültiger Außenwert',ago:'vor {m} Min.',expired:'abgelaufen',
  ruleStart:'Start: innen > {a} °C, außen > {b} °C, Abstand ≥ {c} K',ruleEnd:'Ende: Abstand < {a} K, innen ≤ {b} °C, außen ≤ {c} °C',ruleHold:'Haltezeit {a} Min · Außenwert max. {b} Min alt',
- ph_disabled:'Wächter aus',ph_not_controlled:'nicht gesteuert',ph_offline:'offline',ph_protected:'NeuraCell-X aktiv',ph_cooling:'Kühlt',ph_override:'Nutzereingriff – Pause',ph_smart_blocked:'SMART → AUTO',ph_manual_mode:'manueller Modus',ph_no_outdoor:'kein Außenwert',ph_hold:'Haltezeit',ph_ready:'Bereit',
+ ph_disabled:'Wächter aus',ph_not_controlled:'nicht gesteuert',ph_stale:'keine aktuellen Gerätewerte',ph_protected:'NeuraCell-X aktiv',ph_starting:'Start gesendet…',ph_cooling:'Kühlt',ph_override:'Nutzereingriff – Pause',ph_smart_blocked:'SMART → AUTO',ph_restoring:'Rückkehr läuft…',ph_restore_failed:'Rückkehr nicht bestätigt!',ph_manual_mode:'manueller Modus',ph_no_outdoor:'kein Außenwert',ph_hold:'Haltezeit',ph_ready:'Bereit',
  since:'seit',holdLeft:'noch {m} Min',pauseLeft:'Pause noch {m} Min',back:'zurück zu',lastEvent:'Zuletzt',startCond:'Startbedingung erfüllt',
  settings:'Einstellungen',settingsSub:'werden gespeichert und sofort angewendet',enabledLbl:'Wächter aktiv',
- f_delta_on:'Mindestabstand Start (K)',f_delta_off:'Abstand Ende (K)',f_min_hold:'Haltezeit (Min)',f_ttl:'Außenwert gültig (Min)',f_t_in:'Innen mindestens (°C)',f_t_out:'Außen mindestens (°C)',
+ f_delta_on:'Mindestabstand Start (K)',f_delta_off:'Abstand Ende (K)',f_min_hold:'Haltezeit (Min, mind. 1)',f_ttl:'Außenwert gültig (Min)',f_t_in:'Innen mindestens (°C)',f_t_out:'Außen mindestens (°C)',f_t_out_hyst:'Totband Ende außen (K)',f_state_ttl:'Gerätewerte gültig (Min)',emptyField:'Bitte alle Zahlenfelder ausfüllen',ruleEndNow:'Sofort: Außenluft nicht kühler als innen, kein gültiger Außenwert',
  f_fan_day:'Stufe tagsüber',f_fan_night:'Stufe nachts',f_night_hours:'Nachtzeit (HH:MM-HH:MM, leer = nur Dämmerungssensor)',f_rest_mode:'Ruhemodus (statt SMART)',f_block_smart:'SMART automatisch durch Ruhemodus ersetzen',f_override_pause:'Pause nach Nutzereingriff (Min)',f_devices:'Gesteuerte Geräte (keins gewählt = alle Master)',
  save:'Speichern',evaluate:'Jetzt bewerten',saved:'Gespeichert',evaluated:'{n} Umschaltung(en)',csv:'CSV',
  logTitle:'Umschalt-Protokoll',logSub:'jede Entscheidung mit Innen-/Außenwert, Quelle und Grund',noLog:'Noch keine Einträge.',
  th_time:'Zeit',th_dev:'Gerät',th_event:'Ereignis',th_in:'Innen',th_out:'Außen',th_src:'Quelle',th_mode:'Modus',th_reason:'Grund',
- ev_start:'Start',ev_end:'Ende',ev_override:'Eingriff',ev_smart_blocked:'SMART-Sperre',ev_fan:'Stufe',ev_config:'Konfiguration',
+ ev_start:'Start',ev_end:'Ende',ev_override:'Eingriff',ev_unconfirmed:'Nicht bestätigt',ev_adopted:'Übernommen',ev_send_failed:'Senden fehlgeschlagen',ev_smart_blocked:'SMART-Sperre',ev_fan:'Stufe',ev_config:'Konfiguration',
  hint:'Außenwert liefern: MQTT-Topic ambientika/weather ({"temperature": 21.4, "humidity": 60}) oder ambientika/dewpoint/outdoor_temp, HTTP POST /api/freecooling/outdoor, oder OpenWeatherMap als Rückfallebene (OWM_API_KEY, OWM_LOCATION im Backend). Ein Sensor am Haus geht immer vor.',
- note:'Die Master laufen im Ruhezustand in AUTO (Wärmerückgewinnung). Zum Kühlen setzt der Wächter den Luftstrom Master-Slave und stellt danach exakt zurück. Aus, Außer Haus und manuell gewählte Modi bleiben unangetastet; ein Eingriff während des Kühlens beendet den Wächter für die eingestellte Pause. Läuft NeuraCell-X (Radon/Taupunkt), hat das Vorrang.'},
+ note:'Die Master laufen im Ruhezustand in AUTO (Wärmerückgewinnung). Zum Kühlen setzt der Wächter den Luftstrom Slave→Master (der Master saugt ab, sein Sensor misst weiter den Raum) und stellt danach exakt zurück. Aus, Außer Haus und manuell gewählte Modi bleiben unangetastet; ein Eingriff während des Kühlens beendet den Wächter für die eingestellte Pause. Läuft NeuraCell-X (Radon/Taupunkt), hat das Vorrang.'},
 en:{tab:'❄️ Free Cooling',title:'Free-cooling guard',tagline:'Cools only when outdoor air really is cooler – with a minimum margin, hold time and a sensor at the house',
  on:'Active',off:'Off',coolingN:'{n} device(s) cooling',outdoor:'Outdoor value',rule:'Rule',indoor:'Indoor',delta:'Margin',
  src_sensor:'Sensor at the house',src_weather:'Weather station',noOutdoor:'No valid outdoor value',ago:'{m} min ago',expired:'expired',
  ruleStart:'Start: indoor > {a} °C, outdoor > {b} °C, margin ≥ {c} K',ruleEnd:'End: margin < {a} K, indoor ≤ {b} °C, outdoor ≤ {c} °C',ruleHold:'Hold {a} min · outdoor value max. {b} min old',
- ph_disabled:'Guard off',ph_not_controlled:'not controlled',ph_offline:'offline',ph_protected:'NeuraCell-X active',ph_cooling:'Cooling',ph_override:'Manual override – pause',ph_smart_blocked:'SMART → AUTO',ph_manual_mode:'manual mode',ph_no_outdoor:'no outdoor value',ph_hold:'Hold time',ph_ready:'Ready',
+ ph_disabled:'Guard off',ph_not_controlled:'not controlled',ph_stale:'no fresh device data',ph_protected:'NeuraCell-X active',ph_starting:'Start sent…',ph_cooling:'Cooling',ph_override:'Manual override – pause',ph_smart_blocked:'SMART → AUTO',ph_restoring:'Restoring…',ph_restore_failed:'Restore not confirmed!',ph_manual_mode:'manual mode',ph_no_outdoor:'no outdoor value',ph_hold:'Hold time',ph_ready:'Ready',
  since:'since',holdLeft:'{m} min left',pauseLeft:'pause {m} min left',back:'back to',lastEvent:'Last',startCond:'Start condition met',
  settings:'Settings',settingsSub:'saved and applied immediately',enabledLbl:'Guard active',
- f_delta_on:'Start margin (K)',f_delta_off:'End margin (K)',f_min_hold:'Hold time (min)',f_ttl:'Outdoor value valid (min)',f_t_in:'Indoor at least (°C)',f_t_out:'Outdoor at least (°C)',
+ f_delta_on:'Start margin (K)',f_delta_off:'End margin (K)',f_min_hold:'Hold time (min, at least 1)',f_ttl:'Outdoor value valid (min)',f_t_in:'Indoor at least (°C)',f_t_out:'Outdoor at least (°C)',f_t_out_hyst:'Outdoor end dead band (K)',f_state_ttl:'Device data valid (min)',emptyField:'Please fill in all numeric fields',ruleEndNow:'Immediately: outdoor air not cooler than indoor, no valid outdoor value',
  f_fan_day:'Fan by day',f_fan_night:'Fan at night',f_night_hours:'Night hours (HH:MM-HH:MM, empty = dusk sensor only)',f_rest_mode:'Rest mode (instead of SMART)',f_block_smart:'Replace SMART with the rest mode automatically',f_override_pause:'Pause after manual override (min)',f_devices:'Controlled devices (none selected = all masters)',
  save:'Save',evaluate:'Evaluate now',saved:'Saved',evaluated:'{n} switch(es)',csv:'CSV',
  logTitle:'Switching log',logSub:'every decision with indoor/outdoor value, source and reason',noLog:'No entries yet.',
  th_time:'Time',th_dev:'Device',th_event:'Event',th_in:'Indoor',th_out:'Outdoor',th_src:'Source',th_mode:'Mode',th_reason:'Reason',
- ev_start:'Start',ev_end:'End',ev_override:'Override',ev_smart_blocked:'SMART blocked',ev_fan:'Fan',ev_config:'Config',
+ ev_start:'Start',ev_end:'End',ev_override:'Override',ev_unconfirmed:'Unconfirmed',ev_adopted:'Adopted',ev_send_failed:'Send failed',ev_smart_blocked:'SMART blocked',ev_fan:'Fan',ev_config:'Config',
  hint:'Provide the outdoor value: MQTT topic ambientika/weather ({"temperature": 21.4, "humidity": 60}) or ambientika/dewpoint/outdoor_temp, HTTP POST /api/freecooling/outdoor, or OpenWeatherMap as fallback (OWM_API_KEY, OWM_LOCATION in the backend). A sensor at the house always wins.',
- note:'At rest the masters run in AUTO (heat recovery). To cool, the guard sets Master-Slave airflow and restores the previous state exactly afterwards. Off, Away and manually chosen modes are left alone; a manual change while cooling pauses the guard for the configured time. NeuraCell-X (radon/dew point) always has priority.'},
+ note:'At rest the masters run in AUTO (heat recovery). To cool, the guard sets Slave→Master airflow (the master extracts, so its sensor keeps measuring the room) and restores the previous state exactly afterwards. Off, Away and manually chosen modes are left alone; a manual change while cooling pauses the guard for the configured time. NeuraCell-X (radon/dew point) always has priority.'},
 it:{tab:'❄️ Free Cooling',title:'Guardiano free cooling',tagline:'Raffresca solo se l’aria esterna è davvero più fresca – con differenza minima, tempo di mantenimento e sensore sulla casa',
  on:'Attivo',off:'Spento',coolingN:'{n} dispositivo/i in raffrescamento',outdoor:'Valore esterno',rule:'Regola',indoor:'Interno',delta:'Differenza',
  src_sensor:'Sensore sulla casa',src_weather:'Stazione meteo',noOutdoor:'Nessun valore esterno valido',ago:'{m} min fa',expired:'scaduto',
  ruleStart:'Avvio: interno > {a} °C, esterno > {b} °C, differenza ≥ {c} K',ruleEnd:'Fine: differenza < {a} K, interno ≤ {b} °C, esterno ≤ {c} °C',ruleHold:'Mantenimento {a} min · valore esterno max. {b} min',
- ph_disabled:'Guardiano spento',ph_not_controlled:'non controllato',ph_offline:'offline',ph_protected:'NeuraCell-X attivo',ph_cooling:'Raffresca',ph_override:'Intervento manuale – pausa',ph_smart_blocked:'SMART → AUTO',ph_manual_mode:'modalità manuale',ph_no_outdoor:'nessun valore esterno',ph_hold:'Mantenimento',ph_ready:'Pronto',
+ ph_disabled:'Guardiano spento',ph_not_controlled:'non controllato',ph_stale:'nessun dato recente',ph_protected:'NeuraCell-X attivo',ph_starting:'Avvio inviato…',ph_cooling:'Raffresca',ph_override:'Intervento manuale – pausa',ph_smart_blocked:'SMART → AUTO',ph_restoring:'Ripristino in corso…',ph_restore_failed:'Ripristino non confermato!',ph_manual_mode:'modalità manuale',ph_no_outdoor:'nessun valore esterno',ph_hold:'Mantenimento',ph_ready:'Pronto',
  since:'da',holdLeft:'ancora {m} min',pauseLeft:'pausa ancora {m} min',back:'torna a',lastEvent:'Ultimo',startCond:'Condizione di avvio soddisfatta',
  settings:'Impostazioni',settingsSub:'salvate e applicate subito',enabledLbl:'Guardiano attivo',
- f_delta_on:'Differenza minima avvio (K)',f_delta_off:'Differenza fine (K)',f_min_hold:'Mantenimento (min)',f_ttl:'Validità valore esterno (min)',f_t_in:'Interno almeno (°C)',f_t_out:'Esterno almeno (°C)',
+ f_delta_on:'Differenza minima avvio (K)',f_delta_off:'Differenza fine (K)',f_min_hold:'Mantenimento (min, almeno 1)',f_ttl:'Validità valore esterno (min)',f_t_in:'Interno almeno (°C)',f_t_out:'Esterno almeno (°C)',f_t_out_hyst:'Banda morta fine esterno (K)',f_state_ttl:'Validità dati dispositivo (min)',emptyField:'Compilare tutti i campi numerici',ruleEndNow:'Subito: aria esterna non più fresca dell’interno, nessun valore esterno valido',
  f_fan_day:'Velocità di giorno',f_fan_night:'Velocità di notte',f_night_hours:'Ore notturne (HH:MM-HH:MM, vuoto = solo sensore crepuscolare)',f_rest_mode:'Modalità di riposo (al posto di SMART)',f_block_smart:'Sostituire SMART automaticamente con la modalità di riposo',f_override_pause:'Pausa dopo intervento manuale (min)',f_devices:'Dispositivi controllati (nessuno = tutti i master)',
  save:'Salva',evaluate:'Valuta ora',saved:'Salvato',evaluated:'{n} commutazione/i',csv:'CSV',
  logTitle:'Registro commutazioni',logSub:'ogni decisione con valore interno/esterno, fonte e motivo',noLog:'Nessuna voce.',
  th_time:'Ora',th_dev:'Dispositivo',th_event:'Evento',th_in:'Interno',th_out:'Esterno',th_src:'Fonte',th_mode:'Modalità',th_reason:'Motivo',
- ev_start:'Avvio',ev_end:'Fine',ev_override:'Intervento',ev_smart_blocked:'Blocco SMART',ev_fan:'Velocità',ev_config:'Configurazione',
+ ev_start:'Avvio',ev_end:'Fine',ev_override:'Intervento',ev_unconfirmed:'Non confermato',ev_adopted:'Adottato',ev_send_failed:'Invio fallito',ev_smart_blocked:'Blocco SMART',ev_fan:'Velocità',ev_config:'Configurazione',
  hint:'Fornire il valore esterno: topic MQTT ambientika/weather ({"temperature": 21.4, "humidity": 60}) o ambientika/dewpoint/outdoor_temp, HTTP POST /api/freecooling/outdoor, oppure OpenWeatherMap come riserva (OWM_API_KEY, OWM_LOCATION nel backend). Un sensore sulla casa ha sempre la precedenza.',
- note:'A riposo i master lavorano in AUTO (recupero di calore). Per raffrescare il guardiano imposta il flusso Master-Slave e poi ripristina esattamente lo stato precedente. Spento, Fuori casa e le modalità scelte a mano restano intatte; un intervento durante il raffrescamento mette in pausa il guardiano. NeuraCell-X (radon/punto di rugiada) ha sempre la priorità.'}};
+ note:'A riposo i master lavorano in AUTO (recupero di calore). Per raffrescare il guardiano imposta il flusso Slave→Master (il master estrae, il suo sensore continua a misurare la stanza) e poi ripristina esattamente lo stato precedente. Spento, Fuori casa e le modalità scelte a mano restano intatte; un intervento durante il raffrescamento mette in pausa il guardiano. NeuraCell-X (radon/punto di rugiada) ha sempre la priorità.'}};
 function TF(k){const L=FCL[lang]||FCL.en;if(L[k]!==undefined)return L[k];if(FCL.en[k]!==undefined)return FCL.en[k];return FCL.de[k]!==undefined?FCL.de[k]:k;}
 function TFf(k,o){let s=TF(k);Object.keys(o||{}).forEach(x=>{s=s.split('{'+x+'}').join(o[x]);});return s;}
 function fcMin(s){return Math.max(1,Math.round((s||0)/60));}
 function fcAgeMin(iso){return Math.max(0,Math.round((Date.now()-new Date(iso).getTime())/60000));}
-function fcPhaseCls(p){return p==='cooling'?'cool':(p==='ready'||p==='hold')?'ok':(p==='override'||p==='no_outdoor'||p==='protected'||p==='smart_blocked')?'warn':(p==='disabled'||p==='offline')?'off':'';}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function fcPhaseCls(p){return (p==='cooling'||p==='starting')?'cool':(p==='ready'||p==='hold')?'ok':(p==='override'||p==='no_outdoor'||p==='protected'||p==='smart_blocked'||p==='restoring'||p==='stale')?'warn':(p==='disabled'||p==='restore_failed')?'off':'';}
+let fcDirty=false,fcLogCount=null;
 const FC_MODE_LABEL={Auto:'AUTO',ManualHeatRecovery:'HRV man.',Night:'Night',MasterSlaveFlow:'MS-Flow',SlaveMasterFlow:'SM-Flow',Smart:'SMART',Off:'Off',AwayHome:'Away',Surveillance:'Monitor',Intake:'Supply',Expulsion:'Exhaust',TimedExpulsion:'T-Exh.'};
-function fcMode(m){return m?(FC_MODE_LABEL[m]||m):'—';}
-async function loadFreecooling(){try{freecooling=await apiFetch('/freecooling');}catch(e){}try{fcLog=await apiFetch('/freecooling/log?limit=30');}catch(e){fcLog=[];}renderFreecooling();}
+function fcMode(m){return m?esc(FC_MODE_LABEL[m]||m):'—';}
+async function loadFreecooling(){try{freecooling=await apiFetch('/freecooling');fcLogCount=freecooling?freecooling.log_count:null;}catch(e){}try{fcLog=await apiFetch('/freecooling/log?limit=30');}catch(e){fcLog=[];}renderFreecooling();}
 async function fcSetEnabled(on){try{await apiFetch('/freecooling/config','PUT',{enabled:on});toast(TF('title')+' · '+(on?TF('on'):TF('off')));await loadFreecooling();}catch(e){toast('Fehler: '+e.message);await loadFreecooling();}}
-function fcReadForm(){const g=id=>document.getElementById(id);const num=id=>{const v=parseFloat(String(g(id).value).replace(',','.'));return isNaN(v)?null:v;};
+function fcReadForm(){const g=id=>document.getElementById(id);const missing=[];const num=id=>{const v=parseFloat(String(g(id).value).replace(',','.'));if(isNaN(v)){missing.push(id);return null;}return v;};
  const devs=[...document.querySelectorAll('#fc-devpick input:checked')].map(i=>i.value);
- return {delta_on:num('fc-delta-on'),delta_off:num('fc-delta-off'),min_hold_s:num('fc-hold')==null?null:Math.round(num('fc-hold')*60),outdoor_ttl_s:num('fc-ttl')==null?null:Math.round(num('fc-ttl')*60),
-  t_in_min:num('fc-tin'),t_out_min:num('fc-tout'),fan_day:g('fc-fan-day').value,fan_night:g('fc-fan-night').value,night_hours:g('fc-night-hours').value.trim(),rest_mode:g('fc-rest-mode').value,
-  block_smart:g('fc-block-smart').checked,override_pause_s:num('fc-pause')==null?null:Math.round(num('fc-pause')*60),devices:devs};}
-async function fcSave(){const err=document.getElementById('fc-err');err.style.display='none';try{await apiFetch('/freecooling/config','PUT',fcReadForm());toast(TF('saved'));await loadFreecooling();}catch(e){err.textContent=e.message;err.style.display='block';}}
+ const cfg={delta_on:num('fc-delta-on'),delta_off:num('fc-delta-off'),min_hold_s:Math.round(num('fc-hold')*60),outdoor_ttl_s:Math.round(num('fc-ttl')*60),state_ttl_s:Math.round(num('fc-state-ttl')*60),
+  t_in_min:num('fc-tin'),t_out_min:num('fc-tout'),t_out_hyst:num('fc-tout-hyst'),fan_day:g('fc-fan-day').value,fan_night:g('fc-fan-night').value,night_hours:g('fc-night-hours').value.trim(),rest_mode:g('fc-rest-mode').value,
+  block_smart:g('fc-block-smart').checked,override_pause_s:Math.round(num('fc-pause')*60),devices:devs};
+ if(missing.length)throw new Error(TF('emptyField'));return cfg;}
+async function fcSave(){const err=document.getElementById('fc-err');err.style.display='none';try{const body=fcReadForm();await apiFetch('/freecooling/config','PUT',body);fcDirty=false;toast(TF('saved'));await loadFreecooling();}catch(e){err.textContent=e.message;err.style.display='block';}}
 async function fcEvaluate(){try{const r=await apiFetch('/freecooling/evaluate','POST',{});toast(TFf('evaluated',{n:(r.events||[]).length}));await loadFreecooling();}catch(e){toast('Fehler: '+e.message);}}
 function renderFreecooling(){
  const tg=document.getElementById('fc-tagline');if(!tg)return;
@@ -1088,13 +1091,14 @@ function renderFreecooling(){
  let html='<div class="fc-grid">';
  const cur=out.current;const lastSeen=(out.readings&&Object.values(out.readings).length)?Object.values(out.readings).sort((a,b)=>new Date(b.ts)-new Date(a.ts))[0]:null;
  const srcBadge=r=>'<span class="fc-badge '+(r.kind==='sensor'?'ok':'warn')+'" style="margin-left:0">'+(r.kind==='sensor'?TF('src_sensor'):TF('src_weather'))+'</span>';
- html+='<div class="nc-card"><div class="nc-card-head"><div class="nc-card-icon">&#127777;&#65039;</div><div><div class="nc-card-title">'+TF('outdoor')+'</div><div class="nc-card-sub">'+(cur?cur.source:(lastSeen?lastSeen.source:'—'))+'</div></div>'+(cur?'<span class="fc-badge ok">✓</span>':'<span class="fc-badge off">'+TF('noOutdoor')+'</span>')+'</div>';
+ html+='<div class="nc-card"><div class="nc-card-head"><div class="nc-card-icon">&#127777;&#65039;</div><div><div class="nc-card-title">'+TF('outdoor')+'</div><div class="nc-card-sub">'+esc(cur?cur.source:(lastSeen?lastSeen.source:'—'))+'</div></div>'+(cur?'<span class="fc-badge ok">✓</span>':'<span class="fc-badge off">'+TF('noOutdoor')+'</span>')+'</div>';
  if(cur){html+='<div class="nc-readout"><div class="nc-metric"><div class="v">'+fmt(cur.temperature,' °C')+'</div><div class="l">'+TF('outdoor')+'</div></div><div class="nc-metric"><div class="v">'+(cur.humidity!=null?Math.round(cur.humidity)+' %':'&mdash;')+'</div><div class="l">rF</div></div><div class="nc-metric"><div class="v">'+TFf('ago',{m:Math.round(cur.age_s/60)})+'</div><div class="l">'+TF('since')+'</div></div></div><div style="margin-top:.4rem">'+srcBadge(cur)+'</div>';}
  else if(lastSeen){html+='<div class="nc-desc">'+fmt(lastSeen.temperature,' °C')+' · '+TFf('ago',{m:fcAgeMin(lastSeen.ts)})+' · <b>'+TF('expired')+'</b> '+srcBadge(lastSeen)+'</div>';}
  html+='</div>';
  html+='<div class="nc-card"><div class="nc-card-head"><div class="nc-card-icon">&#128207;</div><div><div class="nc-card-title">'+TF('rule')+'</div><div class="nc-card-sub">'+fcMode(cfg.rest_mode)+' → '+fcMode(cfg.cool_mode)+' → '+fcMode(cfg.rest_mode)+'</div></div></div>'
   +'<div class="cond-row"><span class="cond-label">'+TFf('ruleStart',{a:cfg.t_in_min,b:cfg.t_out_min,c:cfg.delta_on})+'</span></div>'
-  +'<div class="cond-row"><span class="cond-label">'+TFf('ruleEnd',{a:cfg.delta_off,b:(cfg.t_in_min-0.5),c:cfg.t_out_min})+'</span></div>'
+  +'<div class="cond-row"><span class="cond-label">'+TFf('ruleEnd',{a:cfg.delta_off,b:(cfg.t_in_min-0.5),c:Math.round((cfg.t_out_min-(cfg.t_out_hyst||0))*10)/10})+'</span></div>'
+  +'<div class="cond-row"><span class="cond-label">'+TF('ruleEndNow')+'</span></div>'
   +'<div class="cond-row"><span class="cond-label">'+TFf('ruleHold',{a:fcMin(cfg.min_hold_s),b:fcMin(cfg.outdoor_ttl_s)})+'</span></div>'
   +'<div class="cond-row"><span class="cond-label">'+TF('f_fan_day')+': '+cfg.fan_day+' · '+TF('f_fan_night')+': '+cfg.fan_night+(cfg.night_hours?' ('+cfg.night_hours+')':'')+'</span></div></div>';
  html+='</div>';
@@ -1103,43 +1107,47 @@ function renderFreecooling(){
  if(ids.length){html+='<div class="fc-dev-grid">';
   ids.sort((a,b)=>(devs[b].controlled-devs[a].controlled)||String(devs[a].name).localeCompare(String(devs[b].name))).forEach(id=>{const d=devs[id];const cls='nc-card fc-card'+(d.cooling?' cooling':'')+(d.controlled?'':' muted');
    const extra=d.phase==='hold'?TFf('holdLeft',{m:fcMin(d.hold_left_s)}):d.phase==='override'?TFf('pauseLeft',{m:fcMin(d.pause_left_s)}):d.cooling&&d.since?(TF('since')+' '+new Date(d.since).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+(d.baseline_mode?' · '+TF('back')+' '+fcMode(d.baseline_mode):'')):'';
-   html+='<div class="'+cls+'"><div class="nc-card-head"><div class="nc-card-icon">'+(d.cooling?'❄️':'🏠')+'</div><div><div class="nc-card-title">'+(d.name||id)+'</div><div class="nc-card-sub">'+(d.role||'')+' · '+fcMode(d.mode)+(d.fan?' · '+d.fan:'')+(d.night?' · 🌙':'')+'</div></div><span class="fc-badge '+fcPhaseCls(d.phase)+'">'+TF('ph_'+d.phase)+'</span></div>'
+   html+='<div class="'+cls+'"><div class="nc-card-head"><div class="nc-card-icon">'+(d.cooling?'❄️':'🏠')+'</div><div><div class="nc-card-title">'+esc(d.name||id)+'</div><div class="nc-card-sub">'+esc(d.role||'')+' · '+fcMode(d.mode)+(d.fan?' · '+esc(d.fan):'')+(d.night?' · 🌙':'')+'</div></div><span class="fc-badge '+fcPhaseCls(d.phase)+'">'+TF('ph_'+d.phase)+(d.phase==='restore_failed'&&d.restore_attempts?' ('+d.restore_attempts+')':'')+'</span></div>'
     +'<div class="nc-readout"><div class="nc-metric"><div class="v">'+fmt(d.t_in,'°')+'</div><div class="l">'+TF('indoor')+'</div></div><div class="nc-metric"><div class="v">'+fmt(d.t_out,'°')+'</div><div class="l">'+TF('outdoor')+'</div></div><div class="nc-metric"><div class="v" style="color:'+(d.delta!=null&&d.delta>=cfg.delta_on?'var(--primary)':'var(--text)')+'">'+(d.delta!=null?(d.delta>0?'+':'')+Number(d.delta).toFixed(1)+' K':'&mdash;')+'</div><div class="l">'+TF('delta')+'</div></div></div>'
     +(extra?'<div class="nc-desc" style="margin-bottom:.3rem">'+extra+'</div>':'')
     +(d.start_condition&&!d.cooling?'<div class="nc-desc" style="margin:.2rem 0;color:var(--primary);font-weight:700">'+TF('startCond')+'</div>':'')
-    +(d.last_event?'<div class="nc-desc" style="margin:.2rem 0 0">'+TF('lastEvent')+': <b>'+TF('ev_'+d.last_event)+'</b> '+(d.last_event_ts?new Date(d.last_event_ts).toLocaleString([],{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'')+(d.last_reason?'<br/><span style="font-size:.62rem">'+d.last_reason+'</span>':'')+'</div>':'')
+    +(d.last_event?'<div class="nc-desc" style="margin:.2rem 0 0">'+TF('lastEvent')+': <b>'+TF('ev_'+d.last_event)+'</b> '+(d.last_event_ts?new Date(d.last_event_ts).toLocaleString([],{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'')+(d.last_reason?'<br/><span style="font-size:.62rem">'+esc(d.last_reason)+'</span>':'')+'</div>':'')
     +'</div>';});
   html+='</div>';}
  body.innerHTML=html;
- // Einstellungen (Formular nur neu bauen, wenn es nicht gerade bearbeitet wird)
+ // Einstellungen (Formular nur neu bauen, wenn keine ungespeicherten Änderungen vorliegen)
  const sEl=g('fc-settings');
- if(!sEl.contains(document.activeElement)){
+ if(!fcDirty&&!sEl.contains(document.activeElement)){
   const fanOpts=v=>['Low','Medium','High'].map(x=>'<option'+(x===v?' selected':'')+'>'+x+'</option>').join('');
   const restOpts=v=>[['Auto','AUTO'],['ManualHeatRecovery','HRV man.'],['Night','Night']].map(x=>'<option value="'+x[0]+'"'+(x[0]===v?' selected':'')+'>'+x[1]+'</option>').join('');
   const known={};Object.keys(devices).forEach(id=>{known[id]={name:devices[id].name,role:devices[id].role};});
   Object.keys(devs).forEach(id=>{known[id]={name:devs[id].name||(known[id]||{}).name,role:devs[id].role||(known[id]||{}).role};});
-  const pick=Object.keys(known).map(id=>{const role=String(known[id].role||'').toUpperCase();return '<label><input type="checkbox" value="'+id+'"'+((cfg.devices||[]).includes(id)?' checked':'')+'/>'+(known[id].name||id)+(role?' <span class="role-badge '+(role==='MASTER'?'role-master':'role-slave')+'">'+role+'</span>':'')+'</label>';}).join('');
+  (cfg.devices||[]).forEach(id=>{if(!known[id])known[id]={name:id,role:''};});   // konfiguriert, aber gerade nicht gemeldet
+  const pick=Object.keys(known).map(id=>{const role=String(known[id].role||'').toUpperCase();return '<label><input type="checkbox" value="'+esc(id)+'"'+((cfg.devices||[]).includes(id)?' checked':'')+'/>'+esc(known[id].name||id)+(role?' <span class="role-badge '+(role==='MASTER'?'role-master':'role-slave')+'">'+esc(role)+'</span>':'')+'</label>';}).join('');
   sEl.innerHTML='<div class="fc-form">'
    +'<div><label>'+TF('f_delta_on')+'</label><input id="fc-delta-on" type="number" step="0.1" min="0.1" value="'+cfg.delta_on+'"/></div>'
    +'<div><label>'+TF('f_delta_off')+'</label><input id="fc-delta-off" type="number" step="0.1" min="0" value="'+cfg.delta_off+'"/></div>'
-   +'<div><label>'+TF('f_min_hold')+'</label><input id="fc-hold" type="number" step="1" min="0" value="'+fcMin(cfg.min_hold_s)+'"/></div>'
+   +'<div><label>'+TF('f_min_hold')+'</label><input id="fc-hold" type="number" step="1" min="1" value="'+fcMin(cfg.min_hold_s)+'"/></div>'
    +'<div><label>'+TF('f_ttl')+'</label><input id="fc-ttl" type="number" step="1" min="1" value="'+fcMin(cfg.outdoor_ttl_s)+'"/></div>'
+   +'<div><label>'+TF('f_state_ttl')+'</label><input id="fc-state-ttl" type="number" step="1" min="1" value="'+fcMin(cfg.state_ttl_s)+'"/></div>'
    +'<div><label>'+TF('f_t_in')+'</label><input id="fc-tin" type="number" step="0.5" value="'+cfg.t_in_min+'"/></div>'
    +'<div><label>'+TF('f_t_out')+'</label><input id="fc-tout" type="number" step="0.5" value="'+cfg.t_out_min+'"/></div>'
+   +'<div><label>'+TF('f_t_out_hyst')+'</label><input id="fc-tout-hyst" type="number" step="0.1" min="0" max="5" value="'+(cfg.t_out_hyst==null?0.3:cfg.t_out_hyst)+'"/></div>'
    +'<div><label>'+TF('f_fan_day')+'</label><select id="fc-fan-day">'+fanOpts(cfg.fan_day)+'</select></div>'
    +'<div><label>'+TF('f_fan_night')+'</label><select id="fc-fan-night">'+fanOpts(cfg.fan_night)+'</select></div>'
-   +'<div><label>'+TF('f_night_hours')+'</label><input id="fc-night-hours" type="text" placeholder="22:00-06:00" value="'+(cfg.night_hours||'')+'"/></div>'
+   +'<div><label>'+TF('f_night_hours')+'</label><input id="fc-night-hours" type="text" placeholder="22:00-06:00" value="'+esc(cfg.night_hours||'')+'"/></div>'
    +'<div><label>'+TF('f_rest_mode')+'</label><select id="fc-rest-mode">'+restOpts(cfg.rest_mode)+'</select></div>'
    +'<div><label>'+TF('f_override_pause')+'</label><input id="fc-pause" type="number" step="1" min="0" value="'+fcMin(cfg.override_pause_s)+'"/></div>'
    +'<div><label>&nbsp;</label><label class="fc-toggle" style="font-size:.72rem"><input type="checkbox" id="fc-block-smart"'+(cfg.block_smart?' checked':'')+'/> '+TF('f_block_smart')+'</label></div>'
    +'<div class="wide"><label>'+TF('f_devices')+'</label><div class="fc-devpick" id="fc-devpick">'+(pick||'<span style="font-size:.7rem;color:var(--muted)">—</span>')+'</div></div>'
    +'</div>';
+  sEl.querySelectorAll('input,select').forEach(el=>{el.addEventListener('input',()=>{fcDirty=true;});el.addEventListener('change',()=>{fcDirty=true;});});
  }
  // Protokoll
  const lg=g('fc-log');
  if(!fcLog.length){lg.innerHTML='<p class="nc-desc">'+TF('noLog')+'</p>';}
  else{lg.innerHTML='<table class="fc-log"><thead><tr><th>'+TF('th_time')+'</th><th>'+TF('th_dev')+'</th><th>'+TF('th_event')+'</th><th>'+TF('th_in')+'</th><th>'+TF('th_out')+'</th><th>'+TF('th_src')+'</th><th>'+TF('th_mode')+'</th><th>'+TF('th_reason')+'</th></tr></thead><tbody>'
-  +fcLog.map(r=>'<tr><td style="white-space:nowrap">'+new Date(r.ts_utc).toLocaleString([],{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</td><td>'+(r.device_name||r.serial||'')+'</td><td class="ev ev-'+r.event+'">'+TF('ev_'+r.event)+'</td><td>'+(r.t_in!=null?Number(r.t_in).toFixed(1)+'°':'')+'</td><td>'+(r.t_out!=null?Number(r.t_out).toFixed(1)+'°'+(r.delta!=null?' <span style="color:var(--muted)">(Δ '+Number(r.delta).toFixed(1)+')</span>':''):'')+'</td><td style="font-size:.6rem">'+(r.t_out_source||'')+(r.t_out_age_s!=null?' · '+Math.round(r.t_out_age_s/60)+' min':'')+'</td><td style="white-space:nowrap">'+(r.mode_from||r.mode_to?fcMode(r.mode_from)+' → '+fcMode(r.mode_to)+(r.fan_to?' ('+r.fan_to+')':''):'')+'</td><td>'+(r.reason||'')+'</td></tr>').join('')
+  +fcLog.map(r=>'<tr><td style="white-space:nowrap">'+new Date(r.ts_utc).toLocaleString([],{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})+'</td><td>'+esc(r.device_name||r.serial||'')+'</td><td class="ev ev-'+esc(r.event)+'">'+TF('ev_'+r.event)+'</td><td>'+(r.t_in!=null?Number(r.t_in).toFixed(1)+'°':'')+'</td><td>'+(r.t_out!=null?Number(r.t_out).toFixed(1)+'°'+(r.delta!=null?' <span style="color:var(--muted)">(Δ '+Number(r.delta).toFixed(1)+')</span>':''):'')+'</td><td style="font-size:.6rem">'+esc(r.t_out_source||'')+(r.t_out_age_s!=null?' · '+Math.round(r.t_out_age_s/60)+' min':'')+'</td><td style="white-space:nowrap">'+(r.mode_from||r.mode_to?fcMode(r.mode_from)+' → '+fcMode(r.mode_to)+(r.fan_to?' ('+esc(r.fan_to)+')':''):'')+'</td><td>'+esc(r.reason||'')+'</td></tr>').join('')
   +'</tbody></table>';}
 }
 

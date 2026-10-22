@@ -144,14 +144,22 @@ Entscheidung lokal, mit einem Außenwert vom Haus:
 | | |
 |---|---|
 | **Start** | innen > 24 °C **und** außen > 20 °C **und** innen − außen ≥ **3,0 K** |
-| **Ende** | innen − außen < **1,0 K**, innen ≤ 23,5 °C oder außen ≤ 20 °C |
-| **Sofort** | kein gültiger Außenwert (älter als 60 min), Wächter aus |
+| **Ende** | innen − außen < **1,0 K**, innen ≤ 23,5 °C oder außen ≤ 19,7 °C (20 °C − 0,3 K Totband) |
+| **Sofort** | Außenluft nicht kühler als innen, kein gültiger Außenwert (älter als 60 min), Wächter aus |
 | **Haltezeit** | nach jedem Umschalten mindestens **15 min** im neuen Zustand |
 
 - Die Master laufen im Ruhezustand in **AUTO** (Wärmerückgewinnung). Zum Kühlen setzt
-  der Wächter den **Luftstrom Master-Slave** (tagsüber Stufe 2, nachts Stufe 1) und
-  stellt danach **exakt zurück**. Solange der Wächter aktiv ist, ersetzt er SMART auf
+  der Wächter den **Luftstrom Slave→Master** (tagsüber Stufe 2, nachts Stufe 1): Der Master
+  saugt Raumluft ab, sein Sensor misst also weiter den Raum — im Luftstrom Master→Slave
+  stünde er in der einströmenden Außenluft und der Innenwert fiele sofort auf den Außenwert.
+  Danach stellt der Wächter **exakt zurück**. Solange er aktiv ist, ersetzt er SMART auf
   den gesteuerten Geräten durch den Ruhemodus (abschaltbar).
+- **Robust gegen die Praxis:** Ein Start gilt erst als bestätigt, wenn das Gerät den
+  Kühlmodus meldet; ein verspätet angekommener Befehl wird übernommen, eine nicht
+  bestätigte Rückschaltung wiederholt (sichtbar als „Rückkehr nicht bestätigt“). Nach einer
+  NeuraCell-X-Schutzphase oder einer Unterbrechung der Bridge gilt eine Schonfrist, alte
+  Gerätewerte (> 10 min) oder eine offline gemeldete Bridge sperren jede Entscheidung,
+  retained MQTT-Werte werden ignoriert.
 - **Außenwert** – ein Sensor am Haus geht immer vor, eine Wetterstation ist nur die
   Rückfallebene:
   - MQTT `ambientika/weather` → `{"temperature": 21.4, "humidity": 60}` (Shelly, ESPHome,

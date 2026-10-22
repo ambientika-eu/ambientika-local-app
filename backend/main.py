@@ -166,8 +166,16 @@ def on_connect(client, userdata, flags, rc):
     else:
         logger.warning("MQTT connection failed rc=%s", rc)
 
-def _on_outdoor_mqtt(topic: str, raw: str) -> None:
-    """Außenwert-Topics -> Wächter (auf dem Event-Loop, nicht im paho-Thread)."""
+def _on_outdoor_mqtt(topic: str, raw: str, retained: bool = False) -> None:
+    """Außenwert-Topics -> Wächter (auf dem Event-Loop, nicht im paho-Thread).
+
+    Retained-Nachrichten werden ignoriert: Der Broker liefert sie bei jedem
+    (Neu-)Abonnieren erneut, ihr Alter ist unbekannt — ein toter Sensor dürfte
+    sonst nach jedem Neustart wieder 60 Minuten lang als frisch gelten.
+    """
+    if retained:
+        logger.debug("freecooling: retained Außenwert auf %s ignoriert", topic)
+        return
     leaf = topic.rsplit("/", 1)[-1]
     if leaf == "weather":
         t, h = FC.parse_payload(raw)
@@ -190,7 +198,8 @@ def on_message(client, userdata, msg):
         # --- Außenwert (Free-Cooling-Wächter) ---
         if (len(parts) == 2 and parts[1] == "weather") or \
            (len(parts) == 3 and parts[1] == "dewpoint" and parts[2] in ("outdoor_temp", "outdoor_humidity")):
-            _on_outdoor_mqtt(msg.topic, msg.payload.decode(errors="replace"))
+            _on_outdoor_mqtt(msg.topic, msg.payload.decode(errors="replace"),
+                             retained=bool(getattr(msg, "retain", False)))
             return
         if len(parts) < 3:
             return
@@ -313,9 +322,15 @@ from freecooling.store import FreeCoolingStore
 
 
 def _fc_publish(serial: str, payload: Dict[str, Any]) -> None:
-    """Kombinierter Befehl <prefix>/<serial>/set: Modus + Stufe in EINEM change_mode."""
+    """Kombinierter Befehl <prefix>/<serial>/set: Modus + Stufe in EINEM change_mode
+    (Contract der Cloud-Bridge; die lokale TCP-Bridge erwartet {mode, fanSpeed} und
+    wird vom Backend ohnehin nicht gelesen). Ohne Verbindung zum Broker meldet paho
+    MQTT_ERR_NO_CONN statt einer Exception — das zählt hier als nicht gesendet."""
     topic = f"{MQTT_PREFIX}/{serial}/set"
-    mqtt_client.publish(topic, json.dumps(payload), qos=1)
+    info = mqtt_client.publish(topic, json.dumps(payload), qos=1)
+    rc = getattr(info, "rc", mqtt.MQTT_ERR_SUCCESS)
+    if rc != mqtt.MQTT_ERR_SUCCESS:
+        raise RuntimeError(f"MQTT publish rc={rc} (keine Verbindung zum Broker?)")
     logger.info("FreeCooling → %s: %s", serial, payload)
 
 
