@@ -137,7 +137,7 @@ les protections sont levées, il effectue une **restauration exacte**.
   malformées sont rejetées ; la reconnexion préserve l'état de l'appareil ; les entrées radon/weather
   plus anciennes que `NC_INPUT_TTL` sont traitées comme inconnues ; last-will MQTT + arrêt propre.
 - ✅ Sécurité : configuration uniquement par appareil, jamais de changement silencieux du rôle maître/esclave ; uniquement des codes confirmés ; pas de données météo ; trames de 19 et 21 octets.
-- ✅ Suite de régression : **114 tests unitaires/d'intégration** (`test_bridge.py`,
+- ✅ Suite de régression : **116 tests unitaires/d'intégration** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Test de bout en bout complet à travers un **broker MQTT réel** avec un appareil simulé
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open) : status + commande + programme + protection radon/suppression/

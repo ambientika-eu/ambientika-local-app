@@ -495,3 +495,19 @@ def test_V8_unreadable_schedule_slot_does_not_abort_the_tick():
     b.schedules["222222222222"] = {"mon": [{"start": "09:00", "end": "11:00", "mode": "NIGHT"}]}
     asyncio.run(b._scheduler_tick(now))
     assert modes(w.frames) == [] and [f[9] for f in modes(w2.frames)] == [3]
+
+
+def test_U5_ping_inside_phantom_chain_does_not_end_the_resync():
+    """Review pass 5: unknown frame, ping, fake status, trailing junk, then the real unit."""
+    junk = bytes.fromhex("070009") + bytes.fromhex("0400" + "11" * 6)
+    fake = bytes([0x01, 0x00]) + bytes.fromhex("99" * 6) + bytes(13) + bytes.fromhex("0705")
+    real = b"".join(build_status(temp=t) for t in (20, 21, 22, 23, 24))
+    b = make_bridge()
+    run_conn(b, [junk + fake + real])
+    temps = [s["temperature"] for s in published_status(b, "AABBCCDDEEFF")]
+    assert temps[-4:] == [21, 22, 23, 24]
+
+
+def test_V9_schedule_times_with_non_ascii_digits_do_not_raise():
+    week = m.normalize_week({"mon": [{"start": "\u00b2:00", "end": "11:00", "mode": "SMART"}]})
+    assert week["mon"][0]["start"] == "\u00b2:00"          # left untouched, no exception

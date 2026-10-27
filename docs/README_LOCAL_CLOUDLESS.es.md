@@ -136,7 +136,7 @@ las protecciones se desactivan, realiza una **restauración exacta**.
   cargas útiles `weather` con formato incorrecto; la reconexión conserva el estado del dispositivo; las entradas de radón/tiempo
   más antiguas que `NC_INPUT_TTL` se tratan como desconocidas; last-will de MQTT + apagado limpio.
 - ✅ Seguridad: configuración solo por unidad, nunca un cambio silencioso de rol maestro/esclavo; solo códigos confirmados; sin datos meteorológicos; tramas de 19 y 21 bytes.
-- ✅ Conjunto de regresión: **114 pruebas unitarias/de integración** (`test_bridge.py`,
+- ✅ Conjunto de regresión: **116 pruebas unitarias/de integración** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Prueba completa de extremo a extremo a través de un **broker MQTT real** con un dispositivo simulado
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): estado + comando + programa + protección/supresión/

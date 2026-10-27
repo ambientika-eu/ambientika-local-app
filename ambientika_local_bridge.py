@@ -514,7 +514,7 @@ def _pad_hhmm(s) -> str:
     s = str(s or "").strip()
     if ":" in s:
         h, _, mn = s.partition(":")
-        if h.isdigit() and mn.isdigit():
+        if h.isascii() and h.isdecimal() and mn.isascii() and mn.isdecimal():
             return f"{int(h):02d}:{int(mn):02d}"
     return s
 
@@ -1150,7 +1150,10 @@ class LocalBridge:
                     # decided only on consumption; a frame directly after one found
                     # while resyncing is not trusted either (phantom chains)
                     clean = not junk and not after_resync
-                    after_resync = bool(junk)
+                    if b0 == FRAME_PING:            # a ping never ends a resync
+                        after_resync = after_resync or bool(junk)
+                    else:
+                        after_resync = bool(junk)
                     if junk:
                         self._log_unknown(serial, bytes(junk), seen_unknown)
                         junk.clear()

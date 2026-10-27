@@ -135,7 +135,7 @@ beschermingen zijn opgeheven, voert hij een **exact herstel** uit.
   payloads geweigerd; reconnect behoudt de apparaatstatus; radon/weather-invoer
   ouder dan `NC_INPUT_TTL` als onbekend behandeld; MQTT last-will + nette afsluiting.
 - ✅ Veiligheid: setup alleen per unit, nooit een stille wijziging van de master/slave-rol; alleen bevestigde codes; geen weergegevens; frames van 19 en 21 bytes.
-- ✅ Regressiesuite: **114 unit-/integratietests** (`test_bridge.py`,
+- ✅ Regressiesuite: **116 unit-/integratietests** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Volledig end-to-end via een **echte MQTT-broker** met een gesimuleerd toestel
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + command + schedule + radon protect/suppress/

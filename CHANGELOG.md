@@ -40,8 +40,8 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
   Rahmen wird nicht mehr als Status eines fremden Geräts gelesen (Kopfbyte 0x00, beim
   Resynchronisieren gleiche MAC). Schutzschaltungen (Radon/Taupunkt/Wiederherstellung) setzen
   bei unerwartetem Echo bestätigte Standardwerte statt den Schutz zu verweigern; als
-  Normalzustand wird nur ein bestätigter Zustand gemerkt (74 neue Tests in
-  `test_safety_fixes.py`, vier unabhängige Gegenprüfungen).
+  Normalzustand wird nur ein bestätigter Zustand gemerkt (76 neue Tests in
+  `test_safety_fixes.py`, fünf unabhängige Gegenprüfungen).
 - **PWA aus einem frischen Klon:** `docker compose up` lieferte unter `http://IP:8080` nur die
   API, weil `./frontend/dist` im Repo nicht existiert und als leeres Verzeichnis eingehängt
   wurde. Das Backend liefert die PWA jetzt aus `frontend/` aus (ein gebautes `frontend/dist/`

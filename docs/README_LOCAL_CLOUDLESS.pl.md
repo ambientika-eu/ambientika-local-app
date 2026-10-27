@@ -136,7 +136,7 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
   `weather` są odrzucane; ponowne połączenie zachowuje stan urządzenia; dane radonu/pogody
   starsze niż `NC_INPUT_TTL` traktowane jako nieznane; MQTT last-will + czyste zamknięcie.
 - ✅ Bezpieczeństwo: konfiguracja tylko dla pojedynczych urządzeń, nigdy cicha zmiana roli master/slave; tylko potwierdzone kody; brak danych pogodowych; ramki 19 i 21 bajtów.
-- ✅ Zestaw testów regresji: **114 testów jednostkowych/integracyjnych** (`test_bridge.py`,
+- ✅ Zestaw testów regresji: **116 testów jednostkowych/integracyjnych** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Pełny test end-to-end przez **prawdziwy broker MQTT** z symulowanym urządzeniem
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + polecenie + harmonogram + ochrona radonowa/blokada/

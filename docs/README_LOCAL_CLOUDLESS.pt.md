@@ -139,7 +139,7 @@ referência; quando todas as proteções cessam, executa um **restauro exato**.
   dispositivo; entradas de rádon/tempo mais antigas do que `NC_INPUT_TTL` são tratadas
   como desconhecidas; last-will MQTT + encerramento limpo.
 - ✅ Segurança: configuração só por unidade, nunca uma alteração silenciosa da função mestre/escravo; só códigos confirmados; sem dados meteorológicos; tramas de 19 e 21 bytes.
-- ✅ Conjunto de testes de regressão: **114 testes unitários/de integração**
+- ✅ Conjunto de testes de regressão: **116 testes unitários/de integração**
   (`test_bridge.py`, `test_integration.py`, `test_newfindings.py`).
 - ✅ End-to-end completo através de um **broker MQTT real** com um dispositivo simulado
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + comando + programa + proteção/supressão/restauro

@@ -153,7 +153,7 @@ Wiederherstellung** durch.
   fehlerhafte `weather`-Payloads werden abgelehnt; Reconnect erhält den
   Gerätezustand; Radon-/Wetter-Eingaben, die älter als `NC_INPUT_TTL` sind, werden
   als unbekannt behandelt; MQTT Last-Will + sauberes Herunterfahren.
-- ✅ Regressions-Suite: **114 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
+- ✅ Regressions-Suite: **116 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Vollständig end-to-end über einen **echten MQTT-Broker** mit einem simulierten
   Gerät (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): Status + Befehl + Zeitplan +

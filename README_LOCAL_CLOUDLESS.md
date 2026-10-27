@@ -146,7 +146,7 @@ protections clear it performs an **exact restore**.
 - ✅ Robustness: TCP framing resyncs after a stray byte; malformed `weather`
   payloads rejected; reconnect preserves device state; radon/weather inputs
   older than `NC_INPUT_TTL` treated as unknown; MQTT last-will + clean shutdown.
-- ✅ Regression suite: **114 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
+- ✅ Regression suite: **116 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Full end-to-end through a **real MQTT broker** with a simulated unit
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + command + schedule + radon protect/suppress/

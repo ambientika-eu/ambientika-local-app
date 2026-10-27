@@ -136,7 +136,7 @@ skydd upphör utför den en **exakt återställning**.
   radon-/väderindata äldre än `NC_INPUT_TTL` behandlas som okända; MQTT last-will +
   ren avstängning.
 - ✅ Säkerhet: inställning endast per enhet, aldrig en tyst ändring av master/slav-rollen; endast bekräftade koder; inga väderdata; ramar på 19 och 21 byte.
-- ✅ Regressionssvit: **114 enhets-/integrationstester** (`test_bridge.py`,
+- ✅ Regressionssvit: **116 enhets-/integrationstester** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Fullständig end-to-end genom en **riktig MQTT-mäklare** med en simulerad enhet
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + kommando + schema + radonskydd/-undertryckning/

@@ -138,7 +138,7 @@ gendannelse**.
   radon-/vejrinput ældre end `NC_INPUT_TTL` behandles som ukendt; MQTT last-will +
   ren nedlukning.
 - ✅ Sikkerhed: opsætning kun pr. enhed, aldrig stille ændring af master/slave-rollen; kun bekræftede koder; ingen vejrdata; rammer på 19 og 21 byte.
-- ✅ Regressionssuite: **114 unit-/integrationstest** (`test_bridge.py`,
+- ✅ Regressionssuite: **116 unit-/integrationstest** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Fuld end-to-end gennem en **rigtig MQTT-broker** med en simuleret enhed
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + kommando + skema + radonbeskyttelse/-undertrykkelse/
