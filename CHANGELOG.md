@@ -5,56 +5,39 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
 
 ## [Unreleased]
 
-## [1.2.0] – 2026-10-27 – Sicherheitsupdate lokale Bridge, Free-Cooling-Wächter
+## [1.2.0] – 2026-10-27 – Erweiterungen lokaler Betrieb, Free-Cooling-Wächter
 
-### Behoben
+### Erweitert (lokaler Betrieb ohne Server, `ambientika_local_bridge.py`)
 
-- **Lokale Bridge — Taupunkt/Radon: Gerät bleibt nach dem Schutz nicht mehr AUS.** Bisher wurden
-  bei der Freigabe nur verbundene Geräte zurückgesetzt; ein Gerät, das offline war oder dessen
-  Verbindung still abgerissen war, kam mit AUS bzw. Zuluft zurück und dieser Zustand wurde als
-  normal übernommen — ebenso nach einem Neustart der Bridge während des Schutzes. Jetzt wird jede
-  Wiederherstellung durch die nächste Statusmeldung bestätigt und bei Bedarf wiederholt (max. 3,
-  ≥ 20 s Abstand), auch über mehrere Schutzphasen (Radon und Taupunkt). Eine zwischenzeitliche
-  Änderung am Gerät oder ein Befehl mit Modus gilt. Mit `STATE_FILE` (Compose: Volume
-  `bridge-state`) bleibt ein aktiver Schutz nach einem Neustart aktiv, bis der auslösende Eingang
-  sich wieder meldet (Radonwert/manuelles Topic höchstens `NC_INPUT_TTL`); der Taupunkt-Latch
-  wird gespeichert. Ein Befehl während einer offenen Wiederherstellung wird ebenfalls erst durch
-  den Status bestätigt. Offene Wiederherstellungen verfallen nach `PENDING_RESTORE_TTL` (24 h).
-- **Lokale Bridge (Betrieb ohne Server) — Setup:** Beim Verbinden wurde jedem Gerät dasselbe
-  Setup geschrieben (Master, Zone 0, Haus 1). Bei Anlagen mit mehreren Geräten hätte das die
-  Master/Slave-Zuordnung und die Querlüftung überschrieben. Setup ist jetzt standardmäßig aus,
-  nur pro Seriennummer über `SETUP_DEVICES`, und eine vom Gerät gemeldete Rolle wird nie ohne
-  `SETUP_ALLOW_ROLE_CHANGE=true` geändert. Das alte globale Setup gibt es nur noch mit
-  ausdrücklichem `SEND_SETUP=true`. Rolle, Zone (0–15) und Haus sind in `SETUP_DEVICES` Pflicht.
-- **Lokale Bridge — Setup-Format:** Das Setup-Paket hatte 16 Byte mit einem Füllbyte vor der
-  Haus-ID; die Geräte lesen die Haus-ID ab Byte 11 und speicherten sie um ein Byte verschoben
-  (Haus 1 wurde zu 256). Jetzt 15 Byte im Format des Servers. Geräte, die im lokalen Modus mit
-  der alten Version liefen, haben Haus-ID 256 gespeichert; bei Bedarf einmal mit der
-  offiziellen App neu einrichten.
-- **Lokale Bridge — Keep-alive:** Das 8-Byte-Paket `04 00 <MAC>`, das Master regelmäßig senden,
-  wird erkannt und ohne Wirkung verbraucht (zählt auch als Nachweis für 19-Byte-Geräte).
-- **Lokale Bridge — 19-Byte-Status:** Geräte mit Funk-Firmware 0.0.11 und älter senden 19 statt
-  21 Byte; die Bridge las immer 21 und verschob damit alle folgenden Rahmen. Die Länge kommt
-  jetzt aus dem Firmware-Rahmen bzw. dem Datenstrom; ohne eindeutigen Nachweis bleibt es bei
-  21 Byte (unverändert für heutige Geräte, Differenztest alt/neu mit gültigen Rahmen: 3000 Szenarien,
-  0 Abweichungen;
-  einzige Ausnahme: ein Rahmen mit RSSI 0 und Lichtcode 1/3 wird erst mit dem nächsten Rahmen
-  veröffentlicht, weil erst dann sicher ist, dass er 21 Byte lang ist).
-- **Lokale Bridge — nur bestätigte Codes:** Modus/Lüfter/Feuchte/Licht wurden ungeprüft
-  gesendet. Jetzt gehen nur Werte aus der Protokolltabelle an das Gerät, alles andere wird
-  verweigert und protokolliert (auch Zeitplan und `RADON_PROTECT_*`). Vom Gerät gemeldete
-  Feuchte-/Lichtcodes außerhalb der Tabelle werden durch bestätigte Standardwerte ersetzt statt
-  zurückgeschrieben; nicht lesbare Befehle und Zeitplan-Einträge werden abgewiesen statt eine
-  Ausnahme auszulösen. Schutzschaltungen erreichen ein Gerät erst nach seinem ersten Status, damit
-  sein echter Zustand bekannt ist und nach dem Schutz korrekt wiederhergestellt wird.
-- **Lokale Bridge — Wetterdaten und unbekannte Rahmen:** Außenwetterdaten für den SMART-Modus
-  werden bewusst nicht gesendet (Format vom Hersteller nicht bestätigt). Unbekannte Rahmentypen
-  werden protokolliert statt still verworfen; ein 0x01/0x03-Byte mitten in einem unbekannten
-  Rahmen wird nicht mehr als Status eines fremden Geräts gelesen (Kopfbyte 0x00, beim
-  Resynchronisieren gleiche MAC). Schutzschaltungen (Radon/Taupunkt/Wiederherstellung) setzen
-  bei unerwartetem Echo bestätigte Standardwerte statt den Schutz zu verweigern; als
-  Normalzustand wird nur ein bestätigter Zustand gemerkt (116 neue Tests in
-  `test_safety_fixes.py`, fünf unabhängige Gegenprüfungen).
+- **Bestätigte Wiederherstellung nach Radon-/Taupunktschutz:** Nach Ende des Schutzes wird jedes
+  Gerät in seinen vorherigen Modus zurückgesetzt; die Bridge prüft das an der nächsten
+  Statusmeldung und wiederholt bei Bedarf (max. 3, ≥ 20 s Abstand) — auch für Geräte, die bei der
+  Freigabe offline sind, und über mehrere Schutzphasen. Eine zwischenzeitliche Änderung am Gerät
+  oder ein Befehl mit Modus hat Vorrang. Offene Wiederherstellungen verfallen nach
+  `PENDING_RESTORE_TTL` (24 h).
+- **Zustand übersteht einen Neustart:** Mit `STATE_FILE` (Compose: Volume `bridge-state`) bleibt
+  ein aktiver Schutz nach einem Neustart der Bridge aktiv, bis der auslösende Eingang sich wieder
+  meldet (Radonwert/manuelles Topic höchstens `NC_INPUT_TTL`); der Taupunkt-Latch wird
+  gespeichert.
+- **Setup pro Gerät:** Rolle, Zone und Haus werden nur noch für Geräte geschrieben, die in
+  `SETUP_DEVICES` eingetragen sind (Rolle, Zone 0–15 und Haus Pflicht); eine vom Gerät gemeldete
+  Master/Slave-Rolle wird nur mit `SETUP_ALLOW_ROLE_CHANGE=true` geändert. Das globale Setup
+  steht weiter mit `SEND_SETUP=true` zur Verfügung. Setup-Paket im 15-Byte-Format des Servers.
+  Geräte, die im lokalen Betrieb eingerichtet wurden, bei einem Wechsel zur offiziellen App dort
+  einmal neu einrichten.
+- **Statusformate:** Statusmeldungen mit 19 Byte (Funk-Firmware 0.0.11 und älter) und 21 Byte
+  werden unterstützt; die Länge kommt aus dem Firmware-Rahmen bzw. dem Datenstrom. Das
+  Keep-alive-Paket `04 00 <MAC>` der Master wird erkannt.
+- **Nur Werte aus der Protokolltabelle:** Modus, Lüfter, Feuchte und Licht werden vor dem Senden
+  gegen die Protokolltabelle geprüft (auch Zeitplan und `RADON_PROTECT_*`); nicht lesbare
+  Befehle und Zeitplan-Einträge werden protokolliert und abgewiesen.
+- **Robuster Datenstrom:** Unbekannte Rahmentypen werden protokolliert; Rahmen werden zusätzlich
+  am Kopfbyte und an der MAC des Geräts erkannt. Außenwetterdaten werden im lokalen Betrieb
+  nicht an die Geräte gesendet.
+- **Tests:** 116 Tests in `test_safety_fixes.py` (insgesamt 156 für die Bridge).
+
+### Verbessert
+
 - **PWA aus einem frischen Klon:** `docker compose up` lieferte unter `http://IP:8080` nur die
   API, weil `./frontend/dist` im Repo nicht existiert und als leeres Verzeichnis eingehängt
   wurde. Das Backend liefert die PWA jetzt aus `frontend/` aus (ein gebautes `frontend/dist/`

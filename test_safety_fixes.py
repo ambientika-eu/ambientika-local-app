@@ -97,7 +97,7 @@ def test_S4_role_change_only_with_explicit_permission():
 
 
 def test_S5_legacy_global_setup_never_turns_slaves_into_masters():
-    """The original defect: SEND_SETUP pushed role MASTER to every unit.
+    """Global setup (SEND_SETUP=true) never turns a slave into a master.
     (Other MASTERS would still get the global zone/house — hence the global
     setup is documented as single-unit only; see S9.)"""
     b = make_bridge(send_setup=True)              # explicit, old global default 0/0/1
@@ -297,7 +297,7 @@ def test_U1_unknown_frame_is_logged_never_answered(caplog):
 
 
 def test_F9_modern_frame_with_light1_rssi0_is_not_mistaken_for_legacy():
-    """Review finding: light=1 + RSSI byte 0 looked like '01 00' at offset 19."""
+    """light=1 + RSSI byte 0 looked like '01 00' at offset 19."""
     b = make_bridge()
     stream = build_status(light=1, rssi=0, temp=20) + build_status(light=1, rssi=0, temp=21) \
         + build_status(light=1, rssi=200, temp=22)
@@ -349,7 +349,7 @@ def test_P4_unconfirmed_echo_is_not_learned_as_normal_state():
 
 
 def test_U2_status_like_bytes_inside_unknown_frame_create_no_phantom():
-    """Review finding: an unknown frame whose payload contains 01 00 ... must not
+    """an unknown frame whose payload contains 01 00 ... must not
     be parsed as a status of a different unit once the connection's unit is known."""
     b = make_bridge()
     first = build_status(temp=20)
@@ -361,7 +361,7 @@ def test_U2_status_like_bytes_inside_unknown_frame_create_no_phantom():
 
 
 def test_U3_junk_before_first_frame_cannot_lock_out_the_real_unit():
-    """Review pass 2 (R1): a phantom found while resyncing must not become the
+    """a phantom found while resyncing must not become the
     serial against which all real frames are rejected."""
     b = make_bridge()
     junk = bytes.fromhex("0700112233445501000000")
@@ -378,7 +378,7 @@ def test_P5_normal_state_learned_from_mode_and_speed_only():
     assert b.normal_codes["AABBCCDDEEFF"] == (8, 2)
 
 
-# ============================================================ review pass 3
+# ============================================================ framing and setup format
 def test_S10_setup_frame_uses_15_byte_cloud_format():
     f = m.encode_setup("AABBCCDDEEFF", role=2, zone=3, house_id=12048)
     assert f == bytes.fromhex("0200AABBCCDDEEFF" "00" "02" "03") + (12048).to_bytes(4, "little")
@@ -392,7 +392,7 @@ def test_S11_undocumented_reported_role_gets_no_setup():
 
 
 def test_U3b_phantom_split_across_reads_cannot_lock_out_the_real_unit():
-    """Review pass 3: junk with '01 00 <other MAC>' whose read ends inside it."""
+    """junk with '01 00 <other MAC>' whose read ends inside it."""
     b = make_bridge()
     junk = bytes.fromhex("0700112233445501000000")
     real = firmware_frame(radio=(0, 0, 28)) + b"".join(
@@ -435,7 +435,7 @@ def test_P7_protected_devices_lists_every_unit_under_protection():
     assert st[-1]["protectedDevices"] == ["AABBCCDDEEFF"]
 
 
-# ============================================================ review pass 4
+# ============================================================ protection and input robustness
 def test_P8_unit_without_status_is_not_switched_off_and_restored_correctly():
     """Bridge restart on a humid day: unit B has only sent its firmware frame when
     the dew-point block trips. It must be protected on its first status and
@@ -460,7 +460,7 @@ def test_P8_unit_without_status_is_not_switched_off_and_restored_correctly():
 
 
 def test_U4_phantom_chain_after_resync_cannot_lock_out_the_real_unit():
-    """Review pass 4: unknown frame containing '04 00 xx*6' followed by
+    """unknown frame containing '04 00 xx*6' followed by
     '01 00 <fake MAC>' at connection start."""
     junk = bytes.fromhex("07") + bytes.fromhex("0400" + "11" * 6)
     fake = bytes([0x01, 0x00]) + bytes.fromhex("99" * 6) + bytes(13)
@@ -498,7 +498,7 @@ def test_V8_unreadable_schedule_slot_does_not_abort_the_tick():
 
 
 def test_U5_ping_inside_phantom_chain_does_not_end_the_resync():
-    """Review pass 5: unknown frame, ping, fake status, trailing junk, then the real unit."""
+    """unknown frame, ping, fake status, trailing junk, then the real unit."""
     junk = bytes.fromhex("070009") + bytes.fromhex("0400" + "11" * 6)
     fake = bytes([0x01, 0x00]) + bytes.fromhex("99" * 6) + bytes(13) + bytes.fromhex("0705")
     real = b"".join(build_status(temp=t) for t in (20, 21, 22, 23, 24))
@@ -674,7 +674,7 @@ def test_R7_no_blind_restore_for_a_unit_without_status():
 
 @pytest.mark.parametrize("order", ["radon_then_dew", "dew_then_radon", "two_episodes"])
 def test_R13_several_protection_phases_while_offline(order):
-    """Review 6 F1: the unit still shows the mode of an EARLIER protection."""
+    """the unit still shows the mode of an EARLIER protection."""
     b = _bridge()
     _online(b, A, 2, 1); _online(b, B, 3, 2)
     if order == "radon_then_dew":
@@ -692,7 +692,7 @@ def test_R13_several_protection_phases_while_offline(order):
 
 
 def test_R14_silently_dead_connection_restore_is_repeated():
-    """Review 6 F2: the release write goes into a dead socket; the unit comes back
+    """the release write goes into a dead socket; the unit comes back
     on a new connection still OFF -> restore is sent again."""
     clock = Clock()
     b = _bridge(clock)
@@ -842,7 +842,7 @@ def test_R20_state_written_with_fsync_and_readable(tmp_path):
 
 
 def test_R21_restart_with_automatic_dewpoint_latch_holds_until_data(tmp_path):
-    """Review 6 F5: the hysteresis latch survives the restart."""
+    """the hysteresis latch survives the restart."""
     state = str(tmp_path / "state.json")
     clock = Clock()
     b1 = _bridge(clock, state_file=state, dewpoint_margin=1.0)
@@ -886,9 +886,9 @@ def test_R23_trip_while_restore_open_uses_what_the_unit_reports():
     assert _mf(w)[-1] == (5, 2)
 
 
-# ---------------------------------------------------------------- review 7
+# ---------------------------------------------------------------- restart and user commands
 def test_R24_mode_written_on_reconnect_survives_a_restart(tmp_path):
-    """Review 7 F1: unit reconnects during a protection, gets OFF, bridge restarts."""
+    """unit reconnects during a protection, gets OFF, bridge restarts."""
     state = str(tmp_path / "state.json")
     clock = Clock()
     b1 = _bridge(clock, state_file=state)
@@ -906,7 +906,7 @@ def test_R24_mode_written_on_reconnect_survives_a_restart(tmp_path):
 
 @pytest.mark.parametrize("over", [{"dewpoint_enabled": False}, {}])
 def test_R25_loaded_protection_is_released_through_the_normal_path(tmp_path, over):
-    """Review 7 F2: if the first evaluation already says NONE, the saved
+    """if the first evaluation already says NONE, the saved
     baseline must still be released (restore + confirmation)."""
     state = str(tmp_path / "state.json")
     clock = Clock()
@@ -949,7 +949,7 @@ def test_R27_unreadable_mode_in_status_keeps_the_restore_open():
 
 
 def test_R28_user_command_into_dead_socket_is_still_confirmed():
-    """Review 7 F4: the user's command becomes the target and is confirmed."""
+    """the user's command becomes the target and is confirmed."""
     clock = Clock()
     b = _bridge(clock)
     _online(b, B, 3, 2)

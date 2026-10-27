@@ -409,10 +409,7 @@ def encode_filter_reset(serial: str) -> bytes:
 
 def encode_setup(serial: str, role: int, zone: int, house_id: int) -> bytes:
     """15-byte setup in the cloud's own format: 02 00 <MAC> 00 <role> <zone> <house LE32>.
-
-    The earlier 16-byte variant had an extra 0x00 before the house ID; units
-    read the house ID at offset 11, so it was stored shifted by one byte
-    (house 1 became 256) and broken for the master/slave UDP sync."""
+    Units read the house ID from offset 11, as in the server's own packet."""
     # Clamp house_id into the unsigned 32-bit range so a mis-set HOUSE_ID can
     # never raise OverflowError (which would loop the device on every connect).
     hid = max(0, min(int(house_id), 0xFFFFFFFF))
@@ -590,8 +587,7 @@ class Config:
     setup_role: int = int(os.getenv("DEVICE_ROLE", "0"))
     setup_zone: int = int(os.getenv("DEVICE_ZONE", "0"))
     setup_house: int = int(os.getenv("HOUSE_ID", "1"))
-    # Global setup (DEVICE_ROLE/ZONE/HOUSE_ID) only when explicitly enabled;
-    # it used to be on by default and rewrote every unit to the same role/zone.
+    # Global setup (DEVICE_ROLE/ZONE/HOUSE_ID) only when explicitly enabled.
     send_setup: bool = os.getenv("SEND_SETUP", "false").lower() == "true"
     setup_devices: dict = field(
         default_factory=lambda: parse_setup_devices(os.getenv("SETUP_DEVICES", "")))
