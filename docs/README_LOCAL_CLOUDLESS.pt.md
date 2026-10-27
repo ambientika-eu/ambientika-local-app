@@ -91,6 +91,8 @@ Prioridade: **rádon > ponto de orvalho > normal**. Na primeira transição para
 qualquer proteção, a bridge guarda o modo/ventilador atual de cada dispositivo como
 referência; quando todas as proteções cessam, executa um **restauro exato**.
 
+Cada restauro é **confirmado pelo estado seguinte da unidade**. Se ainda mostrar um modo de proteção (OFF / insuflação) — por estar offline na libertação ou a ligação ter caído sem aviso — o restauro é reenviado (máx. 3 vezes, pelo menos 20 s de intervalo). Se mostrar outro modo, alguém o alterou entretanto e isso prevalece. Com `STATE_FILE` sobrevive a um **reinício do bridge**: uma proteção ativa mantém-se até a entrada que a causou voltar a reportar, no máximo `NC_INPUT_TTL`.
+
 - **Proteção contra rádon** — dispara quando `radon/alarm=ON` ou `radon/value ≥
   RADON_THRESHOLD`. Todos os dispositivos → `INTAKE` em `LOW` (ligeira sobrepressão de
   ar fresco). Os comandos `/set` normais são suprimidos enquanto está ativa.
@@ -118,6 +120,8 @@ referência; quando todas as proteções cessam, executa um **restauro exato**.
 | `RADON_THRESHOLD` | `100` | limiar de disparo automático em Bq/m³ |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | ponto de orvalho automático + histerese em °C |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | ficheiro de valores base / restauros pendentes (compose: `/data/local_bridge_state.json`); vazio = só memória |
+| `PENDING_RESTORE_TTL` | `86400` | durante quanto tempo uma unidade offline na libertação ainda é restaurada (s) |
 | `HA_DISCOVERY` | `false` | publicar a descoberta do Home Assistant (não necessária para a app) |
 
 ## Garantia da qualidade
@@ -139,7 +143,7 @@ referência; quando todas as proteções cessam, executa um **restauro exato**.
   dispositivo; entradas de rádon/tempo mais antigas do que `NC_INPUT_TTL` são tratadas
   como desconhecidas; last-will MQTT + encerramento limpo.
 - ✅ Segurança: configuração só por unidade, nunca uma alteração silenciosa da função mestre/escravo; só códigos confirmados; sem dados meteorológicos; tramas de 19 e 21 bytes.
-- ✅ Conjunto de testes de regressão: **116 testes unitários/de integração**
+- ✅ Conjunto de testes de regressão: **156 testes unitários/de integração**
   (`test_bridge.py`, `test_integration.py`, `test_newfindings.py`).
 - ✅ End-to-end completo através de um **broker MQTT real** com um dispositivo simulado
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + comando + programa + proteção/supressão/restauro

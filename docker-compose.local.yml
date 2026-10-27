@@ -56,10 +56,15 @@ services:
       SETUP_DEVICES: ${SETUP_DEVICES:-}
       SETUP_ALLOW_ROLE_CHANGE: ${SETUP_ALLOW_ROLE_CHANGE:-false}
       SEND_SETUP: ${SEND_SETUP:-false}   # legacy global setup, single unit only
+      # Remembers which units to restore after a radon/dew-point protection,
+      # also across a restart of the bridge (units offline at release included).
+      STATE_FILE: ${STATE_FILE-/data/local_bridge_state.json}   # empty = memory only
       HOUSE_ID: ${HOUSE_ID:-1}         # target of the legacy global setup
       DEVICE_ROLE: ${DEVICE_ROLE:-0}
       DEVICE_ZONE: ${DEVICE_ZONE:-0}
       LOG_LEVEL: INFO
+    volumes:
+      - bridge-state:/data
 
   # -----------------------------------------------------------------------
   # Ambientika Local App Backend (FastAPI) + PWA – unchanged, MQTT-only.
@@ -87,6 +92,7 @@ services:
       - ambientika-history:/data
 
 volumes:
+  bridge-state:
   mosquitto-data:
   mosquitto-log:
   ambientika-history:

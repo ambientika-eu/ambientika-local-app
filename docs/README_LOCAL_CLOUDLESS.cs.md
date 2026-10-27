@@ -90,6 +90,8 @@ Priorita: **radon > rosný bod > normální**. Při prvním přechodu do jakéko
 ochrany bridge uloží aktuální režim/ventilátor každé jednotky jako výchozí stav; jakmile
 se všechny ochrany zruší, provede **přesné obnovení**.
 
+Každé obnovení **potvrzuje následující stav jednotky**. Pokud stále ukazuje ochranný režim (VYP / přívod) — protože byla při uvolnění offline nebo spojení tiše spadlo — obnovení se pošle znovu (max. 3×, nejméně 20 s odstup). Ukazuje-li jiný režim, někdo ho mezitím změnil a platí ten. Se `STATE_FILE` to přežije i **restart bridge**: aktivní ochrana zůstane aktivní, dokud se neozve vstup, který ji vyvolal, nejdéle `NC_INPUT_TTL`.
+
 - **Ochrana proti radonu** — sepne, když `radon/alarm=ON` nebo `radon/value ≥
   RADON_THRESHOLD`. Všechny jednotky → `INTAKE` na `LOW` (mírný přetlak čerstvého vzduchu).
   Běžné příkazy `/set` jsou během aktivity potlačeny.
@@ -116,6 +118,8 @@ se všechny ochrany zruší, provede **přesné obnovení**.
 | `RADON_THRESHOLD` | `100` | práh automatického sepnutí v Bq/m³ |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatický rosný bod + hystereze v °C |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | soubor výchozích hodnot / čekajících obnovení (compose: `/data/local_bridge_state.json`); prázdné = jen paměť |
+| `PENDING_RESTORE_TTL` | `86400` | jak dlouho se jednotka offline při uvolnění ještě obnovuje (s) |
 | `HA_DISCOVERY` | `false` | publikování discovery pro Home Assistant (aplikace jej nevyžaduje) |
 
 ## Zajištění kvality
@@ -135,7 +139,7 @@ se všechny ochrany zruší, provede **přesné obnovení**.
   payloady `weather` jsou odmítnuty; opětovné připojení zachová stav zařízení; vstupy
   radon/weather starší než `NC_INPUT_TTL` jsou považovány za neznámé; MQTT last-will + čisté ukončení.
 - ✅ Bezpečnost: nastavení jen pro jednotlivé jednotky, nikdy tichá změna role master/slave; jen potvrzené kódy; žádná data o počasí; rámce 19 i 21 bajtů.
-- ✅ Regresní sada: **116 unit/integračních testů** (`test_bridge.py`,
+- ✅ Regresní sada: **156 unit/integračních testů** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Kompletní end-to-end přes **skutečný MQTT broker** se simulovanou jednotkou
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): stav + příkaz + plán + ochrana proti radonu/potlačení/

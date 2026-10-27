@@ -90,6 +90,8 @@ Prioriteit: **radon > dauwpunt > normaal**. Bij de eerste overgang naar een
 bescherming slaat de bridge de huidige modus/ventilator van elk toestel op als basislijn; wanneer alle
 beschermingen zijn opgeheven, voert hij een **exact herstel** uit.
 
+Elk herstel wordt **bevestigd door de volgende status van de unit**. Toont die nog een beschermingsmodus (UIT / toevoer) — omdat hij bij de vrijgave offline was of de verbinding stil wegviel — dan wordt het herstel opnieuw gestuurd (max. 3 keer, minstens 20 s ertussen). Toont hij een andere modus, dan heeft iemand die intussen gewijzigd en geldt die. Met `STATE_FILE` overleeft dit een **herstart van de bridge**: een actieve bescherming blijft actief tot de veroorzakende invoer zich weer meldt, hoogstens `NC_INPUT_TTL`.
+
 - **Radonbescherming** — activeert wanneer `radon/alarm=ON` of `radon/value ≥
   RADON_THRESHOLD`. Alle toestellen → `INTAKE` op `LOW` (lichte verse-lucht-overdruk).
   Normale `/set`-commando's worden onderdrukt zolang actief.
@@ -116,6 +118,8 @@ beschermingen zijn opgeheven, voert hij een **exact herstel** uit.
 | `RADON_THRESHOLD` | `100` | Bq/m³ auto-activeringsdrempel |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | auto-dauwpunt + °C-hysterese |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | bestand voor basiswaarden / openstaande herstelacties (compose: `/data/local_bridge_state.json`); leeg = alleen geheugen |
+| `PENDING_RESTORE_TTL` | `86400` | hoe lang een unit die bij vrijgave offline was nog wordt hersteld (s) |
 | `HA_DISCOVERY` | `false` | Home Assistant discovery publiceren (niet nodig voor de app) |
 
 ## Kwaliteitsborging
@@ -135,7 +139,7 @@ beschermingen zijn opgeheven, voert hij een **exact herstel** uit.
   payloads geweigerd; reconnect behoudt de apparaatstatus; radon/weather-invoer
   ouder dan `NC_INPUT_TTL` als onbekend behandeld; MQTT last-will + nette afsluiting.
 - ✅ Veiligheid: setup alleen per unit, nooit een stille wijziging van de master/slave-rol; alleen bevestigde codes; geen weergegevens; frames van 19 en 21 bytes.
-- ✅ Regressiesuite: **116 unit-/integratietests** (`test_bridge.py`,
+- ✅ Regressiesuite: **156 unit-/integratietests** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Volledig end-to-end via een **echte MQTT-broker** met een gesimuleerd toestel
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + command + schedule + radon protect/suppress/

@@ -91,6 +91,8 @@ Priorytet: **radon > punkt rosy > normalny**. Przy pierwszym przejściu w dowoln
 ochronę Bridge zapisuje bieżący tryb/wentylator każdego urządzenia jako stan bazowy; gdy wszystkie
 ochrony ustąpią, wykonuje **dokładne przywrócenie**.
 
+Każde przywrócenie jest **potwierdzane kolejnym statusem urządzenia**. Jeśli nadal pokazuje tryb ochronny (WYŁ. / nawiew) — bo było offline przy zwolnieniu albo połączenie zerwało się bez sygnału — przywrócenie jest wysyłane ponownie (maks. 3 razy, co najmniej 20 s odstępu). Jeśli pokazuje inny tryb, ktoś go w międzyczasie zmienił i to obowiązuje. Z `STATE_FILE` działa to także po **restarcie bridge'a**: aktywna ochrona pozostaje aktywna, aż wejście, które ją wywołało, znów się zgłosi, najwyżej `NC_INPUT_TTL`.
+
 - **Ochrona przed radonem** — wyzwalana, gdy `radon/alarm=ON` lub `radon/value ≥
   RADON_THRESHOLD`. Wszystkie urządzenia → `INTAKE` na `LOW` (łagodne nadciśnienie świeżego powietrza).
   Normalne polecenia `/set` są blokowane, gdy jest aktywna.
@@ -117,6 +119,8 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
 | `RADON_THRESHOLD` | `100` | próg automatycznego wyzwolenia w Bq/m³ |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatyczny punkt rosy + histereza °C |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | plik wartości bazowych / oczekujących przywróceń (compose: `/data/local_bridge_state.json`); puste = tylko pamięć |
+| `PENDING_RESTORE_TTL` | `86400` | jak długo urządzenie offline w chwili zwolnienia jest jeszcze przywracane (s) |
 | `HA_DISCOVERY` | `false` | publikacja Home Assistant discovery (niepotrzebne aplikacji) |
 
 ## Zapewnienie jakości
@@ -136,7 +140,7 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
   `weather` są odrzucane; ponowne połączenie zachowuje stan urządzenia; dane radonu/pogody
   starsze niż `NC_INPUT_TTL` traktowane jako nieznane; MQTT last-will + czyste zamknięcie.
 - ✅ Bezpieczeństwo: konfiguracja tylko dla pojedynczych urządzeń, nigdy cicha zmiana roli master/slave; tylko potwierdzone kody; brak danych pogodowych; ramki 19 i 21 bajtów.
-- ✅ Zestaw testów regresji: **116 testów jednostkowych/integracyjnych** (`test_bridge.py`,
+- ✅ Zestaw testów regresji: **156 testów jednostkowych/integracyjnych** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Pełny test end-to-end przez **prawdziwy broker MQTT** z symulowanym urządzeniem
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + polecenie + harmonogram + ochrona radonowa/blokada/

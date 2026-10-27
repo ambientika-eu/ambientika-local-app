@@ -91,6 +91,8 @@ Prioridad: **radón > punto de rocío > normal**. En la primera transición a cu
 protección, el bridge guarda el modo/ventilador actual de cada dispositivo como referencia; cuando todas
 las protecciones se desactivan, realiza una **restauración exacta**.
 
+Cada restauración se **confirma con el siguiente estado de la unidad**. Si todavía muestra un modo de protección (OFF / impulsión) — porque estaba desconectada al liberar o su conexión cayó sin aviso — la restauración se reenvía (máx. 3 veces, al menos 20 s entre intentos). Si muestra otro modo, alguien lo cambió entretanto y ese cambio prevalece. Con `STATE_FILE` sobrevive a un **reinicio del bridge**: una protección activa sigue activa hasta que vuelve la entrada que la causó, como máximo `NC_INPUT_TTL`.
+
 - **Protección contra radón** — se activa cuando `radon/alarm=ON` o `radon/value ≥
   RADON_THRESHOLD`. Todos los dispositivos → `INTAKE` a `LOW` (ligera sobrepresión de aire fresco).
   Los comandos `/set` normales se suprimen mientras está activa.
@@ -117,6 +119,8 @@ las protecciones se desactivan, realiza una **restauración exacta**.
 | `RADON_THRESHOLD` | `100` | umbral de activación automática en Bq/m³ |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | punto de rocío automático + histéresis en °C |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | archivo de valores base / restauraciones pendientes (compose: `/data/local_bridge_state.json`); vacío = solo memoria |
+| `PENDING_RESTORE_TTL` | `86400` | durante cuánto tiempo se restaura aún una unidad desconectada al liberar (s) |
 | `HA_DISCOVERY` | `false` | publica el discovery de Home Assistant (no lo necesita la aplicación) |
 
 ## Aseguramiento de la calidad
@@ -136,7 +140,7 @@ las protecciones se desactivan, realiza una **restauración exacta**.
   cargas útiles `weather` con formato incorrecto; la reconexión conserva el estado del dispositivo; las entradas de radón/tiempo
   más antiguas que `NC_INPUT_TTL` se tratan como desconocidas; last-will de MQTT + apagado limpio.
 - ✅ Seguridad: configuración solo por unidad, nunca un cambio silencioso de rol maestro/esclavo; solo códigos confirmados; sin datos meteorológicos; tramas de 19 y 21 bytes.
-- ✅ Conjunto de regresión: **116 pruebas unitarias/de integración** (`test_bridge.py`,
+- ✅ Conjunto de regresión: **156 pruebas unitarias/de integración** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Prueba completa de extremo a extremo a través de un **broker MQTT real** con un dispositivo simulado
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): estado + comando + programa + protección/supresión/

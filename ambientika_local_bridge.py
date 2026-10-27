@@ -80,6 +80,7 @@ import logging
 import math
 import os
 import signal
+import time
 from dataclasses import dataclass, field
 from typing import Callable, Optional
 
@@ -106,6 +107,10 @@ LIGHT_SENS = {0: "NOT_AVAILABLE", 1: "OFF", 2: "LOW", 3: "MEDIUM"}
 MODE_INTAKE = 8
 MODE_OFF = 11
 FAN_LOW = 0
+#: A restore is confirmed by the unit's next status; it is re-sent at most this
+#: many times in total, never sooner than RESTORE_RETRY_MIN seconds apart.
+RESTORE_MAX_ATTEMPTS = 3
+RESTORE_RETRY_MIN = 20.0
 
 # ---------------------------------------------------------------------------
 # Frame types and lengths
@@ -560,6 +565,7 @@ class Device:
                                                      "humidity": 1, "light": 1})
     firmware: dict = field(default_factory=dict)
     setup_sent: bool = False
+    status_seq: int = 0                  # bridge-wide sequence number of the last status
     # per-device write serialisation so two coroutines never overlap drain()
     send_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
@@ -605,14 +611,24 @@ class Config:
     # Radon/weather inputs older than this (seconds) are treated as unknown so a
     # dead sensor can neither silently disable nor latch protection forever.
     nc_input_ttl: float = _envf("NC_INPUT_TTL", "900")
+    # A unit that is offline when a protection ends is restored when it comes
+    # back, as long as it still shows the protective mode and not longer than this.
+    pending_restore_ttl: float = _envf("PENDING_RESTORE_TTL", "86400")
+    # Persist baselines / pending restores so a bridge restart during a
+    # protection does not leave units OFF (empty = in memory only).
+    state_file: str = os.getenv("STATE_FILE", "")
 
 
 # ---------------------------------------------------------------------------
 # The bridge
 # ---------------------------------------------------------------------------
 class LocalBridge:
-    def __init__(self, cfg: Config, now_fn: Callable[[], _dt.datetime] = _dt.datetime.now):
+    def __init__(self, cfg: Config, now_fn: Callable[[], _dt.datetime] = _dt.datetime.now,
+                 mono_fn: Callable[[], float] = time.monotonic,
+                 wall_fn: Callable[[], float] = time.time):
         self.cfg = cfg
+        self.mono_fn = mono_fn            # ages / retries: immune to clock jumps
+        self.wall_fn = wall_fn            # only to age a saved state across a restart
         # Protective targets come from the environment: never let a typo put an
         # unconfirmed code on the wire during radon protection.
         if cfg.radon_protect_mode not in VALID_MODE_CODES:
@@ -651,6 +667,22 @@ class LocalBridge:
         self.weather: dict = {}                        # {temperature, humidity} outdoor
         self.weather_ts: Optional[_dt.datetime] = None
         self._last_nc_json: Optional[str] = None       # publish-gate for neuracell state
+        # Restores waiting for the unit's confirmation:
+        # serial -> {"target": (mode, speed), "since": mono, "seq": int,
+        #            "attempts": int, "last_try": mono|None}
+        self.pending_restore: dict[str, dict] = {}
+        # Protective modes that may be active on a unit (every protective write
+        # adds its mode; cleared once the unit reports a normal state again).
+        self.prot_modes: dict[str, set] = {}
+        self._status_seq = 0             # increases with every decoded status frame
+        # After a restart during a protection: keep protecting until the input
+        # that caused it reports again (or NC_INPUT_TTL passes). key -> mono deadline
+        #   "radon_value"  cleared by ambientika/radon/value
+        #   "radon_manual" cleared by ambientika/radon/alarm
+        #   "dew_manual"   cleared by ambientika/dewpoint/block
+        # (the automatic dew-point latch itself is saved and restored)
+        self._holds: dict[str, float] = {}
+        self._load_state()
 
     def _make_mqtt_client(self):
         """Build a paho client on the 2.x callback API when available, else 1.x.
@@ -757,6 +789,10 @@ class LocalBridge:
         if not await self._send_mode(dev, mode_code, speed_code, humidity_code, light_code):
             return
         self.normal_codes[dev.serial] = (mode_code, speed_code)   # remember normal target
+        if dev.serial in self.pending_restore and (
+                payload.get("mode") is not None
+                or mode_code not in self.prot_modes.get(dev.serial, ())):
+            self._retarget_pending(dev, mode_code, speed_code)   # the user's choice wins
         log.info("-> %s cmd=%s (mode=%s speed=%s)", dev.serial, payload, mode_code, speed_code)
 
     async def _send_mode(self, dev: Device, mode_code: int, speed_code: int,
@@ -767,9 +803,8 @@ class LocalBridge:
                         "humidity=%s light=%s", dev.serial, mode_code, speed_code,
                         humidity_code, light_code)
             return False
-        await self._send(dev, encode_mode_command(
+        return await self._send(dev, encode_mode_command(
             dev.serial, mode_code, speed_code, humidity_code, light_code))
-        return True
 
     async def _send_codes(self, dev: Device, mode_code: int, speed_code: int,
                           protective: bool = False) -> bool:
@@ -861,6 +896,10 @@ class LocalBridge:
                 if not await self._send_codes(dev, mode_code, speed_code):
                     continue
                 self.normal_codes[serial] = (mode_code, speed_code)
+                if serial in self.pending_restore and (
+                        slot.get("mode") is not None
+                        or mode_code not in self.prot_modes.get(serial, ())):
+                    self._retarget_pending(dev, mode_code, speed_code)
                 log.info("schedule -> %s %s slot %s..%s mode=%s fan=%s", serial, weekday,
                          slot.get("start"), slot.get("end"), slot.get("mode"), slot.get("fanSpeed"))
 
@@ -876,6 +915,9 @@ class LocalBridge:
     async def _handle_control(self, parts: list, raw: str):
         key = parts[1]
         leaf = parts[2] if len(parts) > 2 else ""
+        # a manual topic answering again ends its post-restart hold
+        self._holds.pop({("radon", "alarm"): "radon_manual",
+                         ("dewpoint", "block"): "dew_manual"}.get((key, leaf), ""), None)
         if key == "weather":
             try:
                 w = json.loads(raw or "{}")
@@ -889,6 +931,7 @@ class LocalBridge:
             try:
                 self.nc_radon_value = float(raw)
                 self.nc_radon_ts = self.now_fn()
+                self._holds.pop("radon_value", None)    # a fresh measurement decides
             except (TypeError, ValueError):
                 self.nc_radon_value = None
         elif key == "dewpoint" and leaf == "block":
@@ -913,6 +956,8 @@ class LocalBridge:
     def _radon_active(self) -> bool:
         if self.nc_manual_radon:
             return True
+        if self._held("radon_value") or self._held("radon_manual"):
+            return True                              # restarted during RADON: input not back yet
         if self.nc_radon_value is None or not self._fresh(self.nc_radon_ts):
             return False
         return self.nc_radon_value >= self.cfg.radon_threshold
@@ -934,7 +979,17 @@ class LocalBridge:
             else:
                 self._dew_blocked = outdoor_dp >= indoor_dp + margin
         # else: enabled but data missing -> hold the last auto latch unchanged
-        return self.nc_manual_dewpoint or self._dew_blocked
+        return self.nc_manual_dewpoint or self._dew_blocked or self._held("dew_manual")
+
+    def _held(self, key: str) -> bool:
+        until = self._holds.get(key)
+        if until is None:
+            return False
+        if self.mono_fn() < until:
+            return True
+        del self._holds[key]
+        log.warning("NeuraCell-X: no fresh %s input within NC_INPUT_TTL after restart", key)
+        return False
 
     async def _neuracell_evaluate(self):
         if not self.cfg.neuracell_enabled:
@@ -947,7 +1002,224 @@ class LocalBridge:
             new = "RADON" if radon else ("DEWPOINT" if dew else "NONE")
             if new != self.protection:
                 await self._apply_protection(new)
+            if self.protection == "NONE" and self.pending_restore:
+                await self._process_pending()
             self._publish_neuracell(radon, dew, indoor_dp, outdoor_dp)
+
+    async def _send_protective(self, dev: Device, mode: int, speed: int) -> bool:
+        """A protective write (radon/dew-point). Remembers that the unit may now
+        show this mode, so a later restore recognises it — across several
+        protection phases, too."""
+        ms = self.prot_modes.setdefault(dev.serial, set())
+        if mode not in ms:                         # write-ahead: saved before it goes out
+            ms.add(mode)
+            self._save_state()
+        return await self._send_codes(dev, mode, speed, protective=True)
+
+    def _confirm_normal(self, serial: str, mode: int, speed: int):
+        """The unit reports a non-protective state again: that is its normal."""
+        self.pending_restore.pop(serial, None)
+        self.prot_modes.pop(serial, None)
+        if mode in VALID_MODE_CODES and speed in VALID_SPEED_CODES:
+            self.normal_codes[serial] = (mode, speed)
+
+    def _retarget_pending(self, dev: Device, mode: int, speed: int):
+        """A user command / schedule slot was just sent while a restore is open:
+        it becomes the new target, still confirmed by the unit's next status
+        (the write may have gone into a dead socket)."""
+        p = self.pending_restore[dev.serial]
+        p.update(target=(mode, speed), seq=dev.status_seq, attempts=1,
+                 last_try=self.mono_fn())
+        p.pop("gave_up", None)
+        self._save_state()
+
+    def _pending_baseline(self, serial: str, p: dict) -> tuple:
+        """Baseline for a unit whose restore is still open when a new protection
+        trips: if it already reported a non-protective state after the release,
+        that state is its normal; otherwise the restore target is."""
+        dev = self.devices.get(serial)
+        if dev and dev.last_status and dev.status_seq > p["seq"]:
+            em, es = dev.raw_codes.get("mode"), dev.raw_codes.get("speed")
+            if (em not in self.prot_modes.get(serial, ()) or em == p["target"][0]) \
+                    and em in VALID_MODE_CODES and es in VALID_SPEED_CODES:
+                return (em, es)
+        return p["target"]
+
+    async def _try_restore(self, dev: Device, p: dict) -> None:
+        m, sp = p["target"]
+        p["attempts"] += 1
+        p["last_try"] = self.mono_fn()
+        p["seq"] = dev.status_seq                  # judge only a status after this try
+        if not await self._send_codes(dev, m, sp, protective=True):
+            p["attempts"] -= 1                     # nothing went out: not an attempt
+            p["last_try"] = None
+
+    async def _process_pending(self):
+        """Confirm or repeat restores after a protection ended.
+
+        Caller holds self._lock and protection is NONE. Each restore is judged
+        by a status the unit sent AFTER the last try:
+          * shows the target mode         -> done
+          * still shows a protective mode -> send again (max RESTORE_MAX_ATTEMPTS,
+                                             at least RESTORE_RETRY_MIN apart)
+          * shows anything else           -> someone changed it; that wins
+        This covers units that were offline at release and connections that
+        died silently (the write 'succeeded' into a dead socket)."""
+        now = self.mono_fn()
+        changed = False
+        for s, p in list(self.pending_restore.items()):
+            try:
+                if now - p["since"] > self.cfg.pending_restore_ttl:
+                    log.warning("NeuraCell-X: restore of %s not confirmed within "
+                                "PENDING_RESTORE_TTL — given up", s)
+                    del self.pending_restore[s]; changed = True
+                    continue
+                dev = self.devices.get(s)
+                if not dev or not dev.last_status or dev.status_seq <= p["seq"]:
+                    continue
+                em, es = dev.raw_codes.get("mode"), dev.raw_codes.get("speed")
+                if em not in VALID_MODE_CODES:
+                    continue                           # unreadable status: wait for the next
+                if em == p["target"][0]:
+                    self._confirm_normal(s, em, es); changed = True
+                    log.info("NeuraCell-X: %s confirmed restore (mode=%s)", s, em)
+                elif em in self.prot_modes.get(s, ()):
+                    if p["attempts"] >= RESTORE_MAX_ATTEMPTS:
+                        if not p.get("gave_up"):
+                            p["gave_up"] = True
+                            log.error("NeuraCell-X: %s still in protective mode %s after %d "
+                                      "restore attempts — not retried", s, em, p["attempts"])
+                        continue
+                    if p["last_try"] is not None and now - p["last_try"] < RESTORE_RETRY_MIN:
+                        continue
+                    await self._try_restore(dev, p); changed = True
+                    log.warning("NeuraCell-X: %s still in protective mode %s — restore "
+                                "to mode=%s speed=%s (attempt %d)", s, em,
+                                p["target"][0], p["target"][1], p["attempts"])
+                else:
+                    log.info("NeuraCell-X: %s was changed meanwhile (mode=%s) — restore "
+                             "dropped", s, em)
+                    self._confirm_normal(s, em, es); changed = True
+            except Exception as exc:  # noqa: BLE001 — one bad entry must not stop the rest
+                log.error("NeuraCell-X: pending restore of %s dropped: %s", s, exc)
+                self.pending_restore.pop(s, None); changed = True
+        if changed:
+            self._save_state()
+
+    # ---- state persistence (baselines / pending restores) ----------------
+    def _save_state(self):
+        if not self.cfg.state_file:
+            return
+        now = self.mono_fn()
+        data = {
+            "version": 2,
+            "saved_at": self.wall_fn(),
+            "protection": self.protection,
+            "dew_latch": self._dew_blocked,
+            "radon_value_active": (self.nc_radon_value is not None
+                                   and self._fresh(self.nc_radon_ts)
+                                   and self.nc_radon_value >= self.cfg.radon_threshold)
+                                  or "radon_value" in self._holds,
+            "radon_manual": self.nc_manual_radon or "radon_manual" in self._holds,
+            "dew_manual": self.nc_manual_dewpoint or "dew_manual" in self._holds,
+            "baseline": {s: list(t) for s, t in self.baseline.items()},
+            "pending": {s: {"target": list(p["target"]),
+                            "age": max(0.0, now - p["since"])}
+                        for s, p in self.pending_restore.items()},
+            "prot_modes": {s: sorted(v) for s, v in self.prot_modes.items() if v},
+        }
+        tmp = self.cfg.state_file + ".tmp"
+        try:
+            with open(tmp, "w", encoding="utf-8") as fh:
+                json.dump(data, fh)
+                fh.flush()
+                os.fsync(fh.fileno())
+            os.replace(tmp, self.cfg.state_file)
+        except OSError as exc:
+            log.error("could not save state to %s: %s", self.cfg.state_file, exc)
+
+    def _load_state(self):
+        """Pick up where a previous run stopped.
+
+        * Saved baselines of an active protection stay baselines: the units keep
+          their REAL previous mode. RADON is held until a fresh radon value
+          arrives (at most NC_INPUT_TTL); the dew-point hysteresis latch is
+          restored, so DEWPOINT holds until fresh data says otherwise.
+        * Saved pending restores continue (age carried over).
+        Every entry is checked on its own; a broken one is skipped and logged."""
+        if not self.cfg.state_file or not os.path.exists(self.cfg.state_file):
+            return
+        if not self.cfg.neuracell_enabled:
+            log.warning("NEURACELL_ENABLED=false — saved protection state not loaded")
+            return
+        try:
+            with open(self.cfg.state_file, encoding="utf-8") as fh:
+                data = json.load(fh)
+            if not isinstance(data, dict):
+                raise ValueError("not a JSON object")
+            if data.get("version") != 2:
+                raise ValueError(f"unsupported version {data.get('version')!r}")
+        except Exception as exc:  # noqa: BLE001
+            log.error("could not load state from %s: %s — ignored", self.cfg.state_file, exc)
+            return
+        now = self.mono_fn()
+        saved_at = data.get("saved_at")
+        if isinstance(saved_at, (int, float)) and not isinstance(saved_at, bool):
+            file_age = max(0.0, float(self.wall_fn()) - float(saved_at))
+        else:
+            file_age = 0.0
+        for s, modes_ in (data.get("prot_modes") or {}).items() if isinstance(
+                data.get("prot_modes"), dict) else ():
+            if not isinstance(modes_, list):
+                log.error("state: prot_modes of %s skipped (not a list)", s)
+                continue
+            ms = {x for x in modes_ if isinstance(x, int) and not isinstance(x, bool)}
+            ms &= VALID_MODE_CODES
+            if ms:
+                self.prot_modes[str(s).upper()] = ms
+        kind = data.get("protection")
+        baseline = data.get("baseline") if isinstance(data.get("baseline"), dict) else {}
+        if kind in ("DEWPOINT", "RADON"):
+            for s, t in baseline.items():
+                if self._valid_target(t):
+                    self.baseline[str(s).upper()] = (t[0], t[1])
+                else:
+                    log.error("state: baseline of %s skipped", s)
+        for key in ("radon_value", "radon_manual", "dew_manual"):
+            flag = {"radon_value": "radon_value_active"}.get(key, key)
+            if kind in ("DEWPOINT", "RADON") and data.get(flag) is True:
+                self._holds[key] = now + self.cfg.nc_input_ttl
+        if kind in ("DEWPOINT", "RADON") and data.get("dew_latch") is True:
+            self._dew_blocked = True
+        if kind in ("DEWPOINT", "RADON") and self.baseline:
+            # Resume IN the protection: the first evaluation either keeps it or
+            # releases it through the normal path (restore + confirmation).
+            self.protection = kind
+        pending = data.get("pending") if isinstance(data.get("pending"), dict) else {}
+        for s, p in pending.items():
+            try:
+                t = p["target"]
+                if not self._valid_target(t):
+                    raise ValueError("invalid target")
+                age = float(p.get("age", 0.0)) + file_age
+                if not age >= 0:
+                    raise ValueError("invalid age")
+                key = str(s).upper()
+                if key in self.baseline:
+                    continue
+                self.pending_restore[key] = {"target": (t[0], t[1]), "since": now - age,
+                                             "seq": 0, "attempts": 0, "last_try": None}
+            except Exception as exc:  # noqa: BLE001
+                log.error("state: pending restore of %s skipped (%s)", s, exc)
+        if self.baseline or self.pending_restore:
+            log.warning("NeuraCell-X: state loaded — %s, %d baseline(s), %d pending restore(s)",
+                        kind, len(self.baseline), len(self.pending_restore))
+
+    @staticmethod
+    def _valid_target(t) -> bool:
+        return (isinstance(t, (list, tuple)) and len(t) == 2
+                and all(isinstance(v, int) and not isinstance(v, bool) for v in t)
+                and t[0] in VALID_MODE_CODES and t[1] in VALID_SPEED_CODES)
 
     async def _apply_protection(self, new: str):
         # Caller holds self._lock.
@@ -955,7 +1227,14 @@ class LocalBridge:
         # Save baselines the first time we leave NONE (from the *normal* target,
         # not the last device echo, which may still be a protective code).
         if prev == "NONE" and new != "NONE":
+            # Units still waiting for a restore keep their REAL normal state as
+            # baseline (their current echo is still the old protective mode).
+            for s, p in list(self.pending_restore.items()):
+                self.baseline.setdefault(s, self._pending_baseline(s, p))
+            self.pending_restore.clear()
             for s, dev in list(self.devices.items()):
+                if s in self.baseline:
+                    continue
                 base = self._baseline_for(dev)
                 if base is not None:
                     self.baseline[s] = base
@@ -967,25 +1246,33 @@ class LocalBridge:
             for dev in list(self.devices.values()):
                 if not dev.last_status:
                     continue        # protected on its first status, after its state is known
-                await self._send_codes(dev, self.cfg.radon_protect_mode,
-                                       self.cfg.radon_protect_fan, protective=True)
+                await self._send_protective(dev, self.cfg.radon_protect_mode,
+                                            self.cfg.radon_protect_fan)
             if prev != new:
                 log.warning("NeuraCell-X: RADON protection ON -> all units INTAKE/LOW")
         elif new == "DEWPOINT":
             for dev in list(self.devices.values()):
                 if not dev.last_status:
                     continue        # protected on its first status, after its state is known
-                await self._send_codes(dev, MODE_OFF, dev.raw_codes["speed"], protective=True)
+                await self._send_protective(dev, MODE_OFF, dev.raw_codes["speed"])
             if prev != new:
                 log.warning("NeuraCell-X: dew-point block ON -> all units OFF")
         elif new == "NONE":
+            now = self.mono_fn()
             for s, (m, sp) in list(self.baseline.items()):
+                p = {"target": (m, sp), "since": now, "seq": self._status_seq,
+                     "attempts": 0, "last_try": None}
+                self.pending_restore[s] = p
                 dev = self.devices.get(s)
-                if dev:
-                    await self._send_codes(dev, m, sp, protective=True)
+                if dev and dev.last_status:
+                    await self._try_restore(dev, p)      # confirmed by its next status
+                else:
+                    log.warning("NeuraCell-X: %s not reachable at release — restore to "
+                                "mode=%s speed=%s when it reports back", s, m, sp)
             if prev != new:
                 log.warning("NeuraCell-X: all clear -> exact restore of previous modes")
             self.baseline.clear()
+        self._save_state()
 
     async def _protect_new_device(self, dev: Device):
         """A unit that (re)connects while a protection is active gets the
@@ -997,11 +1284,12 @@ class LocalBridge:
                 base = self._baseline_for(dev)
                 if base is not None:
                     self.baseline[dev.serial] = base
+                    self._save_state()
             if self.protection == "RADON":
-                await self._send_codes(dev, self.cfg.radon_protect_mode,
-                                       self.cfg.radon_protect_fan, protective=True)
+                await self._send_protective(dev, self.cfg.radon_protect_mode,
+                                            self.cfg.radon_protect_fan)
             elif self.protection == "DEWPOINT":
-                await self._send_codes(dev, MODE_OFF, dev.raw_codes["speed"], protective=True)
+                await self._send_protective(dev, MODE_OFF, dev.raw_codes["speed"])
 
     def _publish_neuracell(self, radon, dew, indoor_dp, outdoor_dp):
         state = {
@@ -1017,6 +1305,8 @@ class LocalBridge:
             "protectedDevices": (sorted(k for k, d in self.devices.items() if d.last_status)
                                  if self.protection != "NONE" else []),
         }
+        if self.pending_restore:
+            state["pendingRestore"] = sorted(self.pending_restore)
         js = json.dumps(state, sort_keys=True)
         if js == self._last_nc_json:            # publish only on real change
             return
@@ -1086,13 +1376,15 @@ class LocalBridge:
             "value_template": "{{ 'ON' if value_json.filterAlarm else 'OFF' }}"})
 
     # ---- TCP --------------------------------------------------------------
-    async def _send(self, dev: Device, frame: bytes):
+    async def _send(self, dev: Device, frame: bytes) -> bool:
         try:
             async with dev.send_lock:            # serialise writes per device
                 dev.writer.write(frame)
                 await dev.writer.drain()
+            return True
         except Exception as exc:  # noqa: BLE001
             log.warning("write to %s failed: %s", dev.serial, exc)
+            return False
 
     async def _handle_conn(self, reader: asyncio.StreamReader, writer: asyncio.StreamWriter):
         peer = writer.get_extra_info("peername")
@@ -1172,8 +1464,12 @@ class LocalBridge:
                         continue
                     first = not dev.last_status
                     dev.last_status = decode_status(frame)
+                    self._status_seq += 1
+                    dev.status_seq = self._status_seq
                     dev.raw_codes = status_raw_codes(frame)
                     if (self.protection == "NONE"
+                            and serial not in self.pending_restore
+                            and serial not in self.baseline
                             and dev.raw_codes["mode"] in VALID_MODE_CODES
                             and dev.raw_codes["speed"] in VALID_SPEED_CODES):
                         # track the true normal target for the restore baseline

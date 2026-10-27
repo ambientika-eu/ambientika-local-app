@@ -90,6 +90,8 @@ Prioritet: **radon > daggpunkt > normal**. Vid den första övergången till nå
 skydd sparar bryggan varje enhets aktuella läge/fläkt som en baslinje; när alla
 skydd upphör utför den en **exakt återställning**.
 
+Varje återställning **bekräftas av enhetens nästa status**. Visar den fortfarande ett skyddsläge (AV / tilluft) — för att den var offline vid frigivningen eller anslutningen föll bort tyst — skickas återställningen igen (högst 3 gånger, minst 20 s mellan). Visar den ett annat läge har någon ändrat det under tiden och det gäller. Med `STATE_FILE` överlever det en **omstart av bryggan**: ett aktivt skydd förblir aktivt tills den utlösande indatan rapporterar igen, högst `NC_INPUT_TTL`.
+
 - **Radonskydd** — utlöses när `radon/alarm=ON` eller `radon/value ≥
   RADON_THRESHOLD`. Alla enheter → `INTAKE` vid `LOW` (skonsamt friskluftsövertryck).
   Normala `/set`-kommandon undertrycks medan det är aktivt.
@@ -116,6 +118,8 @@ skydd upphör utför den en **exakt återställning**.
 | `RADON_THRESHOLD` | `100` | Bq/m³ tröskel för automatisk utlösning |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatisk daggpunkt + °C-hysteres |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | fil för basvärden / väntande återställningar (compose: `/data/local_bridge_state.json`); tom = endast minne |
+| `PENDING_RESTORE_TTL` | `86400` | hur länge en enhet som var offline vid frigivning fortfarande återställs (s) |
 | `HA_DISCOVERY` | `false` | publicera Home Assistant-discovery (behövs inte av appen) |
 
 ## Kvalitetssäkring
@@ -136,7 +140,7 @@ skydd upphör utför den en **exakt återställning**.
   radon-/väderindata äldre än `NC_INPUT_TTL` behandlas som okända; MQTT last-will +
   ren avstängning.
 - ✅ Säkerhet: inställning endast per enhet, aldrig en tyst ändring av master/slav-rollen; endast bekräftade koder; inga väderdata; ramar på 19 och 21 byte.
-- ✅ Regressionssvit: **116 enhets-/integrationstester** (`test_bridge.py`,
+- ✅ Regressionssvit: **156 enhets-/integrationstester** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Fullständig end-to-end genom en **riktig MQTT-mäklare** med en simulerad enhet
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + kommando + schema + radonskydd/-undertryckning/

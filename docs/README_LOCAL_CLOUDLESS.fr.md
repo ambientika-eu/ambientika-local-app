@@ -92,6 +92,8 @@ Priorité : **radon > point de rosée > normal**. Lors de la première transitio
 protection quelconque, le bridge enregistre le mode/ventilateur actuel de chaque appareil comme référence ; lorsque toutes
 les protections sont levées, il effectue une **restauration exacte**.
 
+Chaque restauration est **confirmée par l'état suivant de l'appareil**. S'il affiche encore un mode de protection (OFF / insufflation) — parce qu'il était hors ligne à la levée ou que sa connexion est tombée sans bruit — la restauration est renvoyée (au plus 3 fois, à 20 s d'intervalle minimum). S'il affiche un autre mode, quelqu'un l'a modifié entre-temps et ce choix prévaut. Avec `STATE_FILE`, cela survit à un **redémarrage du bridge** : une protection active le reste jusqu'au retour de l'entrée qui l'a déclenchée, au plus `NC_INPUT_TTL`.
+
 - **Protection radon** — se déclenche lorsque `radon/alarm=ON` ou `radon/value ≥
   RADON_THRESHOLD`. Tous les appareils → `INTAKE` à `LOW` (légère surpression d'air frais).
   Les commandes `/set` normales sont supprimées tant qu'elle est active.
@@ -118,6 +120,8 @@ les protections sont levées, il effectue une **restauration exacte**.
 | `RADON_THRESHOLD` | `100` | seuil de déclenchement automatique en Bq/m³ |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | point de rosée automatique + hystérésis en °C |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | fichier des valeurs de base / restaurations en attente (compose : `/data/local_bridge_state.json`) ; vide = mémoire seule |
+| `PENDING_RESTORE_TTL` | `86400` | durée pendant laquelle un appareil hors ligne à la levée est encore restauré (s) |
 | `HA_DISCOVERY` | `false` | publie le discovery Home Assistant (non requis par l'application) |
 
 ## Assurance qualité
@@ -137,7 +141,7 @@ les protections sont levées, il effectue une **restauration exacte**.
   malformées sont rejetées ; la reconnexion préserve l'état de l'appareil ; les entrées radon/weather
   plus anciennes que `NC_INPUT_TTL` sont traitées comme inconnues ; last-will MQTT + arrêt propre.
 - ✅ Sécurité : configuration uniquement par appareil, jamais de changement silencieux du rôle maître/esclave ; uniquement des codes confirmés ; pas de données météo ; trames de 19 et 21 octets.
-- ✅ Suite de régression : **116 tests unitaires/d'intégration** (`test_bridge.py`,
+- ✅ Suite de régression : **156 tests unitaires/d'intégration** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Test de bout en bout complet à travers un **broker MQTT réel** avec un appareil simulé
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open) : status + commande + programme + protection radon/suppression/

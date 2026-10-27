@@ -92,6 +92,8 @@ som helst beskyttelse gemmer bridgen hver enheds aktuelle tilstand/ventilator so
 udgangspunkt; når alle beskyttelser ophæves, udfører den en **nøjagtig
 gendannelse**.
 
+Hver gendannelse **bekræftes af enhedens næste status**. Viser den stadig en beskyttelsestilstand (FRA / indblæsning) — fordi den var offline ved frigivelsen eller forbindelsen faldt stille ud — sendes gendannelsen igen (højst 3 gange, mindst 20 s imellem). Viser den en anden tilstand, har nogen ændret den imens, og det gælder. Med `STATE_FILE` overlever det en **genstart af bridgen**: en aktiv beskyttelse forbliver aktiv, indtil det udløsende input melder sig igen, højst `NC_INPUT_TTL`.
+
 - **Radonbeskyttelse** — udløses, når `radon/alarm=ON` eller `radon/value ≥
   RADON_THRESHOLD`. Alle enheder → `INTAKE` ved `LOW` (blidt friskluft-overtryk).
   Normale `/set`-kommandoer undertrykkes, mens den er aktiv.
@@ -118,6 +120,8 @@ gendannelse**.
 | `RADON_THRESHOLD` | `100` | Bq/m³ tærskel for automatisk udløsning |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatisk dugpunkt + °C-hysterese |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | fil til basisværdier / ventende gendannelser (compose: `/data/local_bridge_state.json`); tom = kun hukommelse |
+| `PENDING_RESTORE_TTL` | `86400` | hvor længe en enhed, der var offline ved frigivelse, stadig gendannes (s) |
 | `HA_DISCOVERY` | `false` | publicér Home Assistant discovery (ikke nødvendig for appen) |
 
 ## Kvalitetssikring
@@ -138,7 +142,7 @@ gendannelse**.
   radon-/vejrinput ældre end `NC_INPUT_TTL` behandles som ukendt; MQTT last-will +
   ren nedlukning.
 - ✅ Sikkerhed: opsætning kun pr. enhed, aldrig stille ændring af master/slave-rollen; kun bekræftede koder; ingen vejrdata; rammer på 19 og 21 byte.
-- ✅ Regressionssuite: **116 unit-/integrationstest** (`test_bridge.py`,
+- ✅ Regressionssuite: **156 unit-/integrationstest** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Fuld end-to-end gennem en **rigtig MQTT-broker** med en simuleret enhed
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + kommando + skema + radonbeskyttelse/-undertrykkelse/

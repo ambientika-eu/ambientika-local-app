@@ -7,6 +7,17 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
 
 ### Behoben
 
+- **Lokale Bridge — Taupunkt/Radon: Gerät bleibt nach dem Schutz nicht mehr AUS.** Bisher wurden
+  bei der Freigabe nur verbundene Geräte zurückgesetzt; ein Gerät, das offline war oder dessen
+  Verbindung still abgerissen war, kam mit AUS bzw. Zuluft zurück und dieser Zustand wurde als
+  normal übernommen — ebenso nach einem Neustart der Bridge während des Schutzes. Jetzt wird jede
+  Wiederherstellung durch die nächste Statusmeldung bestätigt und bei Bedarf wiederholt (max. 3,
+  ≥ 20 s Abstand), auch über mehrere Schutzphasen (Radon und Taupunkt). Eine zwischenzeitliche
+  Änderung am Gerät oder ein Befehl mit Modus gilt. Mit `STATE_FILE` (Compose: Volume
+  `bridge-state`) bleibt ein aktiver Schutz nach einem Neustart aktiv, bis der auslösende Eingang
+  sich wieder meldet (Radonwert/manuelles Topic höchstens `NC_INPUT_TTL`); der Taupunkt-Latch
+  wird gespeichert. Ein Befehl während einer offenen Wiederherstellung wird ebenfalls erst durch
+  den Status bestätigt. Offene Wiederherstellungen verfallen nach `PENDING_RESTORE_TTL` (24 h).
 - **Lokale Bridge (Betrieb ohne Server) — Setup:** Beim Verbinden wurde jedem Gerät dasselbe
   Setup geschrieben (Master, Zone 0, Haus 1). Bei Anlagen mit mehreren Geräten hätte das die
   Master/Slave-Zuordnung und die Querlüftung überschrieben. Setup ist jetzt standardmäßig aus,
@@ -40,7 +51,7 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
   Rahmen wird nicht mehr als Status eines fremden Geräts gelesen (Kopfbyte 0x00, beim
   Resynchronisieren gleiche MAC). Schutzschaltungen (Radon/Taupunkt/Wiederherstellung) setzen
   bei unerwartetem Echo bestätigte Standardwerte statt den Schutz zu verweigern; als
-  Normalzustand wird nur ein bestätigter Zustand gemerkt (76 neue Tests in
+  Normalzustand wird nur ein bestätigter Zustand gemerkt (116 neue Tests in
   `test_safety_fixes.py`, fünf unabhängige Gegenprüfungen).
 - **PWA aus einem frischen Klon:** `docker compose up` lieferte unter `http://IP:8080` nur die
   API, weil `./frontend/dist` im Repo nicht existiert und als leeres Verzeichnis eingehängt

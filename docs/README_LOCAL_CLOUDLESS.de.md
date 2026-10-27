@@ -96,6 +96,17 @@ Schutz speichert die Bridge den aktuellen Modus/Lüfter jedes Geräts als
 Ausgangswert; sobald alle Schutzfunktionen aufgehoben sind, führt sie eine **exakte
 Wiederherstellung** durch.
 
+Jede Wiederherstellung wird **durch die nächste Statusmeldung des Geräts bestätigt**. Zeigt
+es noch einen Schutzmodus (AUS / Zuluft) — weil es bei der Freigabe offline war oder seine
+Verbindung still abgerissen ist —, wird erneut gesendet (höchstens 3-mal, mindestens 20 s
+Abstand). Zeigt es einen anderen Modus, hat es jemand in der Zwischenzeit verstellt; das gilt.
+Das funktioniert auch über mehrere Schutzphasen. Mit `STATE_FILE` übersteht es einen
+**Neustart der Bridge**: ein aktiver Schutz bleibt aktiv, bis der auslösende Eingang sich
+wieder meldet (Radonwert oder manuelles Topic: höchstens `NC_INPUT_TTL`). Der automatische
+Taupunkt-Latch wird gespeichert und hält wie im laufenden Betrieb, bis frische Wetterdaten das
+Lüften eindeutig erlauben. Offene Wiederherstellungen stehen in `pendingRestore` von
+`ambientika/neuracell/state`.
+
 - **Radon-Schutz** — löst aus, wenn `radon/alarm=ON` oder `radon/value ≥
   RADON_THRESHOLD`. Alle Geräte → `INTAKE` bei `LOW` (sanfter Frischluft-Überdruck).
   Normale `/set`-Befehle werden während der Aktivität unterdrückt.
@@ -122,6 +133,8 @@ Wiederherstellung** durch.
 | `RADON_THRESHOLD` | `100` | Bq/m³ Schwelle für automatisches Auslösen |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | automatischer Taupunkt + °C-Hysterese |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | Datei für Ausgangswerte / ausstehende Wiederherstellungen (Compose: `/data/local_bridge_state.json`); leer = nur im Speicher |
+| `PENDING_RESTORE_TTL` | `86400` | wie lange ein bei der Freigabe offline gewesenes Gerät noch zurückgesetzt wird (s) |
 | `HA_DISCOVERY` | `false` | Home Assistant Discovery veröffentlichen (von der App nicht benötigt) |
 
 ## Qualitätssicherung
@@ -153,7 +166,7 @@ Wiederherstellung** durch.
   fehlerhafte `weather`-Payloads werden abgelehnt; Reconnect erhält den
   Gerätezustand; Radon-/Wetter-Eingaben, die älter als `NC_INPUT_TTL` sind, werden
   als unbekannt behandelt; MQTT Last-Will + sauberes Herunterfahren.
-- ✅ Regressions-Suite: **116 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
+- ✅ Regressions-Suite: **156 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Vollständig end-to-end über einen **echten MQTT-Broker** mit einem simulierten
   Gerät (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): Status + Befehl + Zeitplan +

@@ -94,6 +94,16 @@ Priority: **radon > dew-point > normal**. On the first transition into any
 protection the bridge saves each unit's current mode/fan as a baseline; when all
 protections clear it performs an **exact restore**.
 
+Every restore is **confirmed by the unit's next status**. If the unit still shows a
+protective mode (OFF / INTAKE) — because it was offline at the release, or its connection
+died silently — the restore is sent again (at most 3 times, at least 20 s apart). If the unit
+shows any other mode, someone changed it in the meantime and that change wins. This also works
+across several protection phases. With `STATE_FILE` it survives a **restart of the bridge**:
+an active protection stays active until the input that caused it reports again (radon value or
+manual topic: at most `NC_INPUT_TTL`). The automatic dew-point latch is saved and, as during
+normal operation, holds until fresh weather data clearly allows ventilation. Open restores are listed in
+`pendingRestore` of `ambientika/neuracell/state`.
+
 - **Radon protection** — trips when `radon/alarm=ON` or `radon/value ≥
   RADON_THRESHOLD`. All units → `INTAKE` at `LOW` (gentle fresh-air overpressure).
   Normal `/set` commands are suppressed while active.
@@ -120,6 +130,8 @@ protections clear it performs an **exact restore**.
 | `RADON_THRESHOLD` | `100` | Bq/m³ auto-trip threshold |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | auto dew-point + °C hysteresis |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | restore file for baselines / pending restores (compose: `/data/local_bridge_state.json`); empty = memory only |
+| `PENDING_RESTORE_TTL` | `86400` | how long a unit offline at release is still restored (s) |
 | `HA_DISCOVERY` | `false` | publish Home Assistant discovery (not needed by the app) |
 
 ## Quality assurance
@@ -146,7 +158,7 @@ protections clear it performs an **exact restore**.
 - ✅ Robustness: TCP framing resyncs after a stray byte; malformed `weather`
   payloads rejected; reconnect preserves device state; radon/weather inputs
   older than `NC_INPUT_TTL` treated as unknown; MQTT last-will + clean shutdown.
-- ✅ Regression suite: **116 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
+- ✅ Regression suite: **156 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Full end-to-end through a **real MQTT broker** with a simulated unit
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + command + schedule + radon protect/suppress/

@@ -511,3 +511,453 @@ def test_U5_ping_inside_phantom_chain_does_not_end_the_resync():
 def test_V9_schedule_times_with_non_ascii_digits_do_not_raise():
     week = m.normalize_week({"mon": [{"start": "\u00b2:00", "end": "11:00", "mode": "SMART"}]})
     assert week["mon"][0]["start"] == "\u00b2:00"          # left untouched, no exception
+
+
+# ============================================================ R. RESTORE AFTER PROTECTION
+# After radon/dew-point protection every unit must get back to its real
+# previous mode — also when it was offline at the release, when its connection
+# died silently, across several protection phases and across a bridge restart.
+class Clock:
+    """Controls wall time (datetime + epoch) and the monotonic clock together."""
+    def __init__(self):
+        import datetime as dt
+        self.t = dt.datetime(2026, 10, 27, 12, 0)
+        self.mono = 1000.0
+        self.wall = 1_800_000_000.0
+
+    def __call__(self):
+        return self.t
+
+    def advance(self, seconds):
+        import datetime as dt
+        self.t += dt.timedelta(seconds=seconds)
+        self.mono += seconds
+        self.wall += seconds
+
+
+def _bridge(clock=None, **cfg_overrides):
+    clock = clock or Clock()
+    cfg = m.Config()
+    for k, v in cfg_overrides.items():
+        setattr(cfg, k, v)
+    b = m.LocalBridge(cfg, now_fn=clock, mono_fn=lambda: clock.mono, wall_fn=lambda: clock.wall)
+    b.mqtt = FakeMqtt()
+    b.loop = None
+    return b
+
+
+def _online(b, serial, mode, speed=1):
+    """Unit connected with a known status (as if it had just reported)."""
+    w = FakeWriter()
+    d = m.Device(serial, w)
+    d.last_status = {"x": 1}
+    d.raw_codes = {"mode": mode, "speed": speed, "humidity": 1, "light": 1}
+    b._status_seq += 1
+    d.status_seq = b._status_seq
+    b.devices[serial] = d
+    if b.protection == "NONE":
+        b.normal_codes[serial] = (mode, speed)
+    return w
+
+
+def _report(b, serial, mode, speed):
+    """The connected unit sends a new status (same connection)."""
+    d = b.devices[serial]
+    d.raw_codes = {"mode": mode, "speed": speed, "humidity": 1, "light": 1}
+    b._status_seq += 1
+    d.status_seq = b._status_seq
+    asyncio.run(b._neuracell_evaluate())
+
+
+def _dew(b, on):
+    asyncio.run(b._handle_control(["ambientika", "dewpoint", "block"], "ON" if on else "OFF"))
+
+
+def _radon(b, on):
+    asyncio.run(b._handle_control(["ambientika", "radon", "alarm"], "ON" if on else "OFF"))
+
+
+def _mf(w):
+    return [(f[9], f[10]) for f in modes(w.frames)]
+
+
+A, B = "AAAAAAAAAAAA", "BBBBBBBBBBBB"
+
+
+def test_R0_normal_case_restore_is_confirmed_by_next_status():
+    import json
+    b = _bridge()
+    wa = _online(b, A, 2, 1)
+    _dew(b, True); _dew(b, False)
+    assert _mf(wa) == [(11, 1), (2, 1)]
+    assert A in b.pending_restore                      # waits for confirmation
+    _report(b, A, 2, 1)
+    assert not b.pending_restore and b.normal_codes[A] == (2, 1) and A not in b.prot_modes
+    st = [json.loads(p[0][1]) for p in b.mqtt.pubs if p[0][0].endswith("neuracell/state")]
+    assert "pendingRestore" not in st[-1]
+
+
+def test_R1_unit_offline_at_release_is_restored_when_it_reports_back():
+    b = _bridge()
+    _online(b, A, 2, 1); _online(b, B, 3, 2)
+    _dew(b, True)
+    del b.devices[B]                                   # B goes offline while OFF
+    _dew(b, False)
+    w = run_conn(b, [build_status(serial=B, mode=11, speed=2)])
+    assert _mf(w) == [(3, 2)]                          # restored, not learned as OFF
+    assert b.normal_codes[B] == (3, 2)
+    w = run_conn(b, [build_status(serial=B, mode=3, speed=2)])
+    assert B not in b.pending_restore and _mf(w) == []
+
+
+def test_R2_unit_changed_meanwhile_is_not_overridden():
+    b = _bridge()
+    _online(b, B, 3, 2)
+    _dew(b, True); del b.devices[B]; _dew(b, False)
+    w = run_conn(b, [build_status(serial=B, mode=2, speed=0)])   # someone set HRV/LOW
+    assert _mf(w) == [] and B not in b.pending_restore and b.normal_codes[B] == (2, 0)
+
+
+def test_R3_new_trip_before_reconnect_keeps_the_real_baseline():
+    b = _bridge()
+    _online(b, B, 3, 2)
+    _dew(b, True); del b.devices[B]; _dew(b, False)
+    _dew(b, True)                                      # trips again while B is away
+    assert b.baseline[B] == (3, 2) and not b.pending_restore
+    w = _online(b, B, 11, 2)
+    asyncio.run(b._protect_new_device(b.devices[B]))
+    _dew(b, False)
+    assert _mf(w)[-1] == (3, 2)
+
+
+def test_R4_unconfirmed_restore_expires():
+    clock = Clock()
+    b = _bridge(clock, pending_restore_ttl=3600)
+    _online(b, B, 3, 2)
+    _dew(b, True); del b.devices[B]; _dew(b, False)
+    clock.advance(3601)
+    w = run_conn(b, [build_status(serial=B, mode=11, speed=2)])
+    assert _mf(w) == [] and not b.pending_restore
+
+
+def test_R5_only_an_explicit_mode_from_the_user_wins():
+    b = _bridge()
+    _online(b, B, 3, 2)
+    _dew(b, True); del b.devices[B]; _dew(b, False)
+    w = _online(b, B, 11, 2)
+    asyncio.run(b._handle_command(B, {"fanSpeed": 30}))          # no mode: still pending
+    assert B in b.pending_restore
+    asyncio.run(b._handle_command(B, {"mode": "SMART"}))
+    assert b.pending_restore[B]["target"][0] == 0 and b.normal_codes[B][0] == 0
+    assert _mf(w)[-1][0] == 0
+    _report(b, B, 0, b.pending_restore[B]["target"][1])          # unit confirms
+    assert B not in b.pending_restore
+
+
+def test_R6_radon_restore_recognises_intake():
+    b = _bridge()
+    _online(b, B, 3, 2)
+    _radon(b, True); del b.devices[B]; _radon(b, False)
+    w = run_conn(b, [build_status(serial=B, mode=8, speed=0)])
+    assert _mf(w) == [(3, 2)]
+
+
+def test_R7_no_blind_restore_for_a_unit_without_status():
+    b = _bridge()
+    _online(b, B, 3, 2)
+    _dew(b, True)
+    b.devices[B].last_status = {}                      # reconnected, firmware only
+    n = len(modes(b.devices[B].writer.frames))
+    _dew(b, False)
+    assert len(modes(b.devices[B].writer.frames)) == n and B in b.pending_restore
+
+
+@pytest.mark.parametrize("order", ["radon_then_dew", "dew_then_radon", "two_episodes"])
+def test_R13_several_protection_phases_while_offline(order):
+    """Review 6 F1: the unit still shows the mode of an EARLIER protection."""
+    b = _bridge()
+    _online(b, A, 2, 1); _online(b, B, 3, 2)
+    if order == "radon_then_dew":
+        _radon(b, True); _dew(b, True); del b.devices[B]; _radon(b, False); _dew(b, False)
+        shown = 8
+    elif order == "dew_then_radon":
+        _dew(b, True); del b.devices[B]; _radon(b, True); _dew(b, False); _radon(b, False)
+        shown = 11
+    else:
+        _radon(b, True); del b.devices[B]; _radon(b, False)
+        _dew(b, True); _dew(b, False)
+        shown = 8
+    w = run_conn(b, [build_status(serial=B, mode=shown, speed=0)])
+    assert _mf(w) == [(3, 2)], order
+
+
+def test_R14_silently_dead_connection_restore_is_repeated():
+    """Review 6 F2: the release write goes into a dead socket; the unit comes back
+    on a new connection still OFF -> restore is sent again."""
+    clock = Clock()
+    b = _bridge(clock)
+    old = _online(b, B, 3, 2)
+    _dew(b, True); _dew(b, False)
+    assert _mf(old)[-1] == (3, 2)                      # 'sent' (into the dead socket)
+    clock.advance(m.RESTORE_RETRY_MIN + 1)
+    w = run_conn(b, [build_status(serial=B, mode=11, speed=2)])
+    assert _mf(w) == [(3, 2)] and b.normal_codes.get(B) != (11, 2)
+
+
+def test_R15_retries_are_capped_and_spaced():
+    clock = Clock()
+    b = _bridge(clock)
+    w = _online(b, B, 3, 2)
+    _dew(b, True); _dew(b, False)                      # attempt 1
+    _report(b, B, 11, 2)                               # too soon: no resend
+    assert _mf(w).count((3, 2)) == 1
+    for _ in range(5):
+        clock.advance(m.RESTORE_RETRY_MIN + 1)
+        _report(b, B, 11, 2)
+    assert _mf(w).count((3, 2)) == m.RESTORE_MAX_ATTEMPTS
+    assert B in b.pending_restore and b.normal_codes.get(B) != (11, 2)
+
+
+def test_R16_restore_failed_write_is_retried_on_next_status():
+    b = _bridge()
+    _online(b, B, 3, 2)
+    _dew(b, True)
+
+    class Broken(FakeWriter):
+        def write(self, data):
+            raise ConnectionResetError("gone")
+    b.devices[B].writer = Broken()
+    _dew(b, False)
+    assert b.pending_restore[B]["attempts"] == 0
+    w = FakeWriter(); b.devices[B].writer = w
+    _report(b, B, 11, 2)
+    assert _mf(w) == [(3, 2)]
+
+
+# ---------------------------------------------------------------- restart
+def test_R8_restart_during_dewpoint_keeps_protection_until_data_says_clear(tmp_path):
+    state = str(tmp_path / "state.json")
+    clock = Clock()
+    b1 = _bridge(clock, state_file=state)
+    _online(b1, A, 2, 1); _online(b1, B, 3, 2)
+    _dew(b1, True)                                     # both OFF, bridge dies
+    clock.advance(30)
+    b2 = _bridge(clock, state_file=state)
+    assert b2.baseline == {A: (2, 1), B: (3, 2)} and "dew_manual" in b2._holds
+    asyncio.run(b2._neuracell_evaluate())              # input not back yet: hold
+    assert b2.protection == "DEWPOINT"
+    w = run_conn(b2, [build_status(serial=B, mode=11, speed=2)])
+    assert all(mode == 11 for mode, _ in _mf(w))       # stays protected
+    w = _online(b2, B, 11, 2)
+    asyncio.run(b2._protect_new_device(b2.devices[B]))
+    _dew(b2, False)                                    # manual topic answers: released
+    assert _mf(w)[-1] == (3, 2)                        # restored to the REAL mode
+
+
+def test_R9_restart_during_radon_holds_until_fresh_value(tmp_path):
+    state = str(tmp_path / "state.json")
+    clock = Clock()
+    b1 = _bridge(clock, state_file=state)
+    _online(b1, B, 3, 2)
+    asyncio.run(b1._handle_control(["ambientika", "radon", "value"], "500"))
+    assert b1.protection == "RADON"
+    b2 = _bridge(clock, state_file=state)
+    w = _online(b2, B, 8, 0)
+    clock.advance(121)                                 # no value yet: still RADON
+    asyncio.run(b2._neuracell_evaluate())
+    assert b2.protection == "RADON" and (3, 2) not in _mf(w)
+    asyncio.run(b2._protect_new_device(b2.devices[B]))
+    asyncio.run(b2._handle_control(["ambientika", "radon", "value"], "40"))
+    assert b2.protection == "NONE" and _mf(w)[-1] == (3, 2)
+
+
+def test_R17_radon_hold_falls_back_after_input_ttl(tmp_path):
+    state = str(tmp_path / "state.json")
+    clock = Clock()
+    b1 = _bridge(clock, state_file=state, nc_input_ttl=900)
+    _online(b1, B, 3, 2)
+    _radon(b1, True)
+    b2 = _bridge(clock, state_file=state, nc_input_ttl=900)
+    asyncio.run(b2._neuracell_evaluate())
+    assert b2.protection == "RADON"
+    clock.advance(901)
+    asyncio.run(b2._neuracell_evaluate())
+    assert b2.protection == "NONE" and B in b2.pending_restore
+
+
+def test_R18_pending_restore_survives_restart_with_its_age(tmp_path):
+    state = str(tmp_path / "state.json")
+    clock = Clock()
+    b1 = _bridge(clock, state_file=state, pending_restore_ttl=3600)
+    _online(b1, B, 3, 2)
+    _dew(b1, True); del b1.devices[B]; _dew(b1, False)
+    clock.advance(3000)                                 # bridge down for a while
+    b2 = _bridge(clock, state_file=state, pending_restore_ttl=3600)
+    assert B in b2.pending_restore and b2.prot_modes[B] == {11}
+    w = run_conn(b2, [build_status(serial=B, mode=11, speed=2)])
+    assert _mf(w) == [(3, 2)]
+    clock.advance(700)                                  # 3700 s total: expired
+    b3 = _bridge(clock, state_file=state, pending_restore_ttl=3600)
+    w = run_conn(b3, [build_status(serial=B, mode=11, speed=2)])
+    assert _mf(w) == []
+
+
+@pytest.mark.parametrize("content", [
+    "not json", "[]", "null", "{",
+    '{"protection": "DEWPOINT", "baseline": {"X": [99, 1]}}',
+    '{"pending": {"X": {"target": [3, true]}}}',
+    '{"pending": {"X": {"target": [3, 2], "age": "x"}}}',
+    '{"pending": {"X": {"target": [3, 2], "age": -5}}}',
+    '{"pending": "x", "baseline": [], "prot_modes": 5}',
+    '{"version": 1, "protection": "DEWPOINT", "baseline": {"BBBBBBBBBBBB": [3, 2]}}',
+    '{"version": 2, "pending": {"BBBBBBBBBBBB": {"target": [3, 2]}}, "prot_modes": {"BBBBBBBBBBBB": "11"}, "saved_at": true}',
+])
+def test_R10_broken_state_is_ignored_entry_by_entry(tmp_path, content):
+    p = tmp_path / "state.json"
+    p.write_text(content)
+    b = _bridge(state_file=str(p))
+    assert b.baseline == {}
+    assert b.pending_restore == {} or b.prot_modes == {}   # "11" is no list -> not {1}
+
+
+def test_R19_valid_entries_survive_a_broken_neighbour(tmp_path):
+    import json as _j
+    p = tmp_path / "state.json"
+    p.write_text(_j.dumps({"version": 2, "saved_at": 1_800_000_000.0, "pending": {
+        "AAAAAAAAAAAA": {"target": [3, 2], "age": 10},
+        "BBBBBBBBBBBB": {"target": "x"}}, "prot_modes": {"AAAAAAAAAAAA": [11]}}))
+    b = _bridge(state_file=str(p))
+    assert set(b.pending_restore) == {"AAAAAAAAAAAA"}
+
+
+def test_R20_state_written_with_fsync_and_readable(tmp_path):
+    import json as _j
+    state = tmp_path / "state.json"
+    b = _bridge(state_file=str(state))
+    _online(b, B, 3, 2)
+    _dew(b, True)
+    data = _j.loads(state.read_text())
+    assert data["version"] == 2 and data["baseline"] == {B: [3, 2]} and data["dew_latch"] is False
+    assert data["prot_modes"] == {B: [11]}
+
+
+def test_R21_restart_with_automatic_dewpoint_latch_holds_until_data(tmp_path):
+    """Review 6 F5: the hysteresis latch survives the restart."""
+    state = str(tmp_path / "state.json")
+    clock = Clock()
+    b1 = _bridge(clock, state_file=state, dewpoint_margin=1.0)
+    _online(b1, B, 3, 2)
+    b1.devices[B].last_status = {"x": 1, "dewPoint": 10.0}
+    asyncio.run(b1._handle_control(["ambientika", "weather"],
+                                   '{"temperature": 25, "humidity": 50}'))   # dp ~13.9
+    assert b1.protection == "DEWPOINT"
+    b2 = _bridge(clock, state_file=state, dewpoint_margin=1.0)
+    assert b2._dew_blocked
+    w = _online(b2, B, 11, 2)
+    b2.devices[B].last_status = {"x": 1, "dewPoint": 10.0}
+    asyncio.run(b2._protect_new_device(b2.devices[B]))
+    # outdoor 10.5 °C dew point: inside the ±1 K band -> stays blocked
+    asyncio.run(b2._handle_control(["ambientika", "weather"],
+                                   '{"temperature": 15.5, "humidity": 72}'))
+    assert b2.protection == "DEWPOINT" and (3, 2) not in _mf(w)
+
+
+def test_R22_garbage_radon_value_does_not_end_the_hold(tmp_path):
+    state = str(tmp_path / "state.json")
+    clock = Clock()
+    b1 = _bridge(clock, state_file=state)
+    _online(b1, B, 3, 2)
+    asyncio.run(b1._handle_control(["ambientika", "radon", "value"], "500"))
+    b2 = _bridge(clock, state_file=state)
+    asyncio.run(b2._handle_control(["ambientika", "radon", "value"], "abc"))
+    assert b2.protection == "RADON"
+
+
+def test_R23_trip_while_restore_open_uses_what_the_unit_reports():
+    """Unit offline at release, comes back in a mode someone set meanwhile and its
+    status trips a new protection at once: that mode is its baseline."""
+    b = _bridge()
+    _online(b, B, 8, 2)
+    _dew(b, True); del b.devices[B]; _dew(b, False)
+    w = _online(b, B, 5, 2)                            # reports SURVEILLANCE/HIGH
+    _dew(b, True)
+    assert b.baseline[B] == (5, 2)
+    _dew(b, False)
+    assert _mf(w)[-1] == (5, 2)
+
+
+# ---------------------------------------------------------------- review 7
+def test_R24_mode_written_on_reconnect_survives_a_restart(tmp_path):
+    """Review 7 F1: unit reconnects during a protection, gets OFF, bridge restarts."""
+    state = str(tmp_path / "state.json")
+    clock = Clock()
+    b1 = _bridge(clock, state_file=state)
+    _online(b1, A, 2, 1)
+    del b1.devices[A]
+    _dew(b1, True)                                    # A offline at the trip
+    _online(b1, A, 2, 1)
+    asyncio.run(b1._protect_new_device(b1.devices[A]))   # A reconnects -> OFF
+    b2 = _bridge(clock, state_file=state)
+    assert b2.prot_modes[A] == {11}
+    _dew(b2, False)                                   # released right at start
+    w = run_conn(b2, [build_status(serial=A, mode=11, speed=1)])
+    assert _mf(w) == [(2, 1)]
+
+
+@pytest.mark.parametrize("over", [{"dewpoint_enabled": False}, {}])
+def test_R25_loaded_protection_is_released_through_the_normal_path(tmp_path, over):
+    """Review 7 F2: if the first evaluation already says NONE, the saved
+    baseline must still be released (restore + confirmation)."""
+    state = str(tmp_path / "state.json")
+    clock = Clock()
+    b1 = _bridge(clock, state_file=state)
+    _online(b1, B, 3, 2)
+    b1.devices[B].last_status = {"x": 1, "dewPoint": 10.0}
+    asyncio.run(b1._handle_control(["ambientika", "weather"],
+                                   '{"temperature": 25, "humidity": 50}'))  # auto DEWPOINT
+    assert b1.protection == "DEWPOINT"
+    b2 = _bridge(clock, state_file=state, **over)
+    assert b2.protection == "DEWPOINT"                # resumed in the protection
+    w = _online(b2, B, 11, 2)
+    b2._dew_blocked = False if over else b2._dew_blocked
+    if not over:
+        b2.devices[B].last_status = {"x": 1, "dewPoint": 10.0}
+        asyncio.run(b2._handle_control(["ambientika", "weather"],
+                                       '{"temperature": 5, "humidity": 40}'))  # clearly dry
+    else:
+        asyncio.run(b2._neuracell_evaluate())
+    assert b2.protection == "NONE" and _mf(w)[-1] == (3, 2) and not b2.baseline
+
+
+def test_R26_neuracell_disabled_does_not_load_protection(tmp_path):
+    state = str(tmp_path / "state.json")
+    b1 = _bridge(state_file=state)
+    _online(b1, B, 3, 2)
+    _dew(b1, True)
+    b2 = _bridge(state_file=state, neuracell_enabled=False)
+    assert b2.protection == "NONE" and not b2.baseline and not b2.pending_restore
+
+
+def test_R27_unreadable_mode_in_status_keeps_the_restore_open():
+    b = _bridge()
+    _online(b, B, 3, 2)
+    _dew(b, True); del b.devices[B]; _dew(b, False)
+    run_conn(b, [build_status(serial=B, mode=12, speed=2)])
+    assert B in b.pending_restore
+    w = run_conn(b, [build_status(serial=B, mode=11, speed=2)])
+    assert _mf(w) == [(3, 2)]
+
+
+def test_R28_user_command_into_dead_socket_is_still_confirmed():
+    """Review 7 F4: the user's command becomes the target and is confirmed."""
+    clock = Clock()
+    b = _bridge(clock)
+    _online(b, B, 3, 2)
+    _dew(b, True); del b.devices[B]; _dew(b, False)
+    _online(b, B, 11, 2)
+    b.pending_restore[B]["seq"] = b.devices[B].status_seq
+    asyncio.run(b._handle_command(B, {"mode": "HRV", "fanSpeed": 100}))   # into the void
+    assert b.pending_restore[B]["target"] == (2, 2)
+    clock.advance(m.RESTORE_RETRY_MIN + 1)
+    w = run_conn(b, [build_status(serial=B, mode=11, speed=2)])          # still OFF
+    assert _mf(w) == [(2, 2)]

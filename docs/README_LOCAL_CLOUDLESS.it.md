@@ -92,6 +92,8 @@ Priorità: **radon > punto di rugiada > normale**. Alla prima transizione verso 
 protezione il bridge salva la modalità/ventola corrente di ciascuna unità come baseline; quando tutte
 le protezioni si azzerano esegue un **ripristino esatto**.
 
+Ogni ripristino viene **confermato dallo stato successivo dell'unità**. Se l'unità mostra ancora una modalità di protezione (OFF / immissione) — perché era offline al rilascio o la connessione è caduta senza avviso — il ripristino viene ripetuto (max 3 volte, almeno 20 s di distanza). Se mostra un'altra modalità, qualcuno l'ha cambiata nel frattempo e vale quella. Con `STATE_FILE` funziona anche dopo un **riavvio del bridge**: una protezione attiva resta attiva finché l'ingresso che l'ha causata non si ripresenta, al massimo `NC_INPUT_TTL`.
+
 - **Protezione dal radon** — si attiva quando `radon/alarm=ON` oppure `radon/value ≥
   RADON_THRESHOLD`. Tutte le unità → `INTAKE` a `LOW` (leggera sovrapressione di aria fresca).
   I normali comandi `/set` vengono soppressi mentre è attiva.
@@ -118,6 +120,8 @@ le protezioni si azzerano esegue un **ripristino esatto**.
 | `RADON_THRESHOLD` | `100` | soglia di attivazione automatica Bq/m³ |
 | `DEWPOINT_ENABLED` / `DEWPOINT_MARGIN` | `true` / `1.0` | punto di rugiada automatico + isteresi °C |
 | `RADON_PROTECT_MODE` / `RADON_PROTECT_FAN` | `8` / `0` | INTAKE / LOW |
+| `STATE_FILE` | — | file per valori di base / ripristini in sospeso (compose: `/data/local_bridge_state.json`); vuoto = solo in memoria |
+| `PENDING_RESTORE_TTL` | `86400` | per quanto tempo un'unità offline al rilascio viene ancora ripristinata (s) |
 | `HA_DISCOVERY` | `false` | pubblica il discovery di Home Assistant (non necessario per l'app) |
 
 ## Garanzia di qualità
@@ -137,7 +141,7 @@ le protezioni si azzerano esegue un **ripristino esatto**.
   malformati vengono rifiutati; la riconnessione preserva lo stato del dispositivo; gli input radon/weather
   più vecchi di `NC_INPUT_TTL` vengono trattati come sconosciuti; last-will MQTT + arresto pulito.
 - ✅ Sicurezza: configurazione solo per singola unità, mai un cambio silenzioso del ruolo master/slave; solo codici confermati; nessun dato meteo; frame da 19 e 21 byte.
-- ✅ Suite di regressione: **116 test unitari/di integrazione** (`test_bridge.py`,
+- ✅ Suite di regressione: **156 test unitari/di integrazione** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Test end-to-end completo attraverso un **broker MQTT reale** con un'unità simulata
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + comando + programma + protezione radon/soppressione/
