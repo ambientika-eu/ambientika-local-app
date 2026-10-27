@@ -109,7 +109,10 @@ referência; quando todas as proteções cessam, executa um **restauro exato**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefixo do tópico (manter `ambientika` para corresponder à app) |
 | `LOCAL_TCP_PORT` | `11000` | porta a que os dispositivos se ligam |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | configuração enviada ao ligar |
+| `SETUP_DEVICES` | — | configuração por unidade; **sem entrada não é escrita nenhuma configuração** — funções e zonas da app oficial ficam inalteradas. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | uma configuração que alteraria a função mestre/escravo comunicada é recusada sem `true` |
+| `SEND_SETUP` | `false` | configuração global antiga, só para **uma unidade**; nunca altera uma função comunicada |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | destino da configuração global antiga (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | executor do programa |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | controlador de rádon+ponto de orvalho |
 | `RADON_THRESHOLD` | `100` | limiar de disparo automático em Bq/m³ |

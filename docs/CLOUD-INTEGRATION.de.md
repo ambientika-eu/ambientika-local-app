@@ -127,6 +127,10 @@ oder, auf dem Bridge-Host: `sudo tcpdump -ni any tcp port 11000`.
 
 ## 3. Methode B — BLE-Neu-Provisioning (pro Gerät)
 
+> Das Gerät **zuerst** mit der offiziellen Ambientika-App in Betrieb nehmen (Rollen,
+> Zonen, Haus). Die lokale Bridge schreibt kein Setup, solange das Gerät nicht in
+> `SETUP_DEVICES` eingetragen ist.
+
 Schreiben Sie das Ziel direkt über Bluetooth LE in das Gerät. Gezielt (ein Gerät
 nach dem anderen), erfordert keine Router-Änderungen.
 

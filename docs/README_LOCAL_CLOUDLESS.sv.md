@@ -107,7 +107,10 @@ skydd upphör utför den en **exakt återställning**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | mäklare |
 | `MQTT_PREFIX` | `ambientika` | topic-prefix (behåll `ambientika` för att matcha appen) |
 | `LOCAL_TCP_PORT` | `11000` | port som enheterna ansluter till |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | konfiguration som skickas vid anslutning |
+| `SETUP_DEVICES` | — | inställning per enhet; **utan post skrivs ingen inställning** — roller och zoner från den officiella appen lämnas orörda. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | en inställning som skulle ändra den rapporterade master/slav-rollen avvisas utan `true` |
+| `SEND_SETUP` | `false` | gammal global inställning, endast för **en enhet**; ändrar aldrig en rapporterad roll |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | mål för den gamla globala inställningen (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schemakörare |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon- och daggpunktsstyrning |
 | `RADON_THRESHOLD` | `100` | Bq/m³ tröskel för automatisk utlösning |

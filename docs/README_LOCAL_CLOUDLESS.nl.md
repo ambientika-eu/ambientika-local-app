@@ -107,7 +107,10 @@ beschermingen zijn opgeheven, voert hij een **exact herstel** uit.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic-prefix (houd `ambientika` aan om bij de app te passen) |
 | `LOCAL_TCP_PORT` | `11000` | poort waarmee de toestellen verbinden |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | setup verstuurd bij verbinden |
+| `SETUP_DEVICES` | — | setup per unit; **zonder vermelding wordt geen setup geschreven** — rollen en zones uit de officiële app blijven ongewijzigd. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | een setup die de gemelde master/slave-rol zou wijzigen wordt zonder `true` geweigerd |
+| `SEND_SETUP` | `false` | oude globale setup, alleen voor **één unit**; wijzigt nooit een gemelde rol |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | doel van de oude globale setup (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schema-uitvoerder |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dauwpunt-controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ auto-activeringsdrempel |

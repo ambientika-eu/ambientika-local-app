@@ -26,8 +26,10 @@ def make_bridge():
 
 
 def test_handle_conn_processes_status_and_sends_setup():
+    # Global setup is opt-in since the setup-safety fix: enable it explicitly.
     async def run():
         b = make_bridge()
+        b.cfg.send_setup = True
         w = FakeWriter()
         r = FakeReader([build_status(mode=0, speed=1)])
         await b._handle_conn(r, w)

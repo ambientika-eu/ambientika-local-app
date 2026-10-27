@@ -109,7 +109,10 @@ le protezioni si azzerano esegue un **ripristino esatto**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefisso dei topic (mantenere `ambientika` per corrispondere all'app) |
 | `LOCAL_TCP_PORT` | `11000` | porta a cui si connettono le unità |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | configurazione inviata alla connessione |
+| `SETUP_DEVICES` | — | configurazione per singola unità; **senza voce non viene scritta alcuna configurazione** — ruoli e zone dell'app ufficiale restano invariati. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | una configurazione che cambierebbe il ruolo master/slave segnalato viene rifiutata senza `true` |
+| `SEND_SETUP` | `false` | vecchia configurazione globale, solo per **una singola unità**; non cambia mai un ruolo segnalato |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | destinazione della vecchia configurazione globale (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | esecutore del programma |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | controller radon + punto di rugiada |
 | `RADON_THRESHOLD` | `100` | soglia di attivazione automatica Bq/m³ |

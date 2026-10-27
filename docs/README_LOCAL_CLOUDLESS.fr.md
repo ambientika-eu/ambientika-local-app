@@ -109,7 +109,10 @@ les protections sont levées, il effectue une **restauration exacte**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | préfixe des topics (conserver `ambientika` pour correspondre à l'application) |
 | `LOCAL_TCP_PORT` | `11000` | port auquel les appareils se connectent |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | configuration envoyée à la connexion |
+| `SETUP_DEVICES` | — | configuration par appareil ; **sans entrée, aucune configuration n'est écrite** — rôles et zones de l'app officielle inchangés. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | une configuration qui changerait le rôle maître/esclave signalé est refusée sans `true` |
+| `SEND_SETUP` | `false` | ancienne configuration globale, **un seul appareil** uniquement ; ne change jamais un rôle signalé |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | cible de l'ancienne configuration globale (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | exécuteur du programme |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | contrôleur radon + point de rosée |
 | `RADON_THRESHOLD` | `100` | seuil de déclenchement automatique en Bq/m³ |

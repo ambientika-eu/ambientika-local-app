@@ -51,8 +51,13 @@ services:
       MQTT_PREFIX: ambientika
       LOCAL_TCP_PORT: 11000
       HA_DISCOVERY: "false"  # the local-app does not need HA discovery
+      # Setup frames are off unless a unit is listed in SETUP_DEVICES
+      # (JSON per serial) — roles/zones from the official app stay untouched.
+      SETUP_DEVICES: ${SETUP_DEVICES:-}
+      SETUP_ALLOW_ROLE_CHANGE: ${SETUP_ALLOW_ROLE_CHANGE:-false}
+      SEND_SETUP: ${SEND_SETUP:-false}   # legacy global setup, single unit only
       HOUSE_ID: "1"
-      DEVICE_ROLE: "0"       # 0 = MASTER (single-master default)
+      DEVICE_ROLE: "0"       # target of the legacy global setup
       DEVICE_ZONE: "0"
       LOG_LEVEL: INFO
 

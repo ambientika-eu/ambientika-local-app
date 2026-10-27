@@ -53,6 +53,10 @@ docker compose -f docker-compose.local.yml up -d --build
 
 ## Point the units at this host (required, one-time)
 
+> **Commission first with the official Ambientika app** (pairing, rooms, zones,
+> master/slave roles). The local bridge operates units that are already set up; it
+> does not write roles or zones unless you list a unit in `SETUP_DEVICES`.
+
 The units connect to whatever host was written during BLE provisioning:
 
 1. **BLE re-provisioning:** write `H_<host-ip>:11000`, `S_<ssid>`,
@@ -107,7 +111,10 @@ protections clear it performs an **exact restore**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic prefix (keep `ambientika` to match the app) |
 | `LOCAL_TCP_PORT` | `11000` | port the units connect to |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | setup pushed on connect |
+| `SETUP_DEVICES` | *(empty)* | per-unit setup, JSON `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}`. **Without an entry no setup frame is written** — roles and zones set by the official app stay untouched |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | a setup that would change the master/slave role the unit reports is refused unless `true` |
+| `SEND_SETUP` | `false` | legacy global setup with `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` for **single-unit** setups only; still never changes a reported role |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | target of the legacy global setup (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schedule executor |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dew-point controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ auto-trip threshold |
@@ -118,7 +125,15 @@ protections clear it performs an **exact restore**.
 ## Quality assurance
 
 - ✅ Wire codec byte-for-byte against the protocol specification (temperature & RSSI decoded
-  **signed**).
+  **signed**). Status frames of **19 bytes** (radio firmware 0.0.11 and older, no light
+  sensor / RSSI) and **21 bytes** are both handled; the length comes from the firmware frame
+  or, failing that, from the byte stream — the 19-byte layout only on positive evidence.
+- ✅ Only confirmed wire codes are written (mode 0–11, fan 0–3, humidity 0–2, light 0–3);
+  anything else is refused and logged. No setup frame unless configured per unit, never a
+  silent master/slave change.
+- ✅ **No outdoor-weather data is sent** to the units (in cloud mode the server pushes it for
+  the SMART mode; the format is not confirmed by the manufacturer, and a wrong packet would
+  make the unit regulate on invented values). Unknown frame types from a unit are logged.
 - ✅ App-vocabulary round-trip (mode names, fanSpeed %, dew point).
 - ✅ Weekly schedule: edge-trigger applies slots once; no-op otherwise; times
   normalised to `HH:MM`.
@@ -131,7 +146,7 @@ protections clear it performs an **exact restore**.
 - ✅ Robustness: TCP framing resyncs after a stray byte; malformed `weather`
   payloads rejected; reconnect preserves device state; radon/weather inputs
   older than `NC_INPUT_TTL` treated as unknown; MQTT last-will + clean shutdown.
-- ✅ Regression suite: **40 unit/integration tests** (`test_bridge.py`,
+- ✅ Regression suite: **90 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Full end-to-end through a **real MQTT broker** with a simulated unit
   (`smoke_test.py`, 13/13): status + command + schedule + radon protect/suppress/

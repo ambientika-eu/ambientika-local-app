@@ -109,7 +109,10 @@ Wiederherstellung** durch.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | Broker |
 | `MQTT_PREFIX` | `ambientika` | Topic-Präfix (`ambientika` beibehalten, damit es zur App passt) |
 | `LOCAL_TCP_PORT` | `11000` | Port, mit dem sich die Geräte verbinden |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | Setup, das beim Verbinden gesendet wird |
+| `SETUP_DEVICES` | *(leer)* | Setup pro Gerät, JSON `{"<SERIENNR>": {"role": 0, "zone": 0, "house": 1}}`. **Ohne Eintrag wird kein Setup geschrieben** — Rollen und Zonen aus der offiziellen App bleiben unangetastet |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | ein Setup, das die vom Gerät gemeldete Master/Slave-Rolle ändern würde, wird ohne `true` verweigert |
+| `SEND_SETUP` | `false` | altes globales Setup mit `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE`, nur für **Einzelgeräte**; ändert eine gemeldete Rolle trotzdem nie |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | Ziel des alten globalen Setups (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | Zeitplan-Ausführer |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | Radon+Taupunkt-Controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ Schwelle für automatisches Auslösen |
@@ -121,6 +124,16 @@ Wiederherstellung** durch.
 
 - ✅ Wire-Codec byte-für-byte gegen die Protokollspezifikation (Temperatur & RSSI
   **vorzeichenbehaftet** dekodiert).
+- ✅ Statusrahmen mit **19 Byte** (Funk-Firmware 0.0.11 und älter, ohne Lichtsensor/RSSI)
+  und **21 Byte** werden beide verarbeitet; die Länge kommt aus dem Firmware-Rahmen oder
+  ersatzweise aus dem Datenstrom — 19 Byte nur bei eindeutigem Nachweis.
+- ✅ Es werden nur bestätigte Codes gesendet (Modus 0–11, Lüfter 0–3, Feuchte 0–2, Licht 0–3),
+  alles andere wird verweigert und protokolliert. Kein Setup ohne Eintrag pro Gerät, nie ein
+  stiller Wechsel Master/Slave.
+- ✅ **Es werden keine Außenwetterdaten** an die Geräte gesendet (im Cloud-Betrieb schickt sie
+  der Server für den SMART-Modus; das Format ist vom Hersteller nicht bestätigt, ein falsches
+  Paket würde das Gerät auf erfundene Werte regeln lassen). Unbekannte Rahmentypen vom Gerät
+  werden protokolliert.
 - ✅ App-Vokabular-Round-Trip (Modusnamen, fanSpeed %, Taupunkt).
 - ✅ Wochenzeitplan: Flankentrigger wendet Slots einmal an; sonst keine Aktion;
   Zeiten normalisiert auf `HH:MM`.
@@ -136,7 +149,7 @@ Wiederherstellung** durch.
   fehlerhafte `weather`-Payloads werden abgelehnt; Reconnect erhält den
   Gerätezustand; Radon-/Wetter-Eingaben, die älter als `NC_INPUT_TTL` sind, werden
   als unbekannt behandelt; MQTT Last-Will + sauberes Herunterfahren.
-- ✅ Regressions-Suite: **40 Unit-/Integrationstests** (`test_bridge.py`,
+- ✅ Regressions-Suite: **90 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Vollständig end-to-end über einen **echten MQTT-Broker** mit einem simulierten
   Gerät (`smoke_test.py`, 13/13): Status + Befehl + Zeitplan +

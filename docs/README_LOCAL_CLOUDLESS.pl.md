@@ -108,7 +108,10 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefiks tematów (zachowaj `ambientika`, aby pasował do aplikacji) |
 | `LOCAL_TCP_PORT` | `11000` | port, z którym łączą się urządzenia |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | konfiguracja wysyłana przy połączeniu |
+| `SETUP_DEVICES` | — | konfiguracja dla każdego urządzenia; **bez wpisu żadna konfiguracja nie jest zapisywana** — role i strefy z oficjalnej aplikacji pozostają bez zmian. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | konfiguracja, która zmieniłaby zgłaszaną rolę master/slave, jest odrzucana bez `true` |
+| `SEND_SETUP` | `false` | stara konfiguracja globalna, tylko dla **jednego urządzenia**; nigdy nie zmienia zgłaszanej roli |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | cel starej konfiguracji globalnej (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | wykonawca harmonogramu |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | kontroler radonu i punktu rosy |
 | `RADON_THRESHOLD` | `100` | próg automatycznego wyzwolenia w Bq/m³ |

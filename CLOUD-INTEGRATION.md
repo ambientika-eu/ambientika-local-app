@@ -117,6 +117,10 @@ or, on the bridge host: `sudo tcpdump -ni any tcp port 11000`.
 
 ## 3. Method B — BLE re-provisioning (per unit)
 
+> Commission the unit with the official Ambientika app **first** (roles, zones, house).
+> The local bridge does not write a setup frame unless the unit is listed in
+> `SETUP_DEVICES`.
+
 Write the target directly into the unit over Bluetooth LE. Targeted (one unit at
 a time), needs no router changes.
 

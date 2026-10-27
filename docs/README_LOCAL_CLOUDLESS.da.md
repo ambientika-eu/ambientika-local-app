@@ -109,7 +109,10 @@ gendannelse**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic-præfiks (behold `ambientika` for at matche appen) |
 | `LOCAL_TCP_PORT` | `11000` | port, som enhederne forbinder til |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | opsætning sendt ved tilslutning |
+| `SETUP_DEVICES` | — | opsætning pr. enhed; **uden post skrives ingen opsætning** — roller og zoner fra den officielle app forbliver uændrede. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_ALLOW_ROLE_CHANGE` | `false` | en opsætning, der ville ændre den rapporterede master/slave-rolle, afvises uden `true` |
+| `SEND_SETUP` | `false` | gammel global opsætning, kun til **én enhed**; ændrer aldrig en rapporteret rolle |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | mål for den gamle globale opsætning (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | skema-udfører |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dugpunkt-controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ tærskel for automatisk udløsning |

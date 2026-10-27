@@ -119,7 +119,8 @@ def test_serial_roundtrip():
 
 def test_decode_status_short_buffer_raises():
     # A truncated status frame should not silently produce garbage.
-    with pytest.raises(IndexError):
+    # (Since the 19/21-byte fix the codec rejects unknown lengths explicitly.)
+    with pytest.raises((ValueError, IndexError)):
         m.decode_status(bytes([0x01, 0x00, 0xAA]))
 
 
