@@ -5,6 +5,8 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
 
 ## [Unreleased]
 
+## [1.2.0] – 2026-10-27 – Sicherheitsupdate lokale Bridge, Free-Cooling-Wächter
+
 ### Behoben
 
 - **Lokale Bridge — Taupunkt/Radon: Gerät bleibt nach dem Schutz nicht mehr AUS.** Bisher wurden
