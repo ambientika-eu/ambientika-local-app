@@ -38,7 +38,7 @@ def make_bridge(**cfg_overrides):
 
 
 def setups(frames):
-    return [f for f in frames if len(f) == 16 and f[:2] == b"\x02\x00" and f[8] == 0x00]
+    return [f for f in frames if len(f) == 15 and f[:2] == b"\x02\x00" and f[8] == 0x00]
 
 
 def modes(frames):
@@ -118,22 +118,29 @@ def test_S6_reconnect_decides_again_and_stays_protected():
 
 @pytest.mark.parametrize("raw", [
     "not json",
-    '{"AABBCCDDEEFF": {"role": 9}}',                 # invalid role
-    '{"AABBCCDDEEFF": {"role": "0"}}',               # not an integer
-    '{"AABBCCDDEEFF": {"role": true}}',              # bool is not a role
-    '{"AABBCCDDEEFF": {"role": 0.0}}',               # float
-    '{"AABBCCDDEEFF": {"zone": 1}}',                 # role is mandatory
-    '{"AABBCCDDEEFF": {"role": 0, "zone": 300}}',    # zone out of range
-    '{"AABBCCDDEEFF": {"role": 0, "house": -1}}',    # house out of range
-    '{"AA:BB:CC:DD:EE:FF": {"role": 0}}',            # not 12 hex chars
+    '{"AABBCCDDEEFF": {"role": 9, "zone": 0, "house": 1}}',      # invalid role
+    '{"AABBCCDDEEFF": {"role": "0", "zone": 0, "house": 1}}',    # not an integer
+    '{"AABBCCDDEEFF": {"role": true, "zone": 0, "house": 1}}',   # bool is not a role
+    '{"AABBCCDDEEFF": {"role": 0.0, "zone": 0, "house": 1}}',    # float
+    '{"AABBCCDDEEFF": {"zone": 1, "house": 1}}',                 # role is mandatory
+    '{"AABBCCDDEEFF": {"role": 0, "house": 1}}',                 # zone is mandatory
+    '{"AABBCCDDEEFF": {"role": 0, "zone": 0}}',                  # house is mandatory
+    '{"AABBCCDDEEFF": {"role": 0, "zone": 16, "house": 1}}',     # zone is 4 bits
+    '{"AABBCCDDEEFF": {"role": 0, "zone": 0, "house": -1}}',     # house out of range
+    '{"AA:BB:CC:DD:EE:FF": {"role": 0, "zone": 0, "house": 1}}', # not 12 hex chars
+    '{"AABBCCDDEEFF": null}', '{"AABBCCDDEEFF": []}',
 ])
 def test_S7_setup_devices_parsing_is_defensive(raw):
     assert m.parse_setup_devices(raw) == {}
 
 
 def test_S7b_setup_devices_valid_entry():
-    got = m.parse_setup_devices('{" aabbccddeeff ": {"role": 2, "zone": 1}}')
-    assert got == {"AABBCCDDEEFF": m.SetupTarget(2, 1, 1)}
+    got = m.parse_setup_devices('{" aabbccddeeff ": {"role": 2, "zone": 1, "house": 12048}}')
+    assert got == {"AABBCCDDEEFF": m.SetupTarget(2, 1, 12048)}
+    # same serial twice (case differs): the first entry wins, the second is logged
+    dup = m.parse_setup_devices('{"AABBCCDDEEFF": {"role": 0, "zone": 1, "house": 5},'
+                                ' "aabbccddeeff": {"role": 2, "zone": 2, "house": 6}}')
+    assert dup == {"AABBCCDDEEFF": m.SetupTarget(0, 1, 5)}
 
 
 @pytest.mark.parametrize("over", [{"setup_role": 7}, {"setup_zone": 256},
@@ -242,9 +249,24 @@ def test_V2_confirmed_codes_still_sent(payload, mode):
     assert f[9] == mode
 
 
-def test_V3_garbage_echo_from_device_is_not_written_back():
-    b, w = _bridge_with_device(raw={"mode": 0, "speed": 1, "humidity": 7, "light": 1})
+def test_V3_garbage_echo_from_device_is_replaced_not_written_back():
+    b, w = _bridge_with_device(raw={"mode": 0, "speed": 1, "humidity": 7, "light": 9})
     asyncio.run(b._handle_command("AABBCCDDEEFF", {"mode": "NIGHT"}))
+    (f,) = modes(w.frames)
+    assert (f[9], f[11], f[12]) == (3, 1, m.LEGACY_LIGHT_CODE)   # NIGHT, NORMAL, OFF
+
+
+def test_V3b_explicit_invalid_humidity_is_still_refused():
+    b, w = _bridge_with_device()
+    asyncio.run(b._handle_command("AABBCCDDEEFF", {"mode": "NIGHT", "humidityLevel": 7}))
+    assert modes(w.frames) == []
+
+
+@pytest.mark.parametrize("payload", [{"fanSpeed": float("nan")}, {"fanSpeed": float("inf")},
+                                     ["SMART"], "SMART", None])
+def test_V6_unreadable_payload_is_refused_without_crash(payload):
+    b, w = _bridge_with_device()
+    asyncio.run(b._handle_command("AABBCCDDEEFF", payload))
     assert modes(w.frames) == []
 
 
@@ -353,3 +375,60 @@ def test_P5_normal_state_learned_from_mode_and_speed_only():
     b = make_bridge()
     run_conn(b, [build_status(mode=8, speed=2, light=4)])
     assert b.normal_codes["AABBCCDDEEFF"] == (8, 2)
+
+
+# ============================================================ review pass 3
+def test_S10_setup_frame_uses_15_byte_cloud_format():
+    f = m.encode_setup("AABBCCDDEEFF", role=2, zone=3, house_id=12048)
+    assert f == bytes.fromhex("0200AABBCCDDEEFF" "00" "02" "03") + (12048).to_bytes(4, "little")
+
+
+def test_S11_undocumented_reported_role_gets_no_setup():
+    b = make_bridge(setup_allow_role_change=True, setup_devices=m.parse_setup_devices(
+        '{"AABBCCDDEEFF": {"role": 0, "zone": 0, "house": 1}}'))
+    w = run_conn(b, [build_status(role=0xFF)])
+    assert setups(w.frames) == []
+
+
+def test_U3b_phantom_split_across_reads_cannot_lock_out_the_real_unit():
+    """Review pass 3: junk with '01 00 <other MAC>' whose read ends inside it."""
+    b = make_bridge()
+    junk = bytes.fromhex("0700112233445501000000")
+    real = firmware_frame(radio=(0, 0, 28)) + b"".join(
+        build_status(temp=t) for t in (20, 21, 22, 23, 24))
+    data = junk + real
+    for cut in range(1, 40):
+        b = make_bridge()
+        run_conn(b, [data[:cut], data[cut:]])
+        temps = [s["temperature"] for s in published_status(b)]
+        assert temps[-4:] == [21, 22, 23, 24], cut
+
+
+def test_F11_master_pings_are_consumed_silently():
+    b = make_bridge()
+    ping = bytes.fromhex("0400AABBCCDDEEFF")
+    w = run_conn(b, [build_status(temp=20) + ping + build_status(temp=21) + ping])
+    assert [s["temperature"] for s in published_status(b)] == [20, 21]
+    assert w.frames == []
+
+
+def test_F12_legacy_proof_also_accepts_a_following_ping():
+    b = make_bridge()
+    ping = bytes.fromhex("0400AABBCCDDEEFF")
+    run_conn(b, [legacy_status(temp=18) + ping + legacy_status(temp=19) + ping])
+    assert [s["temperature"] for s in published_status(b)] == [18, 19]
+
+
+def test_P6_no_baseline_before_first_status():
+    b, w = _bridge_with_device()
+    dev = b.devices["AABBCCDDEEFF"]
+    assert dev.last_status == {}
+    assert b._baseline_for(dev) is None
+
+
+def test_P7_protected_devices_lists_every_unit_under_protection():
+    import json
+    b, w = _bridge_with_device()
+    asyncio.run(b._handle_control(["ambientika", "radon", "alarm"], "ON"))
+    st = [json.loads(p[0][1]) for p in b.mqtt.pubs if p[0][0].endswith("neuracell/state")]
+    assert st[-1]["protectedDevices"] == ["AABBCCDDEEFF"]

@@ -109,7 +109,7 @@ gendannelse**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic-præfiks (behold `ambientika` for at matche appen) |
 | `LOCAL_TCP_PORT` | `11000` | port, som enhederne forbinder til |
-| `SETUP_DEVICES` | — | opsætning pr. enhed; **uden post skrives ingen opsætning** — roller og zoner fra den officielle app forbliver uændrede. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_DEVICES` | — | opsætning pr. enhed; **uden post skrives ingen opsætning** — roller og zoner fra den officielle app forbliver uændrede. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | en opsætning, der ville ændre den rapporterede master/slave-rolle, afvises uden `true` |
 | `SEND_SETUP` | `false` | gammel global opsætning, kun til **én enhed**; ændrer aldrig en rapporteret rolle |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | mål for den gamle globale opsætning (`SEND_SETUP=true`) |
@@ -137,7 +137,8 @@ gendannelse**.
   `weather`-payloads afvises; genforbindelse bevarer enhedstilstanden;
   radon-/vejrinput ældre end `NC_INPUT_TTL` behandles som ukendt; MQTT last-will +
   ren nedlukning.
-- ✅ Regressionssuite: **40 unit-/integrationstest** (`test_bridge.py`,
+- ✅ Sikkerhed: opsætning kun pr. enhed, aldrig stille ændring af master/slave-rollen; kun bekræftede koder; ingen vejrdata; rammer på 19 og 21 byte.
+- ✅ Regressionssuite: **107 unit-/integrationstest** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Fuld end-to-end gennem en **rigtig MQTT-broker** med en simuleret enhed
   (`smoke_test.py`, 13/13): status + kommando + skema + radonbeskyttelse/-undertrykkelse/

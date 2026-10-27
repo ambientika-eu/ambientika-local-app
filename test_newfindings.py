@@ -93,13 +93,13 @@ def test_B_manual_dewpoint_toggle_without_weather_releases():
 def test_G_encode_setup_clamps_no_overflow():
     """Fixed: house_id is clamped into the u32 range instead of raising."""
     f_hi = m.encode_setup("AABBCCDDEEFF", role=0, zone=0, house_id=2**32)
-    assert len(f_hi) == 16
-    assert f_hi[12:16] == (0xFFFFFFFF).to_bytes(4, "little")   # clamped to max
+    assert len(f_hi) == 15                                     # cloud format
+    assert f_hi[11:15] == (0xFFFFFFFF).to_bytes(4, "little")   # clamped to max
     f_lo = m.encode_setup("AABBCCDDEEFF", role=0, zone=0, house_id=-1)
-    assert len(f_lo) == 16
-    assert f_lo[12:16] == (0).to_bytes(4, "little")            # clamped to 0
+    assert len(f_lo) == 15
+    assert f_lo[11:15] == (0).to_bytes(4, "little")            # clamped to 0
     # a normal value is unaffected
-    assert m.encode_setup("AABBCCDDEEFF", 0, 0, 1)[12:16] == (1).to_bytes(4, "little")
+    assert m.encode_setup("AABBCCDDEEFF", 0, 0, 1)[11:15] == (1).to_bytes(4, "little")
 
 
 # --- Finding F: temperature is unsigned; negative temp wraps ----------------

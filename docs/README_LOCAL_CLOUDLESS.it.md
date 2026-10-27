@@ -109,7 +109,7 @@ le protezioni si azzerano esegue un **ripristino esatto**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefisso dei topic (mantenere `ambientika` per corrispondere all'app) |
 | `LOCAL_TCP_PORT` | `11000` | porta a cui si connettono le unità |
-| `SETUP_DEVICES` | — | configurazione per singola unità; **senza voce non viene scritta alcuna configurazione** — ruoli e zone dell'app ufficiale restano invariati. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_DEVICES` | — | configurazione per singola unità; **senza voce non viene scritta alcuna configurazione** — ruoli e zone dell'app ufficiale restano invariati. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | una configurazione che cambierebbe il ruolo master/slave segnalato viene rifiutata senza `true` |
 | `SEND_SETUP` | `false` | vecchia configurazione globale, solo per **una singola unità**; non cambia mai un ruolo segnalato |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | destinazione della vecchia configurazione globale (`SEND_SETUP=true`) |
@@ -136,7 +136,8 @@ le protezioni si azzerano esegue un **ripristino esatto**.
 - ✅ Robustezza: il framing TCP si risincronizza dopo un byte spurio; i payload `weather`
   malformati vengono rifiutati; la riconnessione preserva lo stato del dispositivo; gli input radon/weather
   più vecchi di `NC_INPUT_TTL` vengono trattati come sconosciuti; last-will MQTT + arresto pulito.
-- ✅ Suite di regressione: **40 test unitari/di integrazione** (`test_bridge.py`,
+- ✅ Sicurezza: configurazione solo per singola unità, mai un cambio silenzioso del ruolo master/slave; solo codici confermati; nessun dato meteo; frame da 19 e 21 byte.
+- ✅ Suite di regressione: **107 test unitari/di integrazione** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Test end-to-end completo attraverso un **broker MQTT reale** con un'unità simulata
   (`smoke_test.py`, 13/13): status + comando + programma + protezione radon/soppressione/

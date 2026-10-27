@@ -107,7 +107,7 @@ skydd upphör utför den en **exakt återställning**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | mäklare |
 | `MQTT_PREFIX` | `ambientika` | topic-prefix (behåll `ambientika` för att matcha appen) |
 | `LOCAL_TCP_PORT` | `11000` | port som enheterna ansluter till |
-| `SETUP_DEVICES` | — | inställning per enhet; **utan post skrivs ingen inställning** — roller och zoner från den officiella appen lämnas orörda. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_DEVICES` | — | inställning per enhet; **utan post skrivs ingen inställning** — roller och zoner från den officiella appen lämnas orörda. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | en inställning som skulle ändra den rapporterade master/slav-rollen avvisas utan `true` |
 | `SEND_SETUP` | `false` | gammal global inställning, endast för **en enhet**; ändrar aldrig en rapporterad roll |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | mål för den gamla globala inställningen (`SEND_SETUP=true`) |
@@ -135,7 +135,8 @@ skydd upphör utför den en **exakt återställning**.
   `weather`-payloads avvisas; återanslutning bevarar enhetstillståndet;
   radon-/väderindata äldre än `NC_INPUT_TTL` behandlas som okända; MQTT last-will +
   ren avstängning.
-- ✅ Regressionssvit: **40 enhets-/integrationstester** (`test_bridge.py`,
+- ✅ Säkerhet: inställning endast per enhet, aldrig en tyst ändring av master/slav-rollen; endast bekräftade koder; inga väderdata; ramar på 19 och 21 byte.
+- ✅ Regressionssvit: **107 enhets-/integrationstester** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Fullständig end-to-end genom en **riktig MQTT-mäklare** med en simulerad enhet
   (`smoke_test.py`, 13/13): status + kommando + schema + radonskydd/-undertryckning/

@@ -107,7 +107,7 @@ se všechny ochrany zruší, provede **přesné obnovení**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefix tématu (ponechte `ambientika` kvůli shodě s aplikací) |
 | `LOCAL_TCP_PORT` | `11000` | port, ke kterému se jednotky připojují |
-| `SETUP_DEVICES` | — | nastavení pro jednotlivé jednotky; **bez záznamu se nastavení nezapisuje** — role a zóny z oficiální aplikace zůstávají beze změny. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_DEVICES` | — | nastavení pro jednotlivé jednotky; **bez záznamu se nastavení nezapisuje** — role a zóny z oficiální aplikace zůstávají beze změny. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | nastavení, které by změnilo hlášenou roli master/slave, se bez `true` odmítne |
 | `SEND_SETUP` | `false` | staré globální nastavení, jen pro **jednu jednotku**; hlášenou roli nikdy nemění |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | cíl starého globálního nastavení (`SEND_SETUP=true`) |
@@ -134,7 +134,8 @@ se všechny ochrany zruší, provede **přesné obnovení**.
 - ✅ Robustnost: rámcování TCP se po zbloudilém bajtu znovu synchronizuje; poškozené
   payloady `weather` jsou odmítnuty; opětovné připojení zachová stav zařízení; vstupy
   radon/weather starší než `NC_INPUT_TTL` jsou považovány za neznámé; MQTT last-will + čisté ukončení.
-- ✅ Regresní sada: **40 unit/integračních testů** (`test_bridge.py`,
+- ✅ Bezpečnost: nastavení jen pro jednotlivé jednotky, nikdy tichá změna role master/slave; jen potvrzené kódy; žádná data o počasí; rámce 19 i 21 bajtů.
+- ✅ Regresní sada: **107 unit/integračních testů** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Kompletní end-to-end přes **skutečný MQTT broker** se simulovanou jednotkou
   (`smoke_test.py`, 13/13): stav + příkaz + plán + ochrana proti radonu/potlačení/

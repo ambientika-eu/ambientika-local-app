@@ -109,7 +109,7 @@ referência; quando todas as proteções cessam, executa um **restauro exato**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefixo do tópico (manter `ambientika` para corresponder à app) |
 | `LOCAL_TCP_PORT` | `11000` | porta a que os dispositivos se ligam |
-| `SETUP_DEVICES` | — | configuração por unidade; **sem entrada não é escrita nenhuma configuração** — funções e zonas da app oficial ficam inalteradas. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_DEVICES` | — | configuração por unidade; **sem entrada não é escrita nenhuma configuração** — funções e zonas da app oficial ficam inalteradas. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | uma configuração que alteraria a função mestre/escravo comunicada é recusada sem `true` |
 | `SEND_SETUP` | `false` | configuração global antiga, só para **uma unidade**; nunca altera uma função comunicada |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | destino da configuração global antiga (`SEND_SETUP=true`) |
@@ -138,7 +138,8 @@ referência; quando todas as proteções cessam, executa um **restauro exato**.
   payloads `weather` malformados são rejeitados; a reconexão preserva o estado do
   dispositivo; entradas de rádon/tempo mais antigas do que `NC_INPUT_TTL` são tratadas
   como desconhecidas; last-will MQTT + encerramento limpo.
-- ✅ Conjunto de testes de regressão: **40 testes unitários/de integração**
+- ✅ Segurança: configuração só por unidade, nunca uma alteração silenciosa da função mestre/escravo; só códigos confirmados; sem dados meteorológicos; tramas de 19 e 21 bytes.
+- ✅ Conjunto de testes de regressão: **107 testes unitários/de integração**
   (`test_bridge.py`, `test_integration.py`, `test_newfindings.py`).
 - ✅ End-to-end completo através de um **broker MQTT real** com um dispositivo simulado
   (`smoke_test.py`, 13/13): status + comando + programa + proteção/supressão/restauro

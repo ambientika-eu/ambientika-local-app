@@ -107,9 +107,9 @@ def test_filter_reset_bytes_exact():
 
 def test_setup_bytes_exact():
     f = m.encode_setup("AABBCCDDEEFF", role=0, zone=0, house_id=1)
-    assert len(f) == 16
+    assert len(f) == 15                       # 15-byte cloud format, house at offset 11
     assert f[:9] == bytes([0x02, 0x00, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x00])
-    assert f[12:16] == (1).to_bytes(4, "little")
+    assert f[11:15] == (1).to_bytes(4, "little")
 
 
 def test_serial_roundtrip():

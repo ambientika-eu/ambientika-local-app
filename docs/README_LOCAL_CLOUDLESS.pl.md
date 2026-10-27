@@ -108,7 +108,7 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefiks tematów (zachowaj `ambientika`, aby pasował do aplikacji) |
 | `LOCAL_TCP_PORT` | `11000` | port, z którym łączą się urządzenia |
-| `SETUP_DEVICES` | — | konfiguracja dla każdego urządzenia; **bez wpisu żadna konfiguracja nie jest zapisywana** — role i strefy z oficjalnej aplikacji pozostają bez zmian. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_DEVICES` | — | konfiguracja dla każdego urządzenia; **bez wpisu żadna konfiguracja nie jest zapisywana** — role i strefy z oficjalnej aplikacji pozostają bez zmian. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | konfiguracja, która zmieniłaby zgłaszaną rolę master/slave, jest odrzucana bez `true` |
 | `SEND_SETUP` | `false` | stara konfiguracja globalna, tylko dla **jednego urządzenia**; nigdy nie zmienia zgłaszanej roli |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | cel starej konfiguracji globalnej (`SEND_SETUP=true`) |
@@ -135,7 +135,8 @@ ochrony ustąpią, wykonuje **dokładne przywrócenie**.
 - ✅ Odporność: ramkowanie TCP resynchronizuje się po błędnym bajcie; nieprawidłowe ładunki
   `weather` są odrzucane; ponowne połączenie zachowuje stan urządzenia; dane radonu/pogody
   starsze niż `NC_INPUT_TTL` traktowane jako nieznane; MQTT last-will + czyste zamknięcie.
-- ✅ Zestaw testów regresji: **40 testów jednostkowych/integracyjnych** (`test_bridge.py`,
+- ✅ Bezpieczeństwo: konfiguracja tylko dla pojedynczych urządzeń, nigdy cicha zmiana roli master/slave; tylko potwierdzone kody; brak danych pogodowych; ramki 19 i 21 bajtów.
+- ✅ Zestaw testów regresji: **107 testów jednostkowych/integracyjnych** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Pełny test end-to-end przez **prawdziwy broker MQTT** z symulowanym urządzeniem
   (`smoke_test.py`, 13/13): status + polecenie + harmonogram + ochrona radonowa/blokada/

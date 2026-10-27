@@ -56,9 +56,9 @@ services:
       SETUP_DEVICES: ${SETUP_DEVICES:-}
       SETUP_ALLOW_ROLE_CHANGE: ${SETUP_ALLOW_ROLE_CHANGE:-false}
       SEND_SETUP: ${SEND_SETUP:-false}   # legacy global setup, single unit only
-      HOUSE_ID: "1"
-      DEVICE_ROLE: "0"       # target of the legacy global setup
-      DEVICE_ZONE: "0"
+      HOUSE_ID: ${HOUSE_ID:-1}         # target of the legacy global setup
+      DEVICE_ROLE: ${DEVICE_ROLE:-0}
+      DEVICE_ZONE: ${DEVICE_ZONE:-0}
       LOG_LEVEL: INFO
 
   # -----------------------------------------------------------------------

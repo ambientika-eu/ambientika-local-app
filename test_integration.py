@@ -34,8 +34,8 @@ def test_handle_conn_processes_status_and_sends_setup():
         r = FakeReader([build_status(mode=0, speed=1)])
         await b._handle_conn(r, w)
         dev_serial = "AABBCCDDEEFF"
-        # setup frame should have been written (16 bytes, starts 02 00, byte8=0x00)
-        setups = [f for f in w.frames if len(f) == 16 and f[8] == 0x00]
+        # setup frame should have been written (15 bytes, starts 02 00, byte8=0x00)
+        setups = [f for f in w.frames if len(f) == 15 and f[8] == 0x00]
         status_pub = [p for p in b.mqtt.pubs if "/AABBCCDDEEFF/status" in p[0][0]]
         return len(setups), len(status_pub), dev_serial in b.devices
     setups, pubs, still_registered = asyncio.run(run())

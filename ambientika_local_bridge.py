@@ -110,6 +110,9 @@ FAN_LOW = 0
 # ---------------------------------------------------------------------------
 FRAME_STATUS = 0x01
 FRAME_FIRMWARE = 0x03
+FRAME_PING = 0x04             # 04 00 <MAC>: masters send it every few seconds, no state
+PING_LEN = 8
+KNOWN_DEVICE_FRAMES = (FRAME_STATUS, FRAME_FIRMWARE, FRAME_PING)
 STATUS_LEN_MODERN = 21        # ... + lightSensor + rssi
 STATUS_LEN_LEGACY = 19        # radio firmware 0.0.11 and older
 FIRMWARE_LEN = 18
@@ -269,7 +272,7 @@ _LEGACY_PROOF_LEN = STATUS_LEN_LEGACY + 8
 
 
 def _looks_like_frame_start_at(buf: bytes, i: int) -> bool:
-    return len(buf) > i + 1 and buf[i] in (FRAME_STATUS, FRAME_FIRMWARE) and buf[i + 1] == 0x00
+    return len(buf) > i + 1 and buf[i] in KNOWN_DEVICE_FRAMES and buf[i + 1] == 0x00
 
 
 def probe_status_len(buf: bytes) -> Optional[int]:
@@ -398,13 +401,18 @@ def encode_filter_reset(serial: str) -> bytes:
 
 
 def encode_setup(serial: str, role: int, zone: int, house_id: int) -> bytes:
+    """15-byte setup in the cloud's own format: 02 00 <MAC> 00 <role> <zone> <house LE32>.
+
+    The earlier 16-byte variant had an extra 0x00 before the house ID; units
+    read the house ID at offset 11, so it was stored shifted by one byte
+    (house 1 became 256) and broken for the master/slave UDP sync."""
     # Clamp house_id into the unsigned 32-bit range so a mis-set HOUSE_ID can
     # never raise OverflowError (which would loop the device on every connect).
     hid = max(0, min(int(house_id), 0xFFFFFFFF))
     return bytes(
         [0x02, 0x00]
         + list(serial_to_mac(serial))
-        + [0x00, role & 0xFF, zone & 0xFF, 0x00]
+        + [0x00, role & 0xFF, zone & 0xFF]
         + list(hid.to_bytes(4, "little"))
     )
 
@@ -438,10 +446,13 @@ def parse_setup_devices(raw) -> dict:
         if len(key) != 12 or any(c not in "0123456789ABCDEF" for c in key):
             log.error("SETUP_DEVICES key %r ignored (serial must be 12 hex chars)", serial)
             continue
-        if not isinstance(spec, dict) or "role" not in spec:
-            log.error("SETUP_DEVICES entry %s ignored (\"role\" is mandatory)", key)
+        if not isinstance(spec, dict) or not all(k in spec for k in ("role", "zone", "house")):
+            log.error("SETUP_DEVICES entry %s ignored (role, zone and house are mandatory)", key)
             continue
-        vals = (spec.get("role"), spec.get("zone", 0), spec.get("house", 1))
+        if key in out:
+            log.error("SETUP_DEVICES serial %s listed twice — entry ignored", key)
+            continue
+        vals = (spec["role"], spec["zone"], spec["house"])
         if not all(isinstance(v, int) and not isinstance(v, bool) for v in vals):
             log.error("SETUP_DEVICES entry %s ignored (values must be integers)", key)
             continue
@@ -454,7 +465,8 @@ def parse_setup_devices(raw) -> dict:
 
 
 def setup_target_valid(t: SetupTarget) -> bool:
-    return (t.role in VALID_ROLE_CODES and 0 <= t.zone <= 255
+    # zone travels as a 4-bit field in the master->slave UDP sync
+    return (t.role in VALID_ROLE_CODES and 0 <= t.zone <= 15
             and 0 <= t.house <= 0xFFFFFFFF)
 
 
@@ -478,6 +490,9 @@ def setup_decision(serial: str, cfg: "Config", reported_role: Optional[int]):
         if not setup_target_valid(target):
             return None, (f"DEVICE_ROLE/DEVICE_ZONE/HOUSE_ID {target.role}/{target.zone}/"
                           f"{target.house} out of range")
+    if reported_role is not None and reported_role not in VALID_ROLE_CODES:
+        return None, (f"unit reports undocumented role {reported_role} — setup not sent "
+                      "(newer firmware reports 255 for a standalone master)")
     if (reported_role is not None and reported_role != target.role
             and not cfg.setup_allow_role_change):
         return None, (f"unit reports role {reported_role}, target is {target.role}; "
@@ -700,6 +715,9 @@ class LocalBridge:
         if not dev:
             log.warning("command for unknown/offline device %s", serial)
             return
+        if not isinstance(payload, dict):
+            log.warning("refused command to %s: payload is not a JSON object", serial)
+            return
         if payload.get("resetFilter"):
             await self._send(dev, encode_filter_reset(serial))
             return
@@ -712,14 +730,23 @@ class LocalBridge:
 
     async def _apply_command(self, dev: Device, payload: dict):
         cur = dev.raw_codes
-        mode_code = mode_to_code(payload.get("mode"), cur["mode"])
-        speed_code = speed_to_code(payload.get("fanSpeed"), cur["speed"])
+        try:
+            mode_code = mode_to_code(payload.get("mode"), cur["mode"])
+            speed_code = speed_to_code(payload.get("fanSpeed"), cur["speed"])
+        except (TypeError, ValueError, OverflowError, AttributeError) as exc:
+            log.warning("refused command to %s: unreadable payload %r (%s)",
+                        dev.serial, payload, exc)
+            return
         if mode_code is None or speed_code is None:          # never encode None
             log.warning("skip command with unresolved codes for %s: %s",
                         dev.serial, payload)
             return
-        humidity_code = _generic_to_code(payload.get("humidityLevel"), _REV_HUM, cur["humidity"])
-        light_code = _generic_to_code(payload.get("lightSensor"), _REV_LIGHT, cur["light"])
+        # Echoed (not user-chosen) humidity/light codes the unit reported outside
+        # the table are replaced by confirmed defaults; explicit values are checked.
+        echo_hum = cur["humidity"] if cur["humidity"] in VALID_HUMIDITY_CODES else 1
+        echo_light = cur["light"] if cur["light"] in VALID_LIGHT_CODES else LEGACY_LIGHT_CODE
+        humidity_code = _generic_to_code(payload.get("humidityLevel"), _REV_HUM, echo_hum)
+        light_code = _generic_to_code(payload.get("lightSensor"), _REV_LIGHT, echo_light)
         if not await self._send_mode(dev, mode_code, speed_code, humidity_code, light_code):
             return
         self.normal_codes[dev.serial] = (mode_code, speed_code)   # remember normal target
@@ -741,18 +768,19 @@ class LocalBridge:
                           protective: bool = False) -> bool:
         """Write mode/speed, echoing the unit's humidity/light codes.
 
-        For protective writes (radon, dew-point, restore) an unexpected echoed
-        humidity/light code is replaced by a confirmed default instead of
-        refusing the write — protection must not depend on a clean echo."""
+        An echoed humidity/light code outside the table is replaced by a
+        confirmed default. For protective writes (radon, dew-point, restore) an
+        unexpected speed is replaced by LOW as well — protection must not depend
+        on a clean echo."""
         cur = dev.raw_codes
         hum, light = cur["humidity"], cur["light"]
-        if protective:
-            if hum not in VALID_HUMIDITY_CODES:
-                hum = 1                                   # NORMAL
-            if light not in VALID_LIGHT_CODES:
-                light = LEGACY_LIGHT_CODE
-            if speed_code not in VALID_SPEED_CODES:
-                speed_code = FAN_LOW
+        # Echoed codes outside the table are never written back: confirmed defaults.
+        if hum not in VALID_HUMIDITY_CODES:
+            hum = 1                                       # NORMAL
+        if light not in VALID_LIGHT_CODES:
+            light = LEGACY_LIGHT_CODE
+        if protective and speed_code not in VALID_SPEED_CODES:
+            speed_code = FAN_LOW
         ok = await self._send_mode(dev, mode_code, speed_code, hum, light)
         if protective and not ok:
             log.error("protective write to %s refused (mode=%s speed=%s)",
@@ -763,6 +791,8 @@ class LocalBridge:
         """Restore target: last confirmed normal state, else the current echo if valid."""
         if dev.serial in self.normal_codes:
             return self.normal_codes[dev.serial]
+        if not dev.last_status:
+            return None              # no status yet: the first status protects it anyway
         m_, s_ = dev.raw_codes["mode"], dev.raw_codes["speed"]
         if m_ in VALID_MODE_CODES and s_ in VALID_SPEED_CODES:
             return (m_, s_)
@@ -969,7 +999,8 @@ class LocalBridge:
             "dewpoint": {"indoor": indoor_dp, "outdoor": outdoor_dp,
                          "margin": self.cfg.dewpoint_margin,
                          "manual": self.nc_manual_dewpoint},
-            "protectedDevices": sorted(self.baseline.keys()),
+            "protectedDevices": (sorted(self.devices.keys())
+                                 if self.protection != "NONE" else []),
         }
         js = json.dumps(state, sort_keys=True)
         if js == self._last_nc_json:            # publish only on real change
@@ -1068,78 +1099,82 @@ class LocalBridge:
                 buf += chunk
                 while buf:
                     b0 = buf[0]
-                    if b0 in (FRAME_STATUS, FRAME_FIRMWARE):
+                    if b0 in KNOWN_DEVICE_FRAMES:
                         if len(buf) < 8:
                             break                         # need type, 0x00 and MAC
                         # A real frame starts with <type> 0x00. While resyncing
                         # after unknown bytes it must also carry the MAC of the
-                        # unit already known on this connection; otherwise it is a
-                        # 0x01/0x03 byte inside a frame we do not know — junk.
+                        # unit already trusted on this connection; otherwise it is
+                        # a 0x01/0x03/0x04 byte inside a frame we do not know.
                         if buf[1] != 0x00 or (junk and trusted
                                               and parse_serial(buf) != trusted):
                             if len(junk) < 64:
                                 junk.append(b0)
                             buf = buf[1:]
                             continue
-                        clean = not junk
-                        if junk:
-                            self._log_unknown(serial, bytes(junk), seen_unknown)
-                            junk.clear()
                     if b0 == FRAME_STATUS:                # status (19 or 21 bytes)
                         n = resolve_status_len(buf, self._known_radio_fw(buf), conn_len)
                         if n is None:
                             break                         # wait for the full frame
-                        if n == STATUS_LEN_LEGACY:
-                            conn_len = n                  # proven: keep for this connection
-                        frame, buf = buf[:n], buf[n:]
-                        serial = parse_serial(frame)
-                        if clean:
-                            trusted = serial
-                        dev = self._register(serial, writer)
-                        first = not dev.last_status
-                        dev.last_status = decode_status(frame)
-                        dev.raw_codes = status_raw_codes(frame)
-                        if (self.protection == "NONE"
-                                and dev.raw_codes["mode"] in VALID_MODE_CODES
-                                and dev.raw_codes["speed"] in VALID_SPEED_CODES):
-                            # track the true normal target for the restore baseline
-                            # (only confirmed mode/speed, so a restore is never refused)
-                            self.normal_codes[serial] = (dev.raw_codes["mode"],
-                                                         dev.raw_codes["speed"])
-                        need_setup = not dev.setup_sent
-                        if need_setup:
-                            dev.setup_sent = True         # decide once per connection
-                            target, why = setup_decision(serial, self.cfg,
-                                                         status_role_code(frame))
-                            if target is not None:
-                                await self._send(dev, encode_setup(
-                                    serial, target.role, target.zone, target.house))
-                                log.info("setup -> %s role=%s zone=%s house=%s", serial,
-                                         target.role, target.zone, target.house)
-                            else:
-                                log.info("no setup for %s: %s", serial, why)
-                        self._publish_status(dev)
-                        # (re)apply protection on first connect or after a reconnect
-                        if self.protection != "NONE" and (first or need_setup):
-                            await self._protect_new_device(dev)
-                        await self._neuracell_evaluate()
                     elif b0 == FRAME_FIRMWARE:            # firmware info (18 bytes)
-                        if len(buf) < FIRMWARE_LEN:
+                        n = FIRMWARE_LEN if len(buf) >= FIRMWARE_LEN else None
+                        if n is None:
                             break
-                        frame, buf = buf[:FIRMWARE_LEN], buf[FIRMWARE_LEN:]
-                        serial = parse_serial(frame)
-                        if clean:
-                            trusted = serial
-                        dev = self._register(serial, writer)
-                        dev.firmware = decode_firmware(frame)
-                        self._publish_discovery(serial)
+                    elif b0 == FRAME_PING:                # master keep-alive, no state
+                        n = PING_LEN
                     else:
-                        # Unknown leading byte: no unit->bridge frame other than
-                        # 0x01/0x03 is known. Logged, never answered. Drop one
-                        # byte and resync, keep it for the log.
+                        # Unknown leading byte: no other unit->bridge frame is
+                        # known. Logged, never answered. Drop one byte and
+                        # resync, keep it for the log.
                         if len(junk) < 64:
                             junk.append(b0)
                         buf = buf[1:]
+                        continue
+                    # --- a complete known frame is consumed from here on ---
+                    clean = not junk                      # decided only on consumption
+                    if junk:
+                        self._log_unknown(serial, bytes(junk), seen_unknown)
+                        junk.clear()
+                    frame, buf = buf[:n], buf[n:]
+                    if b0 == FRAME_PING:
+                        continue
+                    if b0 == FRAME_STATUS and n == STATUS_LEN_LEGACY:
+                        conn_len = n                      # proven: keep for this connection
+                    serial = parse_serial(frame)
+                    if clean:
+                        trusted = serial
+                    dev = self._register(serial, writer)
+                    if b0 == FRAME_FIRMWARE:
+                        dev.firmware = decode_firmware(frame)
+                        self._publish_discovery(serial)
+                        continue
+                    first = not dev.last_status
+                    dev.last_status = decode_status(frame)
+                    dev.raw_codes = status_raw_codes(frame)
+                    if (self.protection == "NONE"
+                            and dev.raw_codes["mode"] in VALID_MODE_CODES
+                            and dev.raw_codes["speed"] in VALID_SPEED_CODES):
+                        # track the true normal target for the restore baseline
+                        # (only confirmed mode/speed, so a restore is never refused)
+                        self.normal_codes[serial] = (dev.raw_codes["mode"],
+                                                     dev.raw_codes["speed"])
+                    need_setup = not dev.setup_sent
+                    if need_setup:
+                        dev.setup_sent = True             # decide once per connection
+                        target, why = setup_decision(serial, self.cfg,
+                                                     status_role_code(frame))
+                        if target is not None:
+                            await self._send(dev, encode_setup(
+                                serial, target.role, target.zone, target.house))
+                            log.info("setup -> %s role=%s zone=%s house=%s", serial,
+                                     target.role, target.zone, target.house)
+                        else:
+                            log.info("no setup for %s: %s", serial, why)
+                    self._publish_status(dev)
+                    # (re)apply protection on first connect or after a reconnect
+                    if self.protection != "NONE" and (first or need_setup):
+                        await self._protect_new_device(dev)
+                    await self._neuracell_evaluate()
         except asyncio.CancelledError:
             raise
         except Exception as exc:  # noqa: BLE001

@@ -107,7 +107,7 @@ beschermingen zijn opgeheven, voert hij een **exact herstel** uit.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic-prefix (houd `ambientika` aan om bij de app te passen) |
 | `LOCAL_TCP_PORT` | `11000` | poort waarmee de toestellen verbinden |
-| `SETUP_DEVICES` | — | setup per unit; **zonder vermelding wordt geen setup geschreven** — rollen en zones uit de officiële app blijven ongewijzigd. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_DEVICES` | — | setup per unit; **zonder vermelding wordt geen setup geschreven** — rollen en zones uit de officiële app blijven ongewijzigd. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | een setup die de gemelde master/slave-rol zou wijzigen wordt zonder `true` geweigerd |
 | `SEND_SETUP` | `false` | oude globale setup, alleen voor **één unit**; wijzigt nooit een gemelde rol |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | doel van de oude globale setup (`SEND_SETUP=true`) |
@@ -134,7 +134,8 @@ beschermingen zijn opgeheven, voert hij een **exact herstel** uit.
 - ✅ Robuustheid: TCP-framing hersynchroniseert na een verdwaalde byte; misvormde `weather`-
   payloads geweigerd; reconnect behoudt de apparaatstatus; radon/weather-invoer
   ouder dan `NC_INPUT_TTL` als onbekend behandeld; MQTT last-will + nette afsluiting.
-- ✅ Regressiesuite: **40 unit-/integratietests** (`test_bridge.py`,
+- ✅ Veiligheid: setup alleen per unit, nooit een stille wijziging van de master/slave-rol; alleen bevestigde codes; geen weergegevens; frames van 19 en 21 bytes.
+- ✅ Regressiesuite: **107 unit-/integratietests** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Volledig end-to-end via een **echte MQTT-broker** met een gesimuleerd toestel
   (`smoke_test.py`, 13/13): status + command + schedule + radon protect/suppress/

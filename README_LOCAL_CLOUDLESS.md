@@ -111,10 +111,10 @@ protections clear it performs an **exact restore**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic prefix (keep `ambientika` to match the app) |
 | `LOCAL_TCP_PORT` | `11000` | port the units connect to |
-| `SETUP_DEVICES` | *(empty)* | per-unit setup, JSON `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}`. **Without an entry no setup frame is written** — roles and zones set by the official app stay untouched |
+| `SETUP_DEVICES` | *(empty)* | per-unit setup, JSON `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}`. role, zone (0–15) and house are all mandatory — use the house ID of the official app. **Without an entry no setup frame is written** — roles and zones set by the official app stay untouched |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | a setup that would change the master/slave role the unit reports is refused unless `true` |
-| `SEND_SETUP` | `false` | legacy global setup with `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` for **single-unit** setups only; still never changes a reported role |
-| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | target of the legacy global setup (`SEND_SETUP=true`) |
+| `SEND_SETUP` | `false` | legacy global setup with `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` for **single-unit** setups only; changes a reported role only with `SETUP_ALLOW_ROLE_CHANGE=true` |
+| `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | target of the legacy global setup (`SEND_SETUP=true`); zone 0–15 |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | schedule executor |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dew-point controller |
 | `RADON_THRESHOLD` | `100` | Bq/m³ auto-trip threshold |
@@ -146,7 +146,7 @@ protections clear it performs an **exact restore**.
 - ✅ Robustness: TCP framing resyncs after a stray byte; malformed `weather`
   payloads rejected; reconnect preserves device state; radon/weather inputs
   older than `NC_INPUT_TTL` treated as unknown; MQTT last-will + clean shutdown.
-- ✅ Regression suite: **90 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
+- ✅ Regression suite: **107 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Full end-to-end through a **real MQTT broker** with a simulated unit
   (`smoke_test.py`, 13/13): status + command + schedule + radon protect/suppress/

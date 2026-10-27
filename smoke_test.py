@@ -53,7 +53,7 @@ def split_downlink(buf: bytearray):
     frames = []
     while len(buf) >= 9 and buf[0] == 0x02:
         t = buf[8]
-        ln = 16 if t == 0x00 else (13 if t == 0x01 else (9 if t == 0x03 else None))
+        ln = 15 if t == 0x00 else (13 if t == 0x01 else (9 if t == 0x03 else None))
         if ln is None or len(buf) < ln:
             break
         frames.append(bytes(buf[:ln]))
@@ -116,7 +116,7 @@ async def main():
     writer.write(build_status(mode=0, speed=1)); await writer.drain()
     await asyncio.sleep(0.6)
     frames = split_downlink(downlink)
-    setup = [f for f in frames if len(f) == 16 and f[8] == 0x00]
+    setup = [f for f in frames if len(f) == 15 and f[8] == 0x00]
     check("1. setup pushed to listed unit on connect", len(setup) == 1,
           f"{len(setup)} setup frame(s)")
     st = msgs.get(f"{PREFIX}/{SERIAL}/status")

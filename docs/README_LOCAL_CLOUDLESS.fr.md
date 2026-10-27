@@ -109,7 +109,7 @@ les protections sont levées, il effectue une **restauration exacte**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | préfixe des topics (conserver `ambientika` pour correspondre à l'application) |
 | `LOCAL_TCP_PORT` | `11000` | port auquel les appareils se connectent |
-| `SETUP_DEVICES` | — | configuration par appareil ; **sans entrée, aucune configuration n'est écrite** — rôles et zones de l'app officielle inchangés. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": 1}}` |
+| `SETUP_DEVICES` | — | configuration par appareil ; **sans entrée, aucune configuration n'est écrite** — rôles et zones de l'app officielle inchangés. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | une configuration qui changerait le rôle maître/esclave signalé est refusée sans `true` |
 | `SEND_SETUP` | `false` | ancienne configuration globale, **un seul appareil** uniquement ; ne change jamais un rôle signalé |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | cible de l'ancienne configuration globale (`SEND_SETUP=true`) |
@@ -136,7 +136,8 @@ les protections sont levées, il effectue une **restauration exacte**.
 - ✅ Robustesse : le tramage TCP se resynchronise après un octet parasite ; les charges utiles `weather`
   malformées sont rejetées ; la reconnexion préserve l'état de l'appareil ; les entrées radon/weather
   plus anciennes que `NC_INPUT_TTL` sont traitées comme inconnues ; last-will MQTT + arrêt propre.
-- ✅ Suite de régression : **40 tests unitaires/d'intégration** (`test_bridge.py`,
+- ✅ Sécurité : configuration uniquement par appareil, jamais de changement silencieux du rôle maître/esclave ; uniquement des codes confirmés ; pas de données météo ; trames de 19 et 21 octets.
+- ✅ Suite de régression : **107 tests unitaires/d'intégration** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Test de bout en bout complet à travers un **broker MQTT réel** avec un appareil simulé
   (`smoke_test.py`, 13/13) : status + commande + programme + protection radon/suppression/
