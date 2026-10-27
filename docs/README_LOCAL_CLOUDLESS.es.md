@@ -108,9 +108,9 @@ las protecciones se desactivan, realiza una **restauración exacta**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefijo de tema (mantén `ambientika` para que coincida con la aplicación) |
 | `LOCAL_TCP_PORT` | `11000` | puerto al que se conectan los dispositivos |
-| `SETUP_DEVICES` | — | configuración por unidad; **sin entrada no se escribe ninguna configuración** — los roles y zonas de la app oficial no se tocan. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
+| `SETUP_DEVICES` | — | configuración por unidad; **sin entrada no se escribe ninguna configuración** — los roles y zonas de la app oficial no se tocan. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` — rol, zona (0–15) y casa son obligatorios |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | una configuración que cambiaría el rol maestro/esclavo informado se rechaza sin `true` |
-| `SEND_SETUP` | `false` | configuración global antigua, solo para **una unidad**; nunca cambia un rol informado |
+| `SEND_SETUP` | `false` | configuración global antigua, solo para **una unidad**; solo cambia un rol informado con `SETUP_ALLOW_ROLE_CHANGE=true` |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | destino de la configuración global antigua (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | ejecutor del programa |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | controlador de radón y punto de rocío |
@@ -136,10 +136,10 @@ las protecciones se desactivan, realiza una **restauración exacta**.
   cargas útiles `weather` con formato incorrecto; la reconexión conserva el estado del dispositivo; las entradas de radón/tiempo
   más antiguas que `NC_INPUT_TTL` se tratan como desconocidas; last-will de MQTT + apagado limpio.
 - ✅ Seguridad: configuración solo por unidad, nunca un cambio silencioso de rol maestro/esclavo; solo códigos confirmados; sin datos meteorológicos; tramas de 19 y 21 bytes.
-- ✅ Conjunto de regresión: **107 pruebas unitarias/de integración** (`test_bridge.py`,
+- ✅ Conjunto de regresión: **114 pruebas unitarias/de integración** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Prueba completa de extremo a extremo a través de un **broker MQTT real** con un dispositivo simulado
-  (`smoke_test.py`, 13/13): estado + comando + programa + protección/supresión/
+  (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): estado + comando + programa + protección/supresión/
   restauración de radón + punto de rocío + resincronización de encuadre + apagado.
 - ✅ `docker compose config` válido; no hay credenciales de la nube en ninguna parte del stack.
 - ✅ API de callbacks de paho-mqtt 2.x (VERSION2), se mantiene la compatibilidad con 1.x.

@@ -31,15 +31,17 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
   gesendet. Jetzt gehen nur Werte aus der Protokolltabelle an das Gerät, alles andere wird
   verweigert und protokolliert (auch Zeitplan und `RADON_PROTECT_*`). Vom Gerät gemeldete
   Feuchte-/Lichtcodes außerhalb der Tabelle werden durch bestätigte Standardwerte ersetzt statt
-  zurückgeschrieben; nicht lesbare Befehle werden abgewiesen statt eine Ausnahme auszulösen.
+  zurückgeschrieben; nicht lesbare Befehle und Zeitplan-Einträge werden abgewiesen statt eine
+  Ausnahme auszulösen. Schutzschaltungen erreichen ein Gerät erst nach seinem ersten Status, damit
+  sein echter Zustand bekannt ist und nach dem Schutz korrekt wiederhergestellt wird.
 - **Lokale Bridge — Wetterdaten und unbekannte Rahmen:** Außenwetterdaten für den SMART-Modus
   werden bewusst nicht gesendet (Format vom Hersteller nicht bestätigt). Unbekannte Rahmentypen
   werden protokolliert statt still verworfen; ein 0x01/0x03-Byte mitten in einem unbekannten
   Rahmen wird nicht mehr als Status eines fremden Geräts gelesen (Kopfbyte 0x00, beim
   Resynchronisieren gleiche MAC). Schutzschaltungen (Radon/Taupunkt/Wiederherstellung) setzen
   bei unerwartetem Echo bestätigte Standardwerte statt den Schutz zu verweigern; als
-  Normalzustand wird nur ein bestätigter Zustand gemerkt (67 neue Tests in
-  `test_safety_fixes.py`, drei unabhängige Gegenprüfungen).
+  Normalzustand wird nur ein bestätigter Zustand gemerkt (74 neue Tests in
+  `test_safety_fixes.py`, vier unabhängige Gegenprüfungen).
 - **PWA aus einem frischen Klon:** `docker compose up` lieferte unter `http://IP:8080` nur die
   API, weil `./frontend/dist` im Repo nicht existiert und als leeres Verzeichnis eingehängt
   wurde. Das Backend liefert die PWA jetzt aus `frontend/` aus (ein gebautes `frontend/dist/`

@@ -227,6 +227,7 @@ def _bridge_with_device(raw=None):
     w = FakeWriter()
     dev = m.Device("AABBCCDDEEFF", w)
     dev.raw_codes = raw or {"mode": 0, "speed": 1, "humidity": 1, "light": 1}
+    dev.last_status = {"serial": dev.serial}         # unit has reported at least once
     b.devices[dev.serial] = dev
     return b, w
 
@@ -420,8 +421,8 @@ def test_F12_legacy_proof_also_accepts_a_following_ping():
 
 
 def test_P6_no_baseline_before_first_status():
-    b, w = _bridge_with_device()
-    dev = b.devices["AABBCCDDEEFF"]
+    b = make_bridge()
+    dev = m.Device("AABBCCDDEEFF", FakeWriter())
     assert dev.last_status == {}
     assert b._baseline_for(dev) is None
 
@@ -432,3 +433,65 @@ def test_P7_protected_devices_lists_every_unit_under_protection():
     asyncio.run(b._handle_control(["ambientika", "radon", "alarm"], "ON"))
     st = [json.loads(p[0][1]) for p in b.mqtt.pubs if p[0][0].endswith("neuracell/state")]
     assert st[-1]["protectedDevices"] == ["AABBCCDDEEFF"]
+
+
+# ============================================================ review pass 4
+def test_P8_unit_without_status_is_not_switched_off_and_restored_correctly():
+    """Bridge restart on a humid day: unit B has only sent its firmware frame when
+    the dew-point block trips. It must be protected on its first status and
+    restored to its REAL state afterwards — never left OFF."""
+    async def go():
+        b = make_bridge()
+        wa, wb = FakeWriter(), FakeWriter()
+        a = m.Device("111111111111", wa); a.last_status = {"x": 1}
+        a.raw_codes = {"mode": 0, "speed": 1, "humidity": 1, "light": 1}
+        bdev = m.Device("222222222222", wb)                # firmware only, no status
+        b.devices.update({a.serial: a, bdev.serial: bdev})
+        await b._handle_control(["ambientika", "dewpoint", "block"], "ON")
+        assert modes(wb.frames) == []                       # nothing blind to B
+        # B's first status arrives (its real state: NIGHT / MEDIUM)
+        bdev.last_status = {"x": 1}
+        bdev.raw_codes = {"mode": 3, "speed": 1, "humidity": 1, "light": 1}
+        b.normal_codes[bdev.serial] = (3, 1)
+        await b._protect_new_device(bdev)
+        await b._handle_control(["ambientika", "dewpoint", "block"], "OFF")
+        return [(f[9], f[10]) for f in modes(wb.frames)]
+    assert asyncio.run(go()) == [(m.MODE_OFF, 1), (3, 1)]
+
+
+def test_U4_phantom_chain_after_resync_cannot_lock_out_the_real_unit():
+    """Review pass 4: unknown frame containing '04 00 xx*6' followed by
+    '01 00 <fake MAC>' at connection start."""
+    junk = bytes.fromhex("07") + bytes.fromhex("0400" + "11" * 6)
+    fake = bytes([0x01, 0x00]) + bytes.fromhex("99" * 6) + bytes(13)
+    real = firmware_frame(radio=(0, 0, 28)) + b"".join(
+        build_status(temp=t) for t in (20, 21, 22, 23, 24))
+    for cut in (None, 3, 10, 20):
+        b = make_bridge()
+        data = junk + fake + real
+        chunks = [data] if cut is None else [data[:cut], data[cut:]]
+        run_conn(b, chunks)
+        temps = [s["temperature"] for s in published_status(b)]
+        assert temps[-4:] == [21, 22, 23, 24], cut
+
+
+@pytest.mark.parametrize("payload", [{"humidityLevel": "\u00b2"}, {"lightSensor": "\u00b2"},
+                                     {"mode": "\u00b2"}, {"fanSpeed": "\u00b2"}])
+def test_V7_non_ascii_digits_do_not_raise(payload):
+    b, w = _bridge_with_device()
+    asyncio.run(b._handle_command("AABBCCDDEEFF", payload))      # must not raise
+    for f in modes(w.frames):
+        assert m.codes_valid(f[9], f[10], f[11], f[12])
+
+
+def test_V8_unreadable_schedule_slot_does_not_abort_the_tick():
+    import datetime as dt
+    b, w = _bridge_with_device()
+    w2 = FakeWriter(); d2 = m.Device("222222222222", w2); d2.last_status = {"x": 1}
+    d2.raw_codes = {"mode": 0, "speed": 1, "humidity": 1, "light": 1}
+    b.devices[d2.serial] = d2
+    now = dt.datetime(2026, 10, 26, 10, 0)
+    b.schedules["AABBCCDDEEFF"] = {"mon": [{"start": "09:00", "end": "11:00", "fanSpeed": float("nan")}]}
+    b.schedules["222222222222"] = {"mon": [{"start": "09:00", "end": "11:00", "mode": "NIGHT"}]}
+    asyncio.run(b._scheduler_tick(now))
+    assert modes(w.frames) == [] and [f[9] for f in modes(w2.frames)] == [3]

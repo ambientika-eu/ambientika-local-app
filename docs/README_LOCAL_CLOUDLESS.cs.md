@@ -107,9 +107,9 @@ se všechny ochrany zruší, provede **přesné obnovení**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | prefix tématu (ponechte `ambientika` kvůli shodě s aplikací) |
 | `LOCAL_TCP_PORT` | `11000` | port, ke kterému se jednotky připojují |
-| `SETUP_DEVICES` | — | nastavení pro jednotlivé jednotky; **bez záznamu se nastavení nezapisuje** — role a zóny z oficiální aplikace zůstávají beze změny. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
+| `SETUP_DEVICES` | — | nastavení pro jednotlivé jednotky; **bez záznamu se nastavení nezapisuje** — role a zóny z oficiální aplikace zůstávají beze změny. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` — role, zóna (0–15) a dům jsou povinné |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | nastavení, které by změnilo hlášenou roli master/slave, se bez `true` odmítne |
-| `SEND_SETUP` | `false` | staré globální nastavení, jen pro **jednu jednotku**; hlášenou roli nikdy nemění |
+| `SEND_SETUP` | `false` | staré globální nastavení, jen pro **jednu jednotku**; hlášenou roli mění jen s `SETUP_ALLOW_ROLE_CHANGE=true` |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | cíl starého globálního nastavení (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | vykonavatel plánu |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | řídicí jednotka radonu + rosného bodu |
@@ -135,10 +135,10 @@ se všechny ochrany zruší, provede **přesné obnovení**.
   payloady `weather` jsou odmítnuty; opětovné připojení zachová stav zařízení; vstupy
   radon/weather starší než `NC_INPUT_TTL` jsou považovány za neznámé; MQTT last-will + čisté ukončení.
 - ✅ Bezpečnost: nastavení jen pro jednotlivé jednotky, nikdy tichá změna role master/slave; jen potvrzené kódy; žádná data o počasí; rámce 19 i 21 bajtů.
-- ✅ Regresní sada: **107 unit/integračních testů** (`test_bridge.py`,
+- ✅ Regresní sada: **114 unit/integračních testů** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Kompletní end-to-end přes **skutečný MQTT broker** se simulovanou jednotkou
-  (`smoke_test.py`, 13/13): stav + příkaz + plán + ochrana proti radonu/potlačení/
+  (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): stav + příkaz + plán + ochrana proti radonu/potlačení/
   obnovení + rosný bod + resynchronizace rámcování + ukončení.
 - ✅ `docker compose config` je platné; nikde ve stacku nejsou žádné cloudové přihlašovací údaje.
 - ✅ paho-mqtt 2.x callback API (VERSION2), zachován fallback pro 1.x.

@@ -58,8 +58,10 @@ behaviour. Please observe the following when commissioning:
    house). The bridge does NOT write a setup frame by default; it only does so
    for serials listed in SETUP_DEVICES, and never changes the master/slave role
    a unit reports unless SETUP_ALLOW_ROLE_CHANGE=true.
-6. Only confirmed wire codes are ever sent. A command whose mode / fan / humidity
-   / light code is not part of the protocol tables is refused and logged.
+6. Only confirmed wire codes are ever sent. A command with an explicit mode / fan
+   / humidity / light number outside the protocol tables is refused and logged;
+   unknown names keep the unit's current value; echoed codes outside the tables
+   are replaced by confirmed defaults (humidity NORMAL, light OFF).
 7. No outdoor-weather data is sent to the units in this mode (in cloud mode the
    server pushes it for the SMART mode). Its format is only community-documented,
    not confirmed by the manufacturer, and a wrong packet would make the unit regulate on invented
@@ -185,7 +187,7 @@ def mode_to_code(value, default: Optional[int]) -> Optional[int]:
         return APP_MODE_TO_PROTO[s]
     if s in _REV_MODE:
         return _REV_MODE[s]
-    if s.isdigit():
+    if s.isdecimal() and s.isascii():
         return int(s)
     log.warning("unknown mode %r -> default %s", value, default)
     return default
@@ -199,7 +201,7 @@ def speed_to_code(value, default: Optional[int]) -> Optional[int]:
     s = str(value).strip().upper()
     if s in _REV_SPEED:
         return _REV_SPEED[s]
-    if s.replace(".", "", 1).isdigit():
+    if s.replace(".", "", 1).isdecimal() and s.isascii():
         return pct_to_level(float(s))
     log.warning("unknown fanSpeed %r -> default %s", value, default)
     return default
@@ -213,7 +215,7 @@ def _generic_to_code(value, table_rev: dict, default: int) -> int:
     s = str(value).strip().upper()
     if s in table_rev:
         return table_rev[s]
-    if s.isdigit():
+    if s.isdecimal() and s.isascii():
         return int(s)
     return default
 
@@ -745,8 +747,13 @@ class LocalBridge:
         # the table are replaced by confirmed defaults; explicit values are checked.
         echo_hum = cur["humidity"] if cur["humidity"] in VALID_HUMIDITY_CODES else 1
         echo_light = cur["light"] if cur["light"] in VALID_LIGHT_CODES else LEGACY_LIGHT_CODE
-        humidity_code = _generic_to_code(payload.get("humidityLevel"), _REV_HUM, echo_hum)
-        light_code = _generic_to_code(payload.get("lightSensor"), _REV_LIGHT, echo_light)
+        try:
+            humidity_code = _generic_to_code(payload.get("humidityLevel"), _REV_HUM, echo_hum)
+            light_code = _generic_to_code(payload.get("lightSensor"), _REV_LIGHT, echo_light)
+        except (TypeError, ValueError, OverflowError) as exc:
+            log.warning("refused command to %s: unreadable payload %r (%s)",
+                        dev.serial, payload, exc)
+            return
         if not await self._send_mode(dev, mode_code, speed_code, humidity_code, light_code):
             return
         self.normal_codes[dev.serial] = (mode_code, speed_code)   # remember normal target
@@ -843,8 +850,12 @@ class LocalBridge:
                 self._sched_applied[serial] = key
                 if slot is None:
                     continue
-                mode_code = mode_to_code(slot.get("mode"), dev.raw_codes["mode"])
-                speed_code = speed_to_code(slot.get("fanSpeed"), dev.raw_codes["speed"])
+                try:
+                    mode_code = mode_to_code(slot.get("mode"), dev.raw_codes["mode"])
+                    speed_code = speed_to_code(slot.get("fanSpeed"), dev.raw_codes["speed"])
+                except (TypeError, ValueError, OverflowError) as exc:
+                    log.warning("schedule slot for %s unreadable (%s) — skipped", serial, exc)
+                    continue
                 if mode_code is None or speed_code is None:
                     continue
                 if not await self._send_codes(dev, mode_code, speed_code):
@@ -954,12 +965,16 @@ class LocalBridge:
         self.protection = new
         if new == "RADON":
             for dev in list(self.devices.values()):
+                if not dev.last_status:
+                    continue        # protected on its first status, after its state is known
                 await self._send_codes(dev, self.cfg.radon_protect_mode,
                                        self.cfg.radon_protect_fan, protective=True)
             if prev != new:
                 log.warning("NeuraCell-X: RADON protection ON -> all units INTAKE/LOW")
         elif new == "DEWPOINT":
             for dev in list(self.devices.values()):
+                if not dev.last_status:
+                    continue        # protected on its first status, after its state is known
                 await self._send_codes(dev, MODE_OFF, dev.raw_codes["speed"], protective=True)
             if prev != new:
                 log.warning("NeuraCell-X: dew-point block ON -> all units OFF")
@@ -999,7 +1014,7 @@ class LocalBridge:
             "dewpoint": {"indoor": indoor_dp, "outdoor": outdoor_dp,
                          "margin": self.cfg.dewpoint_margin,
                          "manual": self.nc_manual_dewpoint},
-            "protectedDevices": (sorted(self.devices.keys())
+            "protectedDevices": (sorted(k for k, d in self.devices.items() if d.last_status)
                                  if self.protection != "NONE" else []),
         }
         js = json.dumps(state, sort_keys=True)
@@ -1091,6 +1106,7 @@ class LocalBridge:
         # from a frame that arrived cleanly (no junk before it). A frame found
         # while resyncing could itself be a phantom and must not lock out the unit.
         trusted: Optional[str] = None
+        after_resync = False            # previous consumed frame was found while resyncing
         try:
             while True:
                 chunk = await reader.read(256)
@@ -1131,7 +1147,10 @@ class LocalBridge:
                         buf = buf[1:]
                         continue
                     # --- a complete known frame is consumed from here on ---
-                    clean = not junk                      # decided only on consumption
+                    # decided only on consumption; a frame directly after one found
+                    # while resyncing is not trusted either (phantom chains)
+                    clean = not junk and not after_resync
+                    after_resync = bool(junk)
                     if junk:
                         self._log_unknown(serial, bytes(junk), seen_unknown)
                         junk.clear()

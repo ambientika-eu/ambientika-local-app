@@ -109,9 +109,9 @@ gendannelse**.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | broker |
 | `MQTT_PREFIX` | `ambientika` | topic-præfiks (behold `ambientika` for at matche appen) |
 | `LOCAL_TCP_PORT` | `11000` | port, som enhederne forbinder til |
-| `SETUP_DEVICES` | — | opsætning pr. enhed; **uden post skrives ingen opsætning** — roller og zoner fra den officielle app forbliver uændrede. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` |
+| `SETUP_DEVICES` | — | opsætning pr. enhed; **uden post skrives ingen opsætning** — roller og zoner fra den officielle app forbliver uændrede. JSON: `{"<SERIAL>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}` — rolle, zone (0–15) og hus er obligatoriske |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | en opsætning, der ville ændre den rapporterede master/slave-rolle, afvises uden `true` |
-| `SEND_SETUP` | `false` | gammel global opsætning, kun til **én enhed**; ændrer aldrig en rapporteret rolle |
+| `SEND_SETUP` | `false` | gammel global opsætning, kun til **én enhed**; ændrer kun en rapporteret rolle med `SETUP_ALLOW_ROLE_CHANGE=true` |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | mål for den gamle globale opsætning (`SEND_SETUP=true`) |
 | `SCHEDULER_ENABLED` / `SCHEDULER_TICK` | `true` / `30` | skema-udfører |
 | `NEURACELL_ENABLED` / `NEURACELL_TICK` | `true` / `60` | radon+dugpunkt-controller |
@@ -138,10 +138,10 @@ gendannelse**.
   radon-/vejrinput ældre end `NC_INPUT_TTL` behandles som ukendt; MQTT last-will +
   ren nedlukning.
 - ✅ Sikkerhed: opsætning kun pr. enhed, aldrig stille ændring af master/slave-rollen; kun bekræftede koder; ingen vejrdata; rammer på 19 og 21 byte.
-- ✅ Regressionssuite: **107 unit-/integrationstest** (`test_bridge.py`,
+- ✅ Regressionssuite: **114 unit-/integrationstest** (`test_bridge.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Fuld end-to-end gennem en **rigtig MQTT-broker** med en simuleret enhed
-  (`smoke_test.py`, 13/13): status + kommando + skema + radonbeskyttelse/-undertrykkelse/
+  (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + kommando + skema + radonbeskyttelse/-undertrykkelse/
   -gendannelse + dugpunkt + framing-resync + nedlukning.
 - ✅ `docker compose config` gyldig; ingen cloud-legitimationsoplysninger nogen steder i stacken.
 - ✅ paho-mqtt 2.x callback-API (VERSION2), 1.x-fallback bevaret.

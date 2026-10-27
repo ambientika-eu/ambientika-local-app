@@ -113,7 +113,7 @@ Wiederherstellung** durch.
 | `MQTT_BROKER` / `MQTT_PORT` | `mqtt` / `1883` | Broker |
 | `MQTT_PREFIX` | `ambientika` | Topic-Präfix (`ambientika` beibehalten, damit es zur App passt) |
 | `LOCAL_TCP_PORT` | `11000` | Port, mit dem sich die Geräte verbinden |
-| `SETUP_DEVICES` | *(leer)* | Setup pro Gerät, JSON `{"<SERIENNR>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}`. Rolle, Zone (0–15) und Haus sind Pflicht — Haus-ID aus der offiziellen App verwenden. **Ohne Eintrag wird kein Setup geschrieben** — Rollen und Zonen aus der offiziellen App bleiben unangetastet |
+| `SETUP_DEVICES` | *(leer)* | Setup pro Gerät, JSON `{"<SERIENNR>": {"role": 0, "zone": 0, "house": <HOUSE-ID>}}`. Rolle, Zone (0–15) und Haus sind Pflicht — Haus-ID aus der offiziellen App verwenden. Ein Gerät mit undokumentierter Rolle (z. B. 255 bei neuerer Firmware) bekommt nie ein Setup. **Ohne Eintrag wird kein Setup geschrieben** — Rollen und Zonen aus der offiziellen App bleiben unangetastet |
 | `SETUP_ALLOW_ROLE_CHANGE` | `false` | ein Setup, das die vom Gerät gemeldete Master/Slave-Rolle ändern würde, wird ohne `true` verweigert |
 | `SEND_SETUP` | `false` | altes globales Setup mit `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE`, nur für **Einzelgeräte**; ändert eine gemeldete Rolle nur mit `SETUP_ALLOW_ROLE_CHANGE=true` |
 | `HOUSE_ID` / `DEVICE_ROLE` / `DEVICE_ZONE` | `1` / `0` / `0` | Ziel des alten globalen Setups (`SEND_SETUP=true`); Zone 0–15 |
@@ -153,10 +153,10 @@ Wiederherstellung** durch.
   fehlerhafte `weather`-Payloads werden abgelehnt; Reconnect erhält den
   Gerätezustand; Radon-/Wetter-Eingaben, die älter als `NC_INPUT_TTL` sind, werden
   als unbekannt behandelt; MQTT Last-Will + sauberes Herunterfahren.
-- ✅ Regressions-Suite: **107 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
+- ✅ Regressions-Suite: **114 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
   `test_integration.py`, `test_newfindings.py`).
 - ✅ Vollständig end-to-end über einen **echten MQTT-Broker** mit einem simulierten
-  Gerät (`smoke_test.py`, 13/13): Status + Befehl + Zeitplan +
+  Gerät (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): Status + Befehl + Zeitplan +
   Radon-Schutz/-Unterdrückung/-Wiederherstellung + Taupunkt + Framing-Resync +
   Herunterfahren.
 - ✅ `docker compose config` gültig; keine Cloud-Zugangsdaten irgendwo im Stack.
