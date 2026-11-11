@@ -102,6 +102,28 @@ Každé obnovení **potvrzuje následující stav jednotky**. Pokud stále ukazu
   přepsání. Vnitřní rosný bod se počítá z teploty a vlhkosti každé jednotky
   (Magnusův vzorec).
 
+## Home Assistant: profil add-onu
+
+S `HA_DISCOVERY_PROFILE=addon` nabízí lokální bridge jednotky v Home Assistant přesně tak jako
+add-on **Ambientika MQTT Bridge**: stejné discovery topiky a `unique_id`, stejný stavový topic
+`ambientika/<sériové č.>/state` se stejnými klíči a hodnotami (`Smart`, `AwayHome`,
+`ManualHeatRecovery`, `Intake` …, `Low` / `Medium` / `High`), stejné příkazové topiky
+`ambientika/<sériové č.>/set/<atribut>` a tlačítko resetu filtru. Home Assistant zachová ID
+entit: automatizace, skripty a dashboardy z add-onu fungují po přechodu na lokální provoz beze
+změny.
+
+1. Zastavit add-on — na jednom brokeru běží buď add-on, nebo lokální bridge.
+2. Nastavit `MQTT_BROKER` / `MQTT_PORT` / `MQTT_USER` / `MQTT_PASSWORD` na broker Home Assistant.
+3. Nastavit `HA_DISCOVERY_PROFILE=addon` a pro zachování názvů místností `ADDON_DEVICE_NAMES={"<SÉRIOVÉ Č.>": "<místnost>"}`.
+4. Přesměrovat jednotky na tento host (viz výše).
+
+Příkazy, které pro jednu jednotku dorazí do 0,8 s, se jí odešlou jako jeden příkaz. Rozdíly oproti
+add-onu: spřažený slave zobrazuje vlastní režim (add-on režim svého mastera); "Failed Polls"
+počítá ztracená spojení jednotky; NeuraCell-X používá vstupy lokálního bridge
+(`ambientika/radon/…`, `ambientika/dewpoint/block`, `ambientika/weather`) a svůj stav pro Home
+Assistant publikuje na `ambientika/neuracell/addon_state`; diagnostický senzor "Filter Reset
+Status" není k dispozici.
+
 ## Konfigurace (env)
 
 | Proměnná | Výchozí | Význam |
@@ -121,6 +143,11 @@ Každé obnovení **potvrzuje následující stav jednotky**. Pokud stále ukazu
 | `STATE_FILE` | — | soubor výchozích hodnot / čekajících obnovení (compose: `/data/local_bridge_state.json`); prázdné = jen paměť |
 | `PENDING_RESTORE_TTL` | `86400` | jak dlouho se jednotka offline při uvolnění ještě obnovuje (s) |
 | `HA_DISCOVERY` | `false` | publikování discovery pro Home Assistant (aplikace jej nevyžaduje) |
+| `HA_DISCOVERY_PROFILE` | `local` | `addon`: entity, hodnoty a příkazy add-onu Home Assistant (zapne discovery) |
+| `ADDON_DEVICE_NAMES` | *(prázdné)* | názvy jednotek pro profil add-onu, JSON `{"<SÉRIOVÉ Č.>": "<název>"}` |
+| `DISCOVERY_PREFIX` | `homeassistant` | discovery prefix Home Assistant |
+| `AVERAGE_WINDOW_MIN` | `30` | okno průměrované teploty / vlhkosti (minuty) |
+| `MQTT_USER` / `MQTT_PASSWORD` | — | přihlášení k brokeru |
 
 ## Zajištění kvality
 
@@ -139,8 +166,8 @@ Každé obnovení **potvrzuje následující stav jednotky**. Pokud stále ukazu
   payloady `weather` jsou odmítnuty; opětovné připojení zachová stav zařízení; vstupy
   radon/weather starší než `NC_INPUT_TTL` jsou považovány za neznámé; MQTT last-will + čisté ukončení.
 - ✅ Bezpečnost: nastavení jen pro jednotlivé jednotky, nikdy tichá změna role master/slave; jen potvrzené kódy; žádná data o počasí; rámce 19 i 21 bajtů.
-- ✅ Regresní sada: **156 unit/integračních testů** (`test_bridge.py`,
-  `test_integration.py`, `test_newfindings.py`).
+- ✅ Regresní sada: **220 unit/integračních testů** (`test_bridge.py`,
+  `test_integration.py`, `test_newfindings.py`, `test_addon_profile.py`).
 - ✅ Kompletní end-to-end přes **skutečný MQTT broker** se simulovanou jednotkou
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): stav + příkaz + plán + ochrana proti radonu/potlačení/
   obnovení + rosný bod + resynchronizace rámcování + ukončení.

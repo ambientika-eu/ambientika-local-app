@@ -102,6 +102,28 @@ Elk herstel wordt **bevestigd door de volgende status van de unit**. Toont die n
   override. Het binnendauwpunt wordt berekend uit temp+vocht van elk toestel
   (Magnus-formule).
 
+## Home Assistant: add-on-profiel
+
+Met `HA_DISCOVERY_PROFILE=addon` biedt de lokale bridge de units in Home Assistant precies zo aan
+als de add-on **Ambientika MQTT Bridge**: dezelfde discovery-topics en `unique_id`s, hetzelfde
+state-topic `ambientika/<serienr>/state` met dezelfde sleutels en waarden (`Smart`, `AwayHome`,
+`ManualHeatRecovery`, `Intake` …, `Low` / `Medium` / `High`), dezelfde commando-topics
+`ambientika/<serienr>/set/<attribuut>` en de filter-resetknop. Home Assistant behoudt de
+entiteit-ID's: automatiseringen, scripts en dashboards uit de add-on werken na de overstap naar
+lokale werking ongewijzigd verder.
+
+1. Add-on stoppen — op één broker draait óf de add-on óf de lokale bridge.
+2. `MQTT_BROKER` / `MQTT_PORT` / `MQTT_USER` / `MQTT_PASSWORD` op de broker van Home Assistant zetten.
+3. `HA_DISCOVERY_PROFILE=addon` zetten en, om de ruimtenamen te behouden, `ADDON_DEVICE_NAMES={"<SERIENR>": "<ruimte>"}`.
+4. Units naar deze host omleiden (zie hierboven).
+
+Commando's die binnen 0,8 s voor één unit binnenkomen, gaan als één commando naar de unit.
+Verschillen met de add-on: een gekoppelde slave toont zijn eigen modus (de add-on die van zijn
+master); "Failed Polls" telt verbroken verbindingen van de unit; NeuraCell-X gebruikt de ingangen
+van de lokale bridge (`ambientika/radon/…`, `ambientika/dewpoint/block`, `ambientika/weather`) en
+publiceert zijn toestand voor Home Assistant op `ambientika/neuracell/addon_state`; de
+diagnosesensor "Filter Reset Status" ontbreekt.
+
 ## Configuratie (env)
 
 | Var | Default | Betekenis |
@@ -121,6 +143,11 @@ Elk herstel wordt **bevestigd door de volgende status van de unit**. Toont die n
 | `STATE_FILE` | — | bestand voor basiswaarden / openstaande herstelacties (compose: `/data/local_bridge_state.json`); leeg = alleen geheugen |
 | `PENDING_RESTORE_TTL` | `86400` | hoe lang een unit die bij vrijgave offline was nog wordt hersteld (s) |
 | `HA_DISCOVERY` | `false` | Home Assistant discovery publiceren (niet nodig voor de app) |
+| `HA_DISCOVERY_PROFILE` | `local` | `addon`: entiteiten, waarden en commando's van de Home Assistant-add-on (zet discovery aan) |
+| `ADDON_DEVICE_NAMES` | *(leeg)* | unitnamen voor het add-on-profiel, JSON `{"<SERIENR>": "<naam>"}` |
+| `DISCOVERY_PREFIX` | `homeassistant` | discovery-prefix van Home Assistant |
+| `AVERAGE_WINDOW_MIN` | `30` | venster van de gemiddelde temperatuur / vochtigheid (minuten) |
+| `MQTT_USER` / `MQTT_PASSWORD` | — | broker-login |
 
 ## Kwaliteitsborging
 
@@ -139,8 +166,8 @@ Elk herstel wordt **bevestigd door de volgende status van de unit**. Toont die n
   payloads geweigerd; reconnect behoudt de apparaatstatus; radon/weather-invoer
   ouder dan `NC_INPUT_TTL` als onbekend behandeld; MQTT last-will + nette afsluiting.
 - ✅ Veiligheid: setup alleen per unit, nooit een stille wijziging van de master/slave-rol; alleen bevestigde codes; geen weergegevens; frames van 19 en 21 bytes.
-- ✅ Regressiesuite: **156 unit-/integratietests** (`test_bridge.py`,
-  `test_integration.py`, `test_newfindings.py`).
+- ✅ Regressiesuite: **220 unit-/integratietests** (`test_bridge.py`,
+  `test_integration.py`, `test_newfindings.py`, `test_addon_profile.py`).
 - ✅ Volledig end-to-end via een **echte MQTT-broker** met een gesimuleerd toestel
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + command + schedule + radon protect/suppress/
   restore + dauwpunt + framing-resync + shutdown.

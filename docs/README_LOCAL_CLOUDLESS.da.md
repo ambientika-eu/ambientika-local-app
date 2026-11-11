@@ -104,6 +104,28 @@ Hver gendannelse **bekræftes af enhedens næste status**. Viser den stadig en b
   manuelle tilsidesættelse. Det indendørs dugpunkt beregnes ud fra hver enheds
   temperatur+fugt (Magnus-formlen).
 
+## Home Assistant: add-on-profil
+
+Med `HA_DISCOVERY_PROFILE=addon` stiller den lokale bridge enhederne til rådighed i Home Assistant
+præcis som add-on'en **Ambientika MQTT Bridge**: samme discovery-topics og `unique_id`'er, samme
+state-topic `ambientika/<serienr>/state` med samme nøgler og værdier (`Smart`, `AwayHome`,
+`ManualHeatRecovery`, `Intake` …, `Low` / `Medium` / `High`), samme kommando-topics
+`ambientika/<serienr>/set/<attribut>` og knappen til nulstilling af filteret. Home Assistant
+beholder entitets-ID'erne: automatiseringer, scripts og dashboards fra add-on'en fortsætter
+uændret efter skiftet til lokal drift.
+
+1. Stop add-on'en — på én broker kører enten add-on'en eller den lokale bridge.
+2. Sæt `MQTT_BROKER` / `MQTT_PORT` / `MQTT_USER` / `MQTT_PASSWORD` til Home Assistants broker.
+3. Sæt `HA_DISCOVERY_PROFILE=addon` og, for at beholde rumnavnene, `ADDON_DEVICE_NAMES={"<SERIENR>": "<rum>"}`.
+4. Omdiriger enhederne til denne vært (se ovenfor).
+
+Kommandoer, der ankommer til én enhed inden for 0,8 s, sendes til den som én kommando. Forskelle
+fra add-on'en: en koblet slave viser sin egen driftstilstand (add-on'en viser masterens); "Failed
+Polls" tæller enhedens tabte forbindelser; NeuraCell-X bruger den lokale bridges indgange
+(`ambientika/radon/…`, `ambientika/dewpoint/block`, `ambientika/weather`) og publicerer sin
+tilstand til Home Assistant på `ambientika/neuracell/addon_state`; diagnosesensoren "Filter Reset
+Status" tilbydes ikke.
+
 ## Konfiguration (env)
 
 | Var | Standard | Betydning |
@@ -123,6 +145,11 @@ Hver gendannelse **bekræftes af enhedens næste status**. Viser den stadig en b
 | `STATE_FILE` | — | fil til basisværdier / ventende gendannelser (compose: `/data/local_bridge_state.json`); tom = kun hukommelse |
 | `PENDING_RESTORE_TTL` | `86400` | hvor længe en enhed, der var offline ved frigivelse, stadig gendannes (s) |
 | `HA_DISCOVERY` | `false` | publicér Home Assistant discovery (ikke nødvendig for appen) |
+| `HA_DISCOVERY_PROFILE` | `local` | `addon`: entiteter, værdier og kommandoer fra Home Assistant-add-on'en (slår discovery til) |
+| `ADDON_DEVICE_NAMES` | *(tom)* | enhedsnavne til add-on-profilen, JSON `{"<SERIENR>": "<navn>"}` |
+| `DISCOVERY_PREFIX` | `homeassistant` | discovery-præfiks for Home Assistant |
+| `AVERAGE_WINDOW_MIN` | `30` | vindue for gennemsnitlig temperatur / fugt (minutter) |
+| `MQTT_USER` / `MQTT_PASSWORD` | — | login til brokeren |
 
 ## Kvalitetssikring
 
@@ -142,8 +169,8 @@ Hver gendannelse **bekræftes af enhedens næste status**. Viser den stadig en b
   radon-/vejrinput ældre end `NC_INPUT_TTL` behandles som ukendt; MQTT last-will +
   ren nedlukning.
 - ✅ Sikkerhed: opsætning kun pr. enhed, aldrig stille ændring af master/slave-rollen; kun bekræftede koder; ingen vejrdata; rammer på 19 og 21 byte.
-- ✅ Regressionssuite: **156 unit-/integrationstest** (`test_bridge.py`,
-  `test_integration.py`, `test_newfindings.py`).
+- ✅ Regressionssuite: **220 unit-/integrationstest** (`test_bridge.py`,
+  `test_integration.py`, `test_newfindings.py`, `test_addon_profile.py`).
 - ✅ Fuld end-to-end gennem en **rigtig MQTT-broker** med en simuleret enhed
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + kommando + skema + radonbeskyttelse/-undertrykkelse/
   -gendannelse + dugpunkt + framing-resync + nedlukning.

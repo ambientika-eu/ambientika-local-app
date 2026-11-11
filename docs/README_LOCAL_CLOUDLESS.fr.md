@@ -104,6 +104,28 @@ Chaque restauration est **confirmée par l'état suivant de l'appareil**. S'il a
   manuel fonctionne. Le point de rosée intérieur est calculé à partir de la température+humidité de chaque appareil
   (formule de Magnus).
 
+## Home Assistant : profil add-on
+
+Avec `HA_DISCOVERY_PROFILE=addon`, le bridge local présente les unités à Home Assistant exactement
+comme l'add-on **Ambientika MQTT Bridge** : mêmes topics de discovery et `unique_id`, même topic
+d'état `ambientika/<série>/state` avec les mêmes clés et valeurs (`Smart`, `AwayHome`,
+`ManualHeatRecovery`, `Intake` …, `Low` / `Medium` / `High`), mêmes topics de commande
+`ambientika/<série>/set/<attribut>` et le bouton de réinitialisation du filtre. Home Assistant
+conserve les ID d'entité : les automatisations, scripts et tableaux de bord créés avec l'add-on
+continuent de fonctionner après le passage en fonctionnement local.
+
+1. Arrêter l'add-on — un broker porte soit l'add-on, soit le bridge local.
+2. Faire pointer `MQTT_BROKER` / `MQTT_PORT` / `MQTT_USER` / `MQTT_PASSWORD` vers le broker de Home Assistant.
+3. Définir `HA_DISCOVERY_PROFILE=addon` et, pour garder les noms des pièces, `ADDON_DEVICE_NAMES={"<SÉRIE>": "<pièce>"}`.
+4. Rediriger les unités vers cet hôte (voir plus haut).
+
+Les commandes reçues pour une unité en moins de 0,8 s lui sont envoyées en une seule commande.
+Différences avec l'add-on : un esclave couplé affiche son propre mode (l'add-on celui de son
+maître) ; « Failed Polls » compte les connexions perdues de l'unité ; NeuraCell-X utilise les
+entrées du bridge local (`ambientika/radon/…`, `ambientika/dewpoint/block`, `ambientika/weather`)
+et publie son état pour Home Assistant sur `ambientika/neuracell/addon_state` ; le capteur de
+diagnostic « Filter Reset Status » n'est pas proposé.
+
 ## Configuration (env)
 
 | Var | Default | Signification |
@@ -123,6 +145,11 @@ Chaque restauration est **confirmée par l'état suivant de l'appareil**. S'il a
 | `STATE_FILE` | — | fichier des valeurs de base / restaurations en attente (compose : `/data/local_bridge_state.json`) ; vide = mémoire seule |
 | `PENDING_RESTORE_TTL` | `86400` | durée pendant laquelle un appareil hors ligne à la levée est encore restauré (s) |
 | `HA_DISCOVERY` | `false` | publie le discovery Home Assistant (non requis par l'application) |
+| `HA_DISCOVERY_PROFILE` | `local` | `addon` : entités, valeurs et commandes de l'add-on Home Assistant (active le discovery) |
+| `ADDON_DEVICE_NAMES` | *(vide)* | noms des unités pour le profil add-on, JSON `{"<SÉRIE>": "<nom>"}` |
+| `DISCOVERY_PREFIX` | `homeassistant` | préfixe de discovery de Home Assistant |
+| `AVERAGE_WINDOW_MIN` | `30` | fenêtre de la température / humidité moyennées (minutes) |
+| `MQTT_USER` / `MQTT_PASSWORD` | — | identifiants du broker |
 
 ## Assurance qualité
 
@@ -141,8 +168,8 @@ Chaque restauration est **confirmée par l'état suivant de l'appareil**. S'il a
   malformées sont rejetées ; la reconnexion préserve l'état de l'appareil ; les entrées radon/weather
   plus anciennes que `NC_INPUT_TTL` sont traitées comme inconnues ; last-will MQTT + arrêt propre.
 - ✅ Sécurité : configuration uniquement par appareil, jamais de changement silencieux du rôle maître/esclave ; uniquement des codes confirmés ; pas de données météo ; trames de 19 et 21 octets.
-- ✅ Suite de régression : **156 tests unitaires/d'intégration** (`test_bridge.py`,
-  `test_integration.py`, `test_newfindings.py`).
+- ✅ Suite de régression : **220 tests unitaires/d'intégration** (`test_bridge.py`,
+  `test_integration.py`, `test_newfindings.py`, `test_addon_profile.py`).
 - ✅ Test de bout en bout complet à travers un **broker MQTT réel** avec un appareil simulé
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open) : status + commande + programme + protection radon/suppression/
   restauration + point de rosée + resynchronisation du tramage + arrêt.

@@ -5,6 +5,33 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
 
 ## [Unreleased]
 
+## [1.3.0] – 2026-11-11 – Home Assistant: Add-on-Profil im lokalen Betrieb
+
+### Erweitert (lokaler Betrieb ohne Server, `ambientika_local_bridge.py`)
+
+- **Add-on-Profil für Home Assistant** (`HA_DISCOVERY_PROFILE=addon`): Die lokale Bridge stellt die
+  Geräte in Home Assistant genau so bereit wie das Add-on „Ambientika MQTT Bridge“ — gleiche
+  Discovery-Topics und `unique_id`s, gleiches State-Topic `ambientika/<SERIENNR>/state` mit denselben
+  Schlüsseln und Werten (Betriebsmodus `Smart`, `AwayHome`, `ManualHeatRecovery`, `Intake` …,
+  Lüfterstufe `Low`/`Medium`/`High`, numerische Begleitwerte, gemittelte Temperatur/Feuchte),
+  gleiche Befehls-Topics `ambientika/<SERIENNR>/set/<attribut>` und Filter-Reset-Knopf.
+  Home Assistant behält damit seine Entitäts-IDs: Automationen, Skripte und Dashboards laufen beim
+  Wechsel in den lokalen Betrieb unverändert weiter.
+- Befehle für ein Gerät, die kurz nacheinander kommen (z. B. Modus und Lüfterstufe aus einer
+  Automation), gehen als **ein** Befehl an das Gerät; ein noch nicht gemeldeter Befehl ist die
+  Grundlage des nächsten. Lichtsensor-Stufe bleibt beim Einschalten aus „Off“ erhalten.
+- Diagnose je Gerät wie im Add-on: „Last Status Packet“ (letzte Statusmeldung) und „Failed Polls“
+  (im lokalen Betrieb: Verbindungsabbrüche des Geräts seit dem Start).
+- NeuraCell-X- und Bridge-Entitäten mit den `unique_id`s des Add-ons
+  (Zustand auf `ambientika/neuracell/addon_state`); der lokale NeuraCell-Zustand erscheint erst,
+  nachdem Home Assistant die Entitäten auf ihr eigenes Topic umgestellt hat.
+- Neue Variablen: `HA_DISCOVERY_PROFILE` (`local`/`addon`), `ADDON_DEVICE_NAMES`, `DISCOVERY_PREFIX`,
+  `AVERAGE_WINDOW_MIN`; im Compose zusätzlich `MQTT_BROKER`/`MQTT_PORT`/`MQTT_USER`/`MQTT_PASSWORD`
+  per `.env` einstellbar. Standard bleibt `local` — bestehende Installationen sind nicht berührt.
+- Die Bridge meldet sich nach jeder (Wieder-)Verbindung mit dem Broker online
+  (`ambientika/bridge/availability`), auch nach einem Neustart des Brokers.
+- Tests: `test_addon_profile.py` (64 Tests).
+
 ## [1.2.0] – 2026-10-27 – Erweiterungen lokaler Betrieb, Free-Cooling-Wächter
 
 ### Erweitert (lokaler Betrieb ohne Server, `ambientika_local_bridge.py`)

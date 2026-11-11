@@ -46,11 +46,20 @@ services:
     ports:
       - "11000:11000"        # devices connect here (after redirection)
     environment:
-      MQTT_BROKER: mqtt
-      MQTT_PORT: 1883
+      # Broker: the stack's own Mosquitto by default. For Home Assistant set
+      # MQTT_BROKER/-PORT/-USER/-PASSWORD in .env to the broker Home Assistant uses.
+      MQTT_BROKER: ${MQTT_BROKER:-mqtt}
+      MQTT_PORT: ${MQTT_PORT:-1883}
+      MQTT_USER: ${MQTT_USER:-}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-}
       MQTT_PREFIX: ambientika
       LOCAL_TCP_PORT: 11000
-      HA_DISCOVERY: "false"  # the local-app does not need HA discovery
+      HA_DISCOVERY: ${HA_DISCOVERY:-false}  # the local-app does not need HA discovery
+      # "addon": units appear in Home Assistant exactly as with the Ambientika
+      # MQTT Bridge add-on (same entities, values and commands). Stop the add-on first.
+      HA_DISCOVERY_PROFILE: ${HA_DISCOVERY_PROFILE:-local}
+      ADDON_DEVICE_NAMES: ${ADDON_DEVICE_NAMES:-}   # JSON {"<SERIAL>": "<room>"}
+      AVERAGE_WINDOW_MIN: ${AVERAGE_WINDOW_MIN:-30}
       # Setup frames are off unless a unit is listed in SETUP_DEVICES
       # (JSON per serial) — roles/zones from the official app stay untouched.
       SETUP_DEVICES: ${SETUP_DEVICES:-}
@@ -78,8 +87,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      MQTT_BROKER: mqtt
-      MQTT_PORT: 1883
+      MQTT_BROKER: ${MQTT_BROKER:-mqtt}
+      MQTT_PORT: ${MQTT_PORT:-1883}
+      MQTT_USER: ${MQTT_USER:-}
+      MQTT_PASSWORD: ${MQTT_PASSWORD:-}
       MQTT_PREFIX: ambientika
       LOG_LEVEL: INFO
       HISTORY_DB: /data/history.db

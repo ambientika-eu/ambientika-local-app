@@ -117,6 +117,28 @@ Lüften eindeutig erlauben. Offene Wiederherstellungen stehen in `pendingRestore
   funktioniert nur die manuelle Übersteuerung. Der Innen-Taupunkt wird aus
   Temperatur + Feuchte jedes Geräts berechnet (Magnus-Formel).
 
+## Home Assistant: Add-on-Profil
+
+Mit `HA_DISCOVERY_PROFILE=addon` stellt die lokale Bridge die Geräte in Home Assistant genau so
+bereit wie das Add-on **Ambientika MQTT Bridge**: gleiche Discovery-Topics und `unique_id`s,
+gleiches State-Topic `ambientika/<Seriennr>/state` mit denselben Schlüsseln und Werten (`Smart`,
+`AwayHome`, `ManualHeatRecovery`, `Intake` …, `Low` / `Medium` / `High`), gleiche Befehls-Topics
+`ambientika/<Seriennr>/set/<Attribut>` und der Filter-Reset-Knopf. Home Assistant behält die
+Entitäts-IDs; Automationen, Skripte und Dashboards aus dem Add-on laufen nach dem Wechsel in den
+lokalen Betrieb unverändert weiter.
+
+1. Add-on stoppen — an einem Broker läuft entweder das Add-on oder die lokale Bridge.
+2. `MQTT_BROKER` / `MQTT_PORT` / `MQTT_USER` / `MQTT_PASSWORD` auf den Broker von Home Assistant setzen.
+3. `HA_DISCOVERY_PROFILE=addon` setzen und, damit die Raumnamen bleiben, `ADDON_DEVICE_NAMES={"<SERIENNR>": "<Raum>"}`.
+4. Geräte auf diesen Host umlenken (siehe oben).
+
+Befehle, die innerhalb von 0,8 s für ein Gerät eintreffen, gehen als ein Befehl an das Gerät.
+Unterschiede zum Add-on: ein gekoppelter Slave zeigt seinen eigenen Betriebsmodus (das Add-on den
+seines Masters); „Failed Polls“ zählt Verbindungsabbrüche des Geräts; NeuraCell-X nutzt die
+Eingänge der lokalen Bridge (`ambientika/radon/…`, `ambientika/dewpoint/block`,
+`ambientika/weather`) und meldet seinen Zustand für Home Assistant auf
+`ambientika/neuracell/addon_state`; der Diagnosesensor „Filter Reset Status“ entfällt.
+
 ## Konfiguration (env)
 
 | Var | Standard | Bedeutung |
@@ -136,6 +158,11 @@ Lüften eindeutig erlauben. Offene Wiederherstellungen stehen in `pendingRestore
 | `STATE_FILE` | — | Datei für Ausgangswerte / ausstehende Wiederherstellungen (Compose: `/data/local_bridge_state.json`); leer = nur im Speicher |
 | `PENDING_RESTORE_TTL` | `86400` | wie lange ein bei der Freigabe offline gewesenes Gerät noch zurückgesetzt wird (s) |
 | `HA_DISCOVERY` | `false` | Home Assistant Discovery veröffentlichen (von der App nicht benötigt) |
+| `HA_DISCOVERY_PROFILE` | `local` | `addon`: Entitäten, Werte und Befehle des Home-Assistant-Add-ons (schaltet Discovery ein) |
+| `ADDON_DEVICE_NAMES` | *(leer)* | Gerätenamen für das Add-on-Profil, JSON `{"<SERIENNR>": "<Name>"}` |
+| `DISCOVERY_PREFIX` | `homeassistant` | Discovery-Präfix von Home Assistant |
+| `AVERAGE_WINDOW_MIN` | `30` | Fenster der gemittelten Temperatur / Feuchte (Minuten) |
+| `MQTT_USER` / `MQTT_PASSWORD` | — | Broker-Anmeldung |
 
 ## Qualitätssicherung
 
@@ -166,8 +193,8 @@ Lüften eindeutig erlauben. Offene Wiederherstellungen stehen in `pendingRestore
   fehlerhafte `weather`-Payloads werden abgelehnt; Reconnect erhält den
   Gerätezustand; Radon-/Wetter-Eingaben, die älter als `NC_INPUT_TTL` sind, werden
   als unbekannt behandelt; MQTT Last-Will + sauberes Herunterfahren.
-- ✅ Regressions-Suite: **156 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
-  `test_integration.py`, `test_newfindings.py`).
+- ✅ Regressions-Suite: **220 Unit-/Integrationstests** (`test_bridge.py`, `test_safety_fixes.py`,
+  `test_integration.py`, `test_newfindings.py`, `test_addon_profile.py`).
 - ✅ Vollständig end-to-end über einen **echten MQTT-Broker** mit einem simulierten
   Gerät (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): Status + Befehl + Zeitplan +
   Radon-Schutz/-Unterdrückung/-Wiederherstellung + Taupunkt + Framing-Resync +

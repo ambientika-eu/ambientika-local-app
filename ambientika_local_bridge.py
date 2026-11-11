@@ -567,6 +567,303 @@ class Device:
     send_lock: asyncio.Lock = field(default_factory=asyncio.Lock)
 
 
+# ---------------------------------------------------------------------------
+# Home Assistant: add-on profile  (HA_DISCOVERY_PROFILE=addon)
+# ---------------------------------------------------------------------------
+# With this profile the local bridge offers the units to Home Assistant the same
+# way the Ambientika MQTT Bridge add-on does: same discovery config topics and
+# unique_ids, same state topic and JSON keys, same value names (operating mode
+# Smart / AwayHome / ManualHeatRecovery / Intake ..., fan speed Low / Medium /
+# High) and the same per-attribute command topics. Home Assistant binds entity
+# IDs to the unique_id, so automations, scripts and dashboards made with the
+# add-on keep working when an installation moves to local operation.
+# One broker carries either the add-on or this bridge, never both at once.
+ADDON_MODE_NAMES = {
+    0: "Smart", 1: "Auto", 2: "ManualHeatRecovery", 3: "Night", 4: "AwayHome",
+    5: "Surveillance", 6: "TimedExpulsion", 7: "Expulsion", 8: "Intake",
+    9: "MasterSlaveFlow", 10: "SlaveMasterFlow", 11: "Off",
+}
+ADDON_FAN_NAMES = {0: "Low", 1: "Medium", 2: "High", 3: "Night"}
+#: Select options exactly as the add-on lists them (Night/Turbo are reported by
+#: the unit itself and shown, but written as the nearest regular level).
+ADDON_FAN_OPTIONS = ("Low", "Medium", "High", "Night", "Turbo")
+ADDON_FAN_WRITE = {"LOW": 0, "MEDIUM": 1, "HIGH": 2, "NIGHT": 0, "TURBO": 2}
+ADDON_HUMIDITY_NAMES = {0: "Dry", 1: "Normal", 2: "Moist"}
+ADDON_LIGHT_NAMES = {0: "NotAvailable", 1: "Off", 2: "Low", 3: "Medium"}
+ADDON_AIR_QUALITY = {0: "VeryGood", 1: "Good", 2: "Medium", 3: "Poor", 4: "Bad"}
+ADDON_FILTER_NAMES = {0: "Good", 1: "Medium", 2: "Bad"}
+ADDON_ROLE_NAMES = {0: "Master", 1: "SlaveEqualMaster", 2: "SlaveOppositeMaster"}
+_REV_ADDON_MODE = {v.upper(): k for k, v in ADDON_MODE_NAMES.items()}
+_REV_ADDON_HUM = {v.upper(): k for k, v in ADDON_HUMIDITY_NAMES.items()}
+_REV_ADDON_LIGHT = {v.upper(): k for k, v in ADDON_LIGHT_NAMES.items()}
+#: Commands for one unit arriving within this time are sent as one frame (an
+#: automation setting mode and fan speed one after the other).
+ADDON_COALESCE_S = 0.8
+#: A sent state is the base for the next command until the unit reports it, at
+#: most this long - so a second command cannot undo the first one.
+ADDON_OVERLAY_S = 30.0
+#: "Last Status Packet" moves at most this often (one recorder row each time);
+#: the start and the end of an outage are always published at once.
+ADDON_DIAG_MIN_S = 30.0
+#: After (re)publishing the NeuraCell-X entities, the local NeuraCell state topic
+#: waits this long, so Home Assistant has moved the entities to their own topic
+#: before the local format appears where the add-on's entities used to listen.
+ADDON_NC_HOLD_S = 3.0
+
+
+def _addon_name(table: dict, code) -> str:
+    return table.get(code, f"Unknown_{code}")
+
+
+def addon_fields_from_frame(buf: bytes) -> dict:
+    """Fields of one unit in the add-on vocabulary, decoded from the status frame.
+
+    Keys and value names follow the add-on's state topic; the averaged values and
+    the zone are added by the bridge."""
+    n = len(buf)
+    if n not in (STATUS_LEN_LEGACY, STATUS_LEN_MODERN):
+        raise ValueError(f"unsupported status frame length: {n}")
+    mode, speed, hum_lvl = buf[8], buf[9], buf[10]
+    aq_raw, fs, last = buf[13], buf[15], buf[18]
+    aq_class = None if aq_raw <= 0 else min(aq_raw - 1, 4)
+    light = buf[OFF_LIGHT_SENSOR] if n >= STATUS_LEN_MODERN else 0   # legacy: no sensor
+    mode_name = _addon_name(ADDON_MODE_NAMES, mode)
+    fs_name = _addon_name(ADDON_FILTER_NAMES, fs)
+    fs_num = fs if fs in ADDON_FILTER_NAMES else None
+    return {
+        "operating_mode": mode_name,
+        "operating_mode_raw": mode_name,
+        "fan_speed": _addon_name(ADDON_FAN_NAMES, speed),
+        "humidity_level": _addon_name(ADDON_HUMIDITY_NAMES, hum_lvl),
+        "light_sensor_level": _addon_name(ADDON_LIGHT_NAMES, light),
+        "temperature": _s8(buf[11]),
+        "humidity": buf[12],
+        "air_quality": None if aq_class is None else ADDON_AIR_QUALITY[aq_class],
+        "humidity_alarm": bool(buf[14]),
+        "filters_status": fs_name,
+        "filters_status_raw": fs_name,
+        "filter_ack_since": None,
+        "filter_ack_until": None,
+        "night_alarm": bool(buf[16]),
+        "device_role": _addon_name(ADDON_ROLE_NAMES, buf[OFF_DEVICE_ROLE]),
+        "last_operating_mode": _addon_name(ADDON_MODE_NAMES, last),
+        "operating_mode_num": mode if mode in ADDON_MODE_NAMES else None,
+        "operating_mode_raw_num": mode if mode in ADDON_MODE_NAMES else None,
+        "last_operating_mode_num": last if last in ADDON_MODE_NAMES else None,
+        "fan_speed_num": speed + 1 if speed in ADDON_FAN_NAMES else None,
+        "humidity_level_num": hum_lvl if hum_lvl in ADDON_HUMIDITY_NAMES else None,
+        "light_sensor_level_num": light if light in ADDON_LIGHT_NAMES else None,
+        "air_quality_num": None if aq_class is None else 4 - aq_class,
+        "filter_status_num": fs_num,
+        "filter_status_raw_num": fs_num,
+    }
+
+
+def parse_addon_command(attr: str, raw: str) -> Optional[dict]:
+    """Payload of an add-on command topic (`<prefix>/<serial>/set/<attr>`) as a
+    bridge command, or None if it cannot be read. Wire names are used for the fan
+    speed (a bare number would be read as a percentage)."""
+    v = (raw or "").strip().strip('"').strip()
+    if not v:
+        return None
+    key = v.upper()
+    if attr == "reset_filter":
+        return {"resetFilter": True}
+    if attr == "operating_mode":
+        code = _REV_ADDON_MODE.get(key, _REV_MODE.get(key))
+        if code is None and v.isdecimal() and v.isascii():
+            code = int(v)
+        return {"mode": code} if code in VALID_MODE_CODES else None
+    if attr == "fan_speed":
+        level = ADDON_FAN_WRITE.get(key)
+        return None if level is None else {"fanSpeed": FAN_SPEED[level]}
+    if attr == "humidity_level":
+        code = _REV_ADDON_HUM.get(key, _REV_HUM.get(key))
+        return None if code is None else {"humidityLevel": HUMIDITY_LEVEL[code]}
+    if attr == "light_sensor_level":
+        code = _REV_ADDON_LIGHT.get(key, _REV_LIGHT.get(key))
+        return None if code is None else {"lightSensor": LIGHT_SENS[code]}
+    return None
+
+
+def addon_discovery_configs(prefix: str, base: str, serial: str, device_name: str) -> list:
+    """Discovery configs of one unit with the add-on's topics and unique_ids."""
+    device_info = {
+        "identifiers": [serial],
+        "name": device_name,
+        "manufacturer": "Ambientika / SUEDWIND",
+        "model": "Smart Ventilation Unit",
+    }
+    avail = f"{prefix}/{serial}/availability"
+    state = f"{prefix}/{serial}/state"
+    entities = []
+    sensor_defs = [
+        ("temperature", "Temperature", "°C", "temperature", None),
+        ("humidity", "Humidity", "%", "humidity", None),
+        ("temperature_avg", "Temperature (averaged)", "°C", "temperature", None),
+        ("humidity_avg", "Humidity (averaged)", "%", "humidity", None),
+        ("air_quality", "Air Quality", None, None, "mdi:air-filter"),
+        ("filters_status", "Filter Status", None, None, "mdi:air-filter"),
+        ("filters_status_raw", "Filter Status raw", None, None, "mdi:air-filter"),
+        ("operating_mode", "Mode", None, None, "mdi:fan"),
+        ("operating_mode_raw", "Mode raw", None, None, "mdi:fan"),
+        ("fan_speed", "Fan Speed", None, None, "mdi:speedometer"),
+        ("humidity_level", "Humidity Level", None, None, "mdi:water-percent"),
+        ("light_sensor_level", "Light Sensor Level", None, None, "mdi:brightness-5"),
+        ("device_role", "Device Role", None, None, "mdi:information"),
+        ("last_operating_mode", "Last Mode", None, None, "mdi:fan-clock"),
+        ("zone_index", "Zone", None, None, "mdi:home-group"),
+    ]
+    measurement = {"temperature", "humidity", "temperature_avg", "humidity_avg"}
+    for key, name, unit, dc, icon in sensor_defs:
+        p = {"name": name, "unique_id": f"ambientika_{serial}_{key}",
+             "state_topic": state, "value_template": f"{{{{ value_json.{key} }}}}",
+             "availability_topic": avail, "device": device_info}
+        if key in measurement:
+            p["state_class"] = "measurement"
+        if unit:
+            p["unit_of_measurement"] = unit
+        if dc:
+            p["device_class"] = dc
+        if icon:
+            p["icon"] = icon
+        entities.append((f"{base}/sensor/{serial}_{key}/config", p))
+    for key, name in (
+            ("air_quality_num", "Air Quality (num)"),
+            ("filter_status_num", "Filter Status (num)"),
+            ("filter_status_raw_num", "Filter Status raw (num)"),
+            ("operating_mode_num", "Mode (num)"),
+            ("operating_mode_raw_num", "Mode raw (num)"),
+            ("last_operating_mode_num", "Last Mode (num)"),
+            ("fan_speed_num", "Fan Speed (num)"),
+            ("humidity_level_num", "Humidity Level (num)"),
+            ("light_sensor_level_num", "Light Sensor Level (num)")):
+        entities.append((f"{base}/sensor/{serial}_{key}/config", {
+            "name": name, "unique_id": f"ambientika_{serial}_{key}",
+            "state_topic": state, "value_template": f"{{{{ value_json.{key} }}}}",
+            "availability_topic": avail, "device": device_info,
+            "state_class": "measurement"}))
+    for key, name, dc in (("humidity_alarm", "Humidity Alarm", "moisture"),
+                          ("night_alarm", "Night Alarm", "problem")):
+        entities.append((f"{base}/binary_sensor/{serial}_{key}/config", {
+            "name": name, "unique_id": f"ambientika_{serial}_{key}",
+            "state_topic": state, "value_template": f"{{{{ value_json.{key} }}}}",
+            "payload_on": "True", "payload_off": "False",
+            "availability_topic": avail, "device": device_info, "device_class": dc}))
+    for key, name, opts, icon in (
+            ("operating_mode", "Mode", list(ADDON_MODE_NAMES.values()), "mdi:fan"),
+            ("fan_speed", "Fan Speed", list(ADDON_FAN_OPTIONS), "mdi:speedometer"),
+            ("humidity_level", "Humidity Level", list(ADDON_HUMIDITY_NAMES.values()),
+             "mdi:water-percent"),
+            ("light_sensor_level", "Light Sensor Level", list(ADDON_LIGHT_NAMES.values()),
+             "mdi:brightness-5")):
+        entities.append((f"{base}/select/{serial}_{key}/config", {
+            "name": name, "unique_id": f"ambientika_{serial}_{key}_select",
+            "state_topic": state, "value_template": f"{{{{ value_json.{key} }}}}",
+            "command_topic": f"{prefix}/{serial}/set/{key}", "options": opts,
+            "availability_topic": avail, "device": device_info, "icon": icon}))
+    entities.append((f"{base}/button/{serial}_reset_filter/config", {
+        "name": "Filter zuruecksetzen", "unique_id": f"ambientika_{serial}_reset_filter",
+        "command_topic": f"{prefix}/{serial}/set/reset_filter", "payload_press": "PRESS",
+        "availability_topic": avail, "device": device_info, "icon": "mdi:air-filter"}))
+    diag = f"{prefix}/{serial}/diagnostics"
+    bridge_avail = f"{prefix}/bridge/availability"
+    entities.append((f"{base}/sensor/{serial}_last_status/config", {
+        "name": "Last Status Packet", "unique_id": f"ambientika_{serial}_last_status",
+        "state_topic": diag,
+        "value_template": "{{ value_json.last_status | default('None', true) }}",
+        "availability_topic": bridge_avail, "device": device_info,
+        "device_class": "timestamp", "icon": "mdi:clock-check-outline",
+        "entity_category": "diagnostic"}))
+    entities.append((f"{base}/sensor/{serial}_poll_failures/config", {
+        "name": "Failed Polls", "unique_id": f"ambientika_{serial}_poll_failures",
+        "state_topic": diag, "value_template": "{{ value_json.poll_failures_total }}",
+        "json_attributes_topic": diag,
+        "json_attributes_template": (
+            "{{ {'consecutive_failures': value_json.poll_failures_consecutive,"
+            " 'last_failure': value_json.last_failure,"
+            " 'last_failure_reason': value_json.last_failure_reason,"
+            " 'last_outage_start': value_json.last_outage_start,"
+            " 'last_outage_end': value_json.last_outage_end,"
+            " 'last_outage_polls': value_json.last_outage_polls,"
+            " 'counting_since': value_json.bridge_started} | tojson }}"),
+        "availability_topic": bridge_avail, "device": device_info,
+        "state_class": "total_increasing", "icon": "mdi:cloud-alert-outline",
+        "entity_category": "diagnostic"}))
+    return entities
+
+
+def addon_neuracell_discovery(prefix: str, base: str) -> list:
+    """NeuraCell-X entities with the add-on's unique_ids, fed from their own state
+    topic (the local NeuraCell state topic keeps the local app's format)."""
+    state = f"{prefix}/neuracell/addon_state"
+    avail = f"{prefix}/bridge/availability"
+    dev = {"identifiers": ["neuracell_x"], "name": "NeuraCell-X",
+           "manufacturer": "Ambientika / SUEDWIND",
+           "model": "NeuraCell-X AI Neural Control System"}
+    rows = [
+        ("binary_sensor", "neuracell_radon_protection", "Radon Protection Active",
+         "neuracell_radon_protection_active", "radon_protection",
+         {"device_class": "safety", "icon": "mdi:shield-home"}),
+        ("sensor", "neuracell_radon_level", "Radon Level", "neuracell_radon_level",
+         "radon", {"unit_of_measurement": "Bq/m³", "icon": "mdi:radioactive"}),
+        ("binary_sensor", "neuracell_radon_meter_connected", "Radon Meter Connected",
+         "neuracell_radon_meter_connected", "radon_meter_connected",
+         {"device_class": "connectivity", "icon": "mdi:access-point-network"}),
+        ("binary_sensor", "neuracell_dewpoint_controller_connected",
+         "Dew Point Controller Connected", "neuracell_dewpoint_controller_connected",
+         "dewpoint_controller_connected",
+         {"device_class": "connectivity", "icon": "mdi:access-point-network"}),
+        ("binary_sensor", "neuracell_dewpoint_block", "Ventilation Blocked (Dew Point)",
+         "neuracell_dewpoint_block", "dewpoint_block",
+         {"device_class": "moisture", "icon": "mdi:water-off"}),
+        ("binary_sensor", "neuracell_dewpoint_fallback", "Fallback Ventilation Active",
+         "neuracell_dewpoint_fallback", "dewpoint_fallback | default(false)",
+         {"device_class": "problem", "icon": "mdi:fan-alert"}),
+        ("sensor", "neuracell_dewpoint_indoor", "Dew Point Indoor",
+         "neuracell_dewpoint_indoor", "indoor_dew_point",
+         {"unit_of_measurement": "°C", "icon": "mdi:thermometer-water"}),
+        ("sensor", "neuracell_dewpoint_outdoor", "Dew Point Outdoor",
+         "neuracell_dewpoint_outdoor", "outdoor_dew_point",
+         {"unit_of_measurement": "°C", "icon": "mdi:thermometer-water"}),
+    ]
+    out = []
+    for comp, obj, name, uid, field_, extra in rows:
+        p = {"name": name, "unique_id": uid, "state_topic": state,
+             "value_template": f"{{{{ value_json.{field_} }}}}"}
+        if comp == "binary_sensor":
+            p.update({"payload_on": "True", "payload_off": "False"})
+        p.update(extra)
+        p.update({"device": dev, "availability_topic": avail})
+        out.append((f"{base}/{comp}/{obj}/config", p))
+    return out
+
+
+def addon_bridge_discovery(prefix: str, base: str) -> list:
+    return [(f"{base}/binary_sensor/{prefix}_bridge/config", {
+        "name": "Ambientika Bridge", "unique_id": f"ambientika_{prefix}_bridge_online",
+        "state_topic": f"{prefix}/bridge/availability",
+        "payload_on": "online", "payload_off": "offline", "device_class": "connectivity",
+        "device": {"identifiers": [f"{prefix}_bridge"], "name": "Ambientika MQTT Bridge",
+                   "manufacturer": "Ambientika / SUEDWIND", "model": "MQTT Bridge"}})]
+
+
+def parse_device_names(raw) -> dict:
+    """ADDON_DEVICE_NAMES: JSON {"<SERIAL>": "<name>"}; anything unreadable -> {}."""
+    if not raw:
+        return {}
+    try:
+        data = json.loads(raw)
+    except Exception:  # noqa: BLE001
+        log.error("ADDON_DEVICE_NAMES is not valid JSON - device names not used")
+        return {}
+    if not isinstance(data, dict):
+        log.error("ADDON_DEVICE_NAMES must be a JSON object - device names not used")
+        return {}
+    return {str(k).strip().upper().replace(":", ""): str(v).strip()
+            for k, v in data.items() if str(v).strip()}
+
+
 def _envf(name, default):
     try:
         return float(os.getenv(name, default))
@@ -584,6 +881,13 @@ class Config:
     mqtt_pass: str = os.getenv("MQTT_PASSWORD", "")
     mqtt_prefix: str = os.getenv("MQTT_PREFIX", "ambientika")
     ha_discovery: bool = os.getenv("HA_DISCOVERY", "false").lower() == "true"
+    # "local" (default): compact discovery of this bridge. "addon": entities,
+    # topics and values of the Home Assistant add-on (discovery switched on).
+    ha_discovery_profile: str = os.getenv("HA_DISCOVERY_PROFILE", "local").strip().lower()
+    discovery_prefix: str = os.getenv("DISCOVERY_PREFIX", "homeassistant")
+    addon_device_names: dict = field(
+        default_factory=lambda: parse_device_names(os.getenv("ADDON_DEVICE_NAMES", "")))
+    average_window_min: float = _envf("AVERAGE_WINDOW_MIN", "30")
     setup_role: int = int(os.getenv("DEVICE_ROLE", "0"))
     setup_zone: int = int(os.getenv("DEVICE_ZONE", "0"))
     setup_house: int = int(os.getenv("HOUSE_ID", "1"))
@@ -678,6 +982,27 @@ class LocalBridge:
         #   "dew_manual"   cleared by ambientika/dewpoint/block
         # (the automatic dew-point latch itself is saved and restored)
         self._holds: dict[str, float] = {}
+        # Add-on profile (HA_DISCOVERY_PROFILE=addon)
+        if cfg.ha_discovery_profile not in ("local", "addon"):
+            log.error("HA_DISCOVERY_PROFILE %r unknown -> local", cfg.ha_discovery_profile)
+            cfg.ha_discovery_profile = "local"
+        self.addon = cfg.ha_discovery_profile == "addon"
+        if self.addon:
+            cfg.ha_discovery = True
+        self._addon_pending: dict[str, dict] = {}       # serial -> merged command
+        self._addon_flush: dict[str, asyncio.Task] = {}
+        self._addon_sent: dict[str, dict] = {}          # serial -> {"codes", "at"}
+        self._addon_last_speed: dict[str, int] = {}     # last regular level 0..2
+        self._addon_last_light: dict[str, int] = {}     # last light level while not Off
+        self._addon_samples: dict[str, list] = {}       # serial -> [(mono, temp, hum)]
+        self._addon_diag: dict[str, dict] = {}
+        self._addon_diag_at: dict[str, float] = {}     # serial -> mono of last publish
+        self._addon_disc: set = set()                   # serials with discovery sent
+        self._addon_nc_json: Optional[str] = None
+        self._nc_hold_until = float("inf") if self.addon else 0.0
+        self._nc_deferred: Optional[str] = None
+        self._nc_deferred_due = False
+        self._started_iso = self._iso_now()
         self._load_state()
 
     def _make_mqtt_client(self):
@@ -700,6 +1025,9 @@ class LocalBridge:
                          _properties=None, *_args):
         log.info("MQTT connected rc=%s", reason_code)
         p = self.cfg.mqtt_prefix
+        # After a reconnect the broker may have published the last will (offline)
+        # or lost its retained data - announce the bridge again on every connect.
+        client.publish(f"{p}/bridge/availability", "online", retain=True)
         client.subscribe(f"{p}/+/set")
         client.subscribe(f"{p}/+/schedule/set")
         client.subscribe(f"{p}/+/schedule/+/set")
@@ -707,6 +1035,13 @@ class LocalBridge:
         client.subscribe(f"{p}/radon/value")
         client.subscribe(f"{p}/dewpoint/block")
         client.subscribe(f"{p}/weather")
+        if self.addon:
+            client.subscribe(f"{p}/+/set/+")
+            # bridge state is touched on the asyncio thread only
+            if self.loop:
+                self.loop.call_soon_threadsafe(self._publish_addon_static)
+            else:
+                self._publish_addon_static()
 
     def _on_mqtt_message(self, _client, _userdata, msg):
         # Runs on the paho network thread: do NOTHING here except marshal the
@@ -724,6 +1059,11 @@ class LocalBridge:
             # reserved control topics: {prefix}/radon|dewpoint|weather/...
             if len(parts) >= 2 and parts[1] in ("radon", "dewpoint", "weather"):
                 go(self._handle_control(parts, raw))
+                return
+            # add-on command topic: {prefix}/<serial>/set/<attribute>
+            if len(parts) == 4 and parts[2] == "set":
+                if self.addon:
+                    go(self._handle_addon_command(parts[1], parts[3], raw))
                 return
             try:
                 payload = json.loads(raw or "{}")
@@ -1303,11 +1643,36 @@ class LocalBridge:
         }
         if self.pending_restore:
             state["pendingRestore"] = sorted(self.pending_restore)
+        if self.addon:
+            self._publish_addon_neuracell(radon, dew, indoor_dp, outdoor_dp)
         js = json.dumps(state, sort_keys=True)
         if js == self._last_nc_json:            # publish only on real change
+            self._nc_deferred = None
+            return
+        wait = self._nc_hold_until - self.mono_fn()
+        if wait > 0:                            # add-on profile: entities still moving
+            self._nc_deferred = js
+            if not self._nc_deferred_due and self.loop and wait != float("inf"):
+                self._nc_deferred_due = True
+                self.loop.call_later(wait + 0.05, self._publish_nc_deferred)
             return
         self._last_nc_json = js
         self.mqtt.publish(f"{self.cfg.mqtt_prefix}/neuracell/state", js, retain=True)
+
+    def _publish_nc_deferred(self):
+        self._nc_deferred_due = False
+        js, self._nc_deferred = self._nc_deferred, None
+        if js is None:
+            return
+        if self.mono_fn() < self._nc_hold_until:   # hold renewed by a reconnect
+            self._nc_deferred = js
+            self._nc_deferred_due = True
+            self.loop.call_later(self._nc_hold_until - self.mono_fn() + 0.05,
+                                 self._publish_nc_deferred)
+            return
+        if js != self._last_nc_json:
+            self._last_nc_json = js
+            self.mqtt.publish(f"{self.cfg.mqtt_prefix}/neuracell/state", js, retain=True)
 
     async def _neuracell_loop(self):
         while True:
@@ -1329,6 +1694,9 @@ class LocalBridge:
 
     def _publish_discovery(self, serial: str):
         if not self.cfg.ha_discovery:
+            return
+        if self.addon:
+            self._publish_addon_discovery(serial)
             return
         dev_obj = {
             "identifiers": [f"ambientika_{serial}"],
@@ -1370,6 +1738,183 @@ class LocalBridge:
         cfg("binary_sensor", "filter", {
             "name": "Filter alarm", "state_topic": st, "device_class": "problem",
             "value_template": "{{ 'ON' if value_json.filterAlarm else 'OFF' }}"})
+
+    # ---- Home Assistant: add-on profile -------------------------------------
+    def _iso_now(self) -> str:
+        return _dt.datetime.fromtimestamp(self.wall_fn(), tz=_dt.timezone.utc).isoformat(
+            timespec="seconds")
+
+    def _addon_device_name(self, serial: str) -> str:
+        return self.cfg.addon_device_names.get(serial, f"Ambientika {serial}")
+
+    def _publish_addon_static(self):
+        """Bridge and NeuraCell-X entities (retained, once per broker connection)."""
+        p, base = self.cfg.mqtt_prefix, self.cfg.discovery_prefix
+        configs = addon_bridge_discovery(p, base)
+        if self.cfg.neuracell_enabled:
+            configs += addon_neuracell_discovery(p, base)
+        for topic, payload in configs:
+            self.mqtt.publish(topic, json.dumps(payload), retain=True)
+        self._addon_disc.clear()            # units again with their next status
+        self._addon_nc_json = None
+        self._nc_hold_until = self.mono_fn() + ADDON_NC_HOLD_S
+
+    def _publish_addon_discovery(self, serial: str):
+        for topic, payload in addon_discovery_configs(
+                self.cfg.mqtt_prefix, self.cfg.discovery_prefix, serial,
+                self._addon_device_name(serial)):
+            self.mqtt.publish(topic, json.dumps(payload), retain=True)
+        self._addon_disc.add(serial)
+
+    def _addon_averages(self, serial: str, temp, hum) -> tuple:
+        now = self.mono_fn()
+        window = max(1.0, self.cfg.average_window_min) * 60.0
+        rows = [r for r in self._addon_samples.get(serial, []) if now - r[0] <= window]
+        rows.append((now, temp, hum))
+        self._addon_samples[serial] = rows
+        return (round(sum(r[1] for r in rows) / len(rows), 1),
+                round(sum(r[2] for r in rows) / len(rows), 1))
+
+    def _addon_zone(self, serial: str):
+        t = self.cfg.setup_devices.get(serial)
+        return getattr(t, "zone", None) if t is not None else None
+
+    def _publish_addon_diag(self, serial: str):
+        d = self._addon_diag.setdefault(serial, {
+            "last_status": None, "poll_failures_total": 0, "poll_failures_consecutive": 0,
+            "last_failure": None, "last_failure_reason": None, "last_outage_start": None,
+            "last_outage_end": None, "last_outage_polls": None})
+        d["bridge_started"] = self._started_iso
+        self._addon_diag_at[serial] = self.mono_fn()
+        self.mqtt.publish(f"{self.cfg.mqtt_prefix}/{serial}/diagnostics",
+                          json.dumps(d), retain=True)
+
+    def _publish_addon_state(self, dev: Device, frame: bytes):
+        try:
+            data = addon_fields_from_frame(frame)
+        except ValueError as exc:
+            log.warning("add-on state for %s not published: %s", dev.serial, exc)
+            return
+        if dev.serial not in self._addon_disc:
+            self._publish_addon_discovery(dev.serial)
+        data["temperature_avg"], data["humidity_avg"] = self._addon_averages(
+            dev.serial, data["temperature"], data["humidity"])
+        data["zone_index"] = self._addon_zone(dev.serial)
+        speed = dev.raw_codes.get("speed")
+        if speed in (0, 1, 2):
+            self._addon_last_speed[dev.serial] = speed
+        light = dev.raw_codes.get("light")
+        if dev.raw_codes.get("mode") != MODE_OFF and light in VALID_LIGHT_CODES:
+            self._addon_last_light[dev.serial] = light      # an Off unit reports a default
+        sent = self._addon_sent.get(dev.serial)
+        if sent and all(dev.raw_codes.get(k) == v for k, v in sent["codes"].items()
+                        if k in ("mode", "speed")):
+            self._addon_sent.pop(dev.serial, None)          # the unit reports it: done
+        self.mqtt.publish(f"{self.cfg.mqtt_prefix}/{dev.serial}/state",
+                          json.dumps(data), retain=True)
+        diag = self._addon_diag.get(dev.serial)
+        now = self._iso_now()
+        first = diag is None
+        if first:
+            self._publish_addon_diag(dev.serial)
+            diag = self._addon_diag[dev.serial]
+        diag["last_status"] = now
+        outage_over = bool(diag["poll_failures_consecutive"])
+        if outage_over:
+            diag["poll_failures_consecutive"] = 0
+            diag["last_outage_end"] = now
+        last = self._addon_diag_at.get(dev.serial)
+        if first or outage_over or last is None or self.mono_fn() - last >= ADDON_DIAG_MIN_S:
+            self._publish_addon_diag(dev.serial)
+
+    def _addon_note_disconnect(self, serial: str):
+        """A lost unit connection counts as a failed poll (local equivalent)."""
+        self._publish_addon_diag(serial)                    # make sure the record exists
+        d = self._addon_diag[serial]
+        now = self._iso_now()
+        d["poll_failures_total"] += 1
+        d["poll_failures_consecutive"] += 1
+        d["last_failure"] = now
+        d["last_failure_reason"] = "connection closed"
+        if d["poll_failures_consecutive"] == 1:
+            d["last_outage_start"] = now
+            d["last_outage_end"] = None
+        self._publish_addon_diag(serial)
+
+    def _publish_addon_neuracell(self, radon: bool, dew: bool, indoor_dp, outdoor_dp):
+        state = {
+            "radon_protection": bool(radon),
+            "radon": self.nc_radon_value,
+            "radon_meter_connected": (self._fresh(self.nc_radon_ts)
+                                      if self.nc_radon_ts is not None else None),
+            "dewpoint_controller_connected": None,          # no dew-point controller link
+            "dewpoint_block": bool(dew and not radon),
+            "dewpoint_fallback": False,
+            "indoor_dew_point": round(indoor_dp, 1) if indoor_dp is not None else None,
+            "outdoor_dew_point": round(outdoor_dp, 1) if outdoor_dp is not None else None,
+        }
+        js = json.dumps(state, sort_keys=True)
+        if js == self._addon_nc_json:
+            return
+        self._addon_nc_json = js
+        self.mqtt.publish(f"{self.cfg.mqtt_prefix}/neuracell/addon_state", js, retain=True)
+
+    async def _handle_addon_command(self, serial: str, attr: str, raw: str):
+        cmd = parse_addon_command(attr, raw)
+        if cmd is None:
+            log.warning("add-on command %s=%r for %s not understood - ignored",
+                        attr, raw, serial)
+            return
+        if cmd.get("resetFilter"):
+            await self._handle_command(serial, cmd)
+            return
+        if attr == "fan_speed" and (raw or "").strip().strip('"').upper() in ("NIGHT", "TURBO"):
+            log.warning("fan speed %r for %s is set by the unit itself - sending %s instead",
+                        raw, serial, cmd["fanSpeed"])
+        self._addon_pending.setdefault(serial, {}).update(cmd)
+        task = self._addon_flush.get(serial)
+        if task is None or task.done():
+            self._addon_flush[serial] = asyncio.create_task(self._addon_flush_later(serial))
+
+    async def _addon_flush_later(self, serial: str):
+        await asyncio.sleep(ADDON_COALESCE_S)
+        cmd = self._addon_pending.pop(serial, None)
+        if not cmd:
+            return
+        dev = self.devices.get(serial)
+        payload = self._addon_full_payload(dev, cmd) if dev else cmd
+        sendable = dev is not None and self.protection == "NONE"
+        await self._handle_command(serial, payload)
+        if sendable:
+            codes = {"mode": mode_to_code(payload.get("mode"), None),
+                     "speed": speed_to_code(payload.get("fanSpeed"), None),
+                     "humidity": _generic_to_code(payload.get("humidityLevel"), _REV_HUM, None),
+                     "light": _generic_to_code(payload.get("lightSensor"), _REV_LIGHT, None)}
+            self._addon_sent[serial] = {"codes": codes, "at": self.mono_fn()}
+
+    def _addon_full_payload(self, dev: Device, cmd: dict) -> dict:
+        """Complete a per-attribute command with the unit's state: the state just
+        sent while the unit has not reported it yet, else its last report. A
+        unit-chosen fan level (Night) is replaced by its last regular level."""
+        base = {k: dev.raw_codes.get(k) for k in ("mode", "speed", "humidity", "light")}
+        if base["mode"] == MODE_OFF and dev.serial in self._addon_last_light:
+            base["light"] = self._addon_last_light[dev.serial]
+        sent = self._addon_sent.get(dev.serial)
+        if sent and self.mono_fn() - sent["at"] < ADDON_OVERLAY_S:
+            base.update({k: v for k, v in sent["codes"].items() if v is not None})
+        out = {}
+        if base["mode"] in VALID_MODE_CODES:
+            out["mode"] = base["mode"]
+        speed = base["speed"]
+        if speed not in (0, 1, 2):
+            speed = self._addon_last_speed.get(dev.serial, FAN_LOW)
+        out["fanSpeed"] = FAN_SPEED[speed]
+        if base["humidity"] in VALID_HUMIDITY_CODES:
+            out["humidityLevel"] = HUMIDITY_LEVEL[base["humidity"]]
+        if base["light"] in VALID_LIGHT_CODES:
+            out["lightSensor"] = LIGHT_SENS[base["light"]]
+        out.update(cmd)
+        return out
 
     # ---- TCP --------------------------------------------------------------
     async def _send(self, dev: Device, frame: bytes) -> bool:
@@ -1485,6 +2030,8 @@ class LocalBridge:
                         else:
                             log.info("no setup for %s: %s", serial, why)
                     self._publish_status(dev)
+                    if self.addon:
+                        self._publish_addon_state(dev, frame)
                     # (re)apply protection on first connect or after a reconnect
                     if self.protection != "NONE" and (first or need_setup):
                         await self._protect_new_device(dev)
@@ -1498,6 +2045,8 @@ class LocalBridge:
                 self._log_unknown(serial, bytes(junk), seen_unknown)
             if serial and self.devices.get(serial) and self.devices[serial].writer is writer:
                 self._publish_offline(serial)
+                if self.addon:
+                    self._addon_note_disconnect(serial)
                 self.devices.pop(serial, None)
                 log.info("device %s disconnected", serial)
             try:

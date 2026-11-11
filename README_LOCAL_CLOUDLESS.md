@@ -114,6 +114,28 @@ normal operation, holds until fresh weather data clearly allows ventilation. Ope
   override works. Indoor dew point is computed from each unit's temp+humidity
   (Magnus formula).
 
+## Home Assistant: add-on profile
+
+With `HA_DISCOVERY_PROFILE=addon` the local bridge offers the units to Home Assistant exactly as
+the **Ambientika MQTT Bridge** add-on does: same discovery topics and `unique_id`s, same state
+topic `ambientika/<serial>/state` with the same keys and values (`Smart`, `AwayHome`,
+`ManualHeatRecovery`, `Intake` …, `Low` / `Medium` / `High`), same command topics
+`ambientika/<serial>/set/<attribute>` and the filter-reset button. Home Assistant keeps the entity
+IDs, so automations, scripts and dashboards built with the add-on keep working after the move to
+local operation.
+
+1. Stop the add-on — one broker carries either the add-on or the local bridge.
+2. Point `MQTT_BROKER` / `MQTT_PORT` / `MQTT_USER` / `MQTT_PASSWORD` at the broker Home Assistant uses.
+3. Set `HA_DISCOVERY_PROFILE=addon` and, to keep the room names, `ADDON_DEVICE_NAMES={"<SERIAL>": "<room>"}`.
+4. Redirect the units to this host (see above).
+
+Commands arriving for one unit within 0.8 s are sent to it as one command. Differences to the
+add-on: a coupled slave shows its own operating mode (the add-on shows its master's); "Failed
+Polls" counts lost unit connections; NeuraCell-X uses the inputs of the local bridge
+(`ambientika/radon/…`, `ambientika/dewpoint/block`, `ambientika/weather`) and publishes its state
+for Home Assistant on `ambientika/neuracell/addon_state`; the diagnostic sensor "Filter Reset
+Status" is not offered.
+
 ## Configuration (env)
 
 | Var | Default | Meaning |
@@ -133,6 +155,11 @@ normal operation, holds until fresh weather data clearly allows ventilation. Ope
 | `STATE_FILE` | — | restore file for baselines / pending restores (compose: `/data/local_bridge_state.json`); empty = memory only |
 | `PENDING_RESTORE_TTL` | `86400` | how long a unit offline at release is still restored (s) |
 | `HA_DISCOVERY` | `false` | publish Home Assistant discovery (not needed by the app) |
+| `HA_DISCOVERY_PROFILE` | `local` | `addon`: entities, values and commands of the Home Assistant add-on (switches discovery on) |
+| `ADDON_DEVICE_NAMES` | *(empty)* | device names for the add-on profile, JSON `{"<SERIAL>": "<name>"}` |
+| `DISCOVERY_PREFIX` | `homeassistant` | Home Assistant discovery prefix |
+| `AVERAGE_WINDOW_MIN` | `30` | window of the averaged temperature / humidity (minutes) |
+| `MQTT_USER` / `MQTT_PASSWORD` | — | broker login |
 
 ## Quality assurance
 
@@ -158,8 +185,8 @@ normal operation, holds until fresh weather data clearly allows ventilation. Ope
 - ✅ Robustness: TCP framing resyncs after a stray byte; malformed `weather`
   payloads rejected; reconnect preserves device state; radon/weather inputs
   older than `NC_INPUT_TTL` treated as unknown; MQTT last-will + clean shutdown.
-- ✅ Regression suite: **156 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
-  `test_integration.py`, `test_newfindings.py`).
+- ✅ Regression suite: **220 unit/integration tests** (`test_bridge.py`, `test_safety_fixes.py`,
+  `test_integration.py`, `test_newfindings.py`, `test_addon_profile.py`).
 - ✅ Full end-to-end through a **real MQTT broker** with a simulated unit
   (`smoke_test.py`, 12/13 — check 8 "offline after shutdown" open): status + command + schedule + radon protect/suppress/
   restore + dew-point + framing resync + shutdown.
