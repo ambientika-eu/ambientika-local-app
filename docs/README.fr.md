@@ -205,4 +205,4 @@ uvicorn main:app --host 0.0.0.0 --port 8080
 
 ## 📄 Licence
 
-Licence MIT – © Ambientika / SUEDWIND
+Licence MIT – © Südwind GmbH (SUEDWIND S.R.L.)
