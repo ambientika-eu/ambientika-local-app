@@ -14,7 +14,7 @@ import pytest
 
 m = importlib.import_module("ambientika_local_bridge")
 
-SER = "3030F9CD6C80"
+SER = "C0D1E2F3A401"
 
 
 class FakeWriter:
@@ -491,7 +491,7 @@ def test_neuracell_add_on_state():
 
 
 def test_device_names_parser():
-    assert m.parse_device_names('{"30:30:f9:cd:6c:80": "Büro"}') == {SER: "Büro"}
+    assert m.parse_device_names('{"c0:d1:e2:f3:a4:01": "Büro"}') == {SER: "Büro"}
     assert m.parse_device_names("not json") == {}
     assert m.parse_device_names('["x"]') == {}
     assert m.parse_device_names("") == {}
