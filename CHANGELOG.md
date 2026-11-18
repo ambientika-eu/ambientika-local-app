@@ -46,7 +46,7 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
   ein aktiver Schutz nach einem Neustart der Bridge aktiv, bis der auslösende Eingang sich wieder
   meldet (Radonwert/manuelles Topic höchstens `NC_INPUT_TTL`); der Taupunkt-Latch wird
   gespeichert.
-- **Setup pro Gerät:** Rolle, Zone und Haus werden nur noch für Geräte geschrieben, die in
+- **Setup pro Gerät:** Rolle, Zone und Haus werden für Geräte geschrieben, die in
   `SETUP_DEVICES` eingetragen sind (Rolle, Zone 0–15 und Haus Pflicht); eine vom Gerät gemeldete
   Master/Slave-Rolle wird nur mit `SETUP_ALLOW_ROLE_CHANGE=true` geändert. Das globale Setup
   steht weiter mit `SEND_SETUP=true` zur Verfügung. Setup-Paket im 15-Byte-Format des Servers.
@@ -65,17 +65,14 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
 
 ### Verbessert
 
-- **PWA aus einem frischen Klon:** `docker compose up` lieferte unter `http://IP:8080` nur die
-  API, weil `./frontend/dist` im Repo nicht existiert und als leeres Verzeichnis eingehängt
-  wurde. Das Backend liefert die PWA jetzt aus `frontend/` aus (ein gebautes `frontend/dist/`
-  hat weiterhin Vorrang), beide Compose-Dateien hängen `./frontend` ein; README-Hinweis
-  korrigiert (`index.html` als Datei öffnen funktioniert nicht, die App spricht die API
-  unter derselben Adresse an).
+- **PWA aus einem frischen Klon:** Das Backend liefert die PWA aus `frontend/` aus (ein
+  gebautes `frontend/dist/` hat weiterhin Vorrang), beide Compose-Dateien hängen `./frontend`
+  ein. `docker compose up` stellt damit unter `http://IP:8080` API und PWA bereit; die App
+  wird über diese Adresse geöffnet und spricht die API unter derselben Adresse an (README).
 - **Free-Cooling-Wächter:** Nach der Bestätigung des Starts ist die Schonfrist erledigt —
-  ein Eingriff des Nutzers mit der nächsten Abfrage wird sofort erkannt, nicht erst nach
-  Ablauf der 180 s ab dem Startbefehl (2 neue Tests).
-- **PWA:** Fehlermeldungen beim Speichern der Wächter-Einstellungen zeigen den Text der API
-  (`detail`) statt des rohen JSON. Service Worker Cache `ambientika-local-v5`, Backend 2.1.1.
+  ein Eingriff des Nutzers wird mit der nächsten Abfrage erkannt (2 neue Tests).
+- **PWA:** Meldungen beim Speichern der Wächter-Einstellungen zeigen den Text der API
+  (`detail`). Service Worker Cache `ambientika-local-v5`, Backend 2.1.1.
 
 ### Hinzugefügt
 
@@ -101,7 +98,7 @@ Alle nennenswerten Änderungen an diesem Repository. Format angelehnt an
 
 ### Geändert
 
-- Tab-Leiste der PWA scrollt auf schmalen Bildschirmen horizontal statt die Seite zu verbreitern.
+- Tab-Leiste der PWA scrollt auf schmalen Bildschirmen horizontal.
 
 - Dokumentation des lokalen Betriebsmodus überarbeitet: klare Einordnung als
   Rückfallebene gegenüber dem Standardmodus (Cloud-Bridge), einheitliche Struktur
@@ -146,8 +143,7 @@ MQTT-Broker: 13/13**, zweimal reproduziert.
 
 - Temperatur und RSSI werden vorzeichenbehaftet dekodiert (z. B. −5 °C, −56 dBm) —
   korrekte Eingangswerte für die Taupunktberechnung.
-- TCP-Framing synchronisiert sich nach einem unerwarteten Byte neu, statt die
-  Verbindung dauerhaft zu blockieren.
+- TCP-Framing synchronisiert sich nach einem unerwarteten Byte neu.
 - Fehlerhafte `weather`-Payloads werden verworfen.
 - Reconnect erhält den Gerätezustand; lediglich `setup_sent` wird zurückgesetzt und
   das Setup einmalig erneut gesendet.
